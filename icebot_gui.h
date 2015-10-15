@@ -2,6 +2,8 @@
 #define ICEBOT_GUI_H
 
 #include <QMainWindow>
+#include <QDebug>
+#include "Point.h"
 
 namespace Ui {
 class ICEbot_GUI;
@@ -13,10 +15,11 @@ class ICEbot_GUI : public QMainWindow
 
 public:
     explicit ICEbot_GUI(QWidget *parent = 0);
-    ~ICEbot_GUI();
+    ~ICEbot_GUI();    
 
 private:
     Ui::ICEbot_GUI *ui;
+
 };
 
 #endif // ICEBOT_GUI_H

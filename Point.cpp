@@ -1,20 +1,18 @@
 #include "Point.h"
 
-Point::Point(double x, double y, double z) {
-                m_x = x;
-                m_y = y;
-                m_z = z;
+Point::Point()
+{
+    m_x = 0.0;
+    m_y = 0.0;
+    m_z = 0.0;
 }
 
-// helper functions - data access
-void Point::setx(double pk) { m_x = pk; }
-void Point::sety(double pk) { m_y = pk; }
-void Point::setz(double pk) { m_z = pk; }
-
-// helper functions - modifiers
-const double Point::getx() const { return m_x; }
-const double Point::gety() const { return m_y; }
-const double Point::getz() const { return m_z; }
+Point::Point(double x, double y, double z)
+{
+    m_x = x;
+    m_y = y;
+    m_z = z;
+}
 
 void Point::update(double px, double py, double pz)
 {
@@ -24,7 +22,7 @@ void Point::update(double px, double py, double pz)
 }
 
 // Distance to another point.  Pythagorean thm.
-double Point::dist(Point other) const
+double Point::dist(const Point other)
 {
     double xd = m_x - other.m_x;
     double yd = m_y - other.m_y;
@@ -33,23 +31,35 @@ double Point::dist(Point other) const
 }
 
 // Add or subtract two points.
-Point Point::operator+(Point b) const
+Point Point::operator+(const Point& rhs)
 {
-    return Point(m_x + b.m_x, m_y + b.m_y, m_z + b.m_z);
+    return Point(m_x + rhs.getx(),
+                 m_y + rhs.gety(),
+                 m_z + rhs.getz());
 }
-Point Point::operator-(Point b) const
+Point Point::operator-(const Point& rhs)
 {
-    return Point(m_x - b.m_x, m_y - b.m_y, m_z - b.m_z);
+    return Point(m_x - rhs.getx(),
+                 m_y - rhs.gety(),
+                 m_z - rhs.getz());
 }
 
-Point Point::operator*(double k) const
+Point Point::operator*(const double k)
 {
     return Point(m_x*k, m_y*k, m_z*k);
 }
 
-Point Point::operator/(double k) const
+Point Point::operator/(const double k)
 {
     return Point(m_x/k, m_y/k, m_z/k);
+}
+
+Point& Point::operator=(const Point& rhs)
+{
+    m_x = rhs.getx();
+    m_y = rhs.gety();
+    m_z = rhs.getz();
+    return *this;
 }
 
 // Move the existing point.

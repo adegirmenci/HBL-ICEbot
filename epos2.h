@@ -3,7 +3,7 @@
 
 #include <QWidget>
 
-#include "Maxon Libs/Definitions.h"
+#include "MaxonLibs/Definitions.h"
 #include <stdio.h>
 #include <Windows.h>
 
