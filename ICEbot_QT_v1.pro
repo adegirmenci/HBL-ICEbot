@@ -16,12 +16,16 @@ SOURCES += main.cpp\
         icebot_gui.cpp \
     epos2.cpp \
     omni.cpp \
-    omnithread.cpp
+    omnithread.cpp \
+    Point.cpp \
+    SharedPoint.cpp
 
 HEADERS  += icebot_gui.h \
     epos2.h \
     omni.h \
-    omnithread.h
+    omnithread.h \
+    Point.h \
+    SharedPoint.h
 
 FORMS    += icebot_gui.ui \
     epos2.ui \
