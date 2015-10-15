@@ -10,11 +10,16 @@
 #include <windows.h>
 #include <conio.h>
 
-#include <HD/hd.h>
-#include <HD/hdDefines.h>
-#include <HD/hdScheduler.h>
-#include <HDU/hduError.h>
-#include <HDU/hduVector.h>
+//#include <HD/hd.h>
+//#include <HD/hdDefines.h>
+//#include <HD/hdScheduler.h>
+//#include <HDU/hduError.h>
+//#include <HDU/hduVector.h>
+#include <hd.h>
+#include <hdDefines.h>
+#include <hdScheduler.h>
+#include <hduError.h>
+#include <hduVector.h>
 
 /* Holds data retrieved from HDAPI. */
 typedef struct

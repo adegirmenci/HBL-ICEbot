@@ -30,3 +30,25 @@ HEADERS  += icebot_gui.h \
 FORMS    += icebot_gui.ui \
     epos2.ui \
     omni.ui
+
+
+win32: LIBS += -L$$PWD/../../../../../OpenHaptics/Developer/3.4.0/lib/x64/Release/ -lhd
+
+INCLUDEPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/include/HD
+DEPENDPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/include/HD
+
+win32: LIBS += -L$$PWD/../../../../../OpenHaptics/Developer/3.4.0/utilities/lib/x64/Release/ -lhdu
+
+INCLUDEPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/utilities/include/HDU
+DEPENDPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/utilities/include/HDU
+
+
+win32: LIBS += -L$$PWD/Maxon Libs/ -lEposCmd64
+
+INCLUDEPATH += $$PWD/Maxon Libs
+DEPENDPATH += $$PWD/Maxon Libs
+
+win32: LIBS += -L$$PWD/../../../../../Program Files (x86)/LabJack/Drivers/64bit/ -lLabJackUD
+
+INCLUDEPATH += $$PWD/../../../../../Program Files (x86)/LabJack/Drivers
+DEPENDPATH += $$PWD/../../../../../Program Files (x86)/LabJack/Drivers
