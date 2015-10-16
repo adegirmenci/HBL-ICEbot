@@ -14,41 +14,36 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         icebot_gui.cpp \
-    epos2.cpp \
-    omni.cpp \
-    omnithread.cpp \
     Point.cpp \
-    SharedPoint.cpp
+    omni.cpp \
+    omnithread.cpp
 
 HEADERS  += icebot_gui.h \
-    epos2.h \
-    omni.h \
-    omnithread.h \
     Point.h \
-    SharedPoint.h
+    omni.h \
+    omnithread.h
 
 FORMS    += icebot_gui.ui \
-    epos2.ui \
     omni.ui
 
+win32: LIBS += -L$$PWD/../../../../../OpenHaptics/Developer/3.4.0/lib/Win32/Release/ -lhd
 
-win32: LIBS += -L$$PWD/../../../../../OpenHaptics/Developer/3.4.0/lib/x64/Release/ -lhd
+INCLUDEPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/include
+DEPENDPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/include
 
-INCLUDEPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/include/HD
-DEPENDPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/include/HD
+win32: LIBS += -L$$PWD/../../../../../OpenHaptics/Developer/3.4.0/utilities/lib/Win32/Release/ -lhdu
 
-win32: LIBS += -L$$PWD/../../../../../OpenHaptics/Developer/3.4.0/utilities/lib/x64/Release/ -lhdu
-
-INCLUDEPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/utilities/include/HDU
-DEPENDPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/utilities/include/HDU
+INCLUDEPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/utilities/include
+DEPENDPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/utilities/include
 
 
-win32: LIBS += -L$$PWD/Maxon Libs/ -lEposCmd64
+win32: LIBS += -L$$PWD/LabJackLibs/ -lLabJackUD
 
-INCLUDEPATH += $$PWD/Maxon Libs
-DEPENDPATH += $$PWD/Maxon Libs
+INCLUDEPATH += $$PWD/LabJackLibs
+DEPENDPATH += $$PWD/LabJackLibs
 
-win32: LIBS += -L$$PWD/../../../../../Program Files (x86)/LabJack/Drivers/64bit/ -lLabJackUD
 
-INCLUDEPATH += $$PWD/../../../../../Program Files (x86)/LabJack/Drivers
-DEPENDPATH += $$PWD/../../../../../Program Files (x86)/LabJack/Drivers
+win32: LIBS += -L$$PWD/MaxonLibs/ -lEposCmd
+
+INCLUDEPATH += $$PWD/MaxonLibs
+DEPENDPATH += $$PWD/MaxonLibs

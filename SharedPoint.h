@@ -10,11 +10,10 @@ class SharedPoint
 public:
     SharedPoint();
     SharedPoint(double x, double y, double z);
-    SharedPoint(const SharedPoint &);
+    SharedPoint(const SharedPoint & rhs);
     SharedPoint &operator=(const SharedPoint &);
     ~SharedPoint();
 
-    SharedPoint(double x = 0.0, double y = 0.0, double z=0.0);
     void setx(double pk);
     void sety(double pk);
     void setz(double pk);
