@@ -16,15 +16,18 @@ SOURCES += main.cpp\
         icebot_gui.cpp \
     Point.cpp \
     omni.cpp \
-    omnithread.cpp
+    omnithread.cpp \
+    epos2.cpp
 
 HEADERS  += icebot_gui.h \
     Point.h \
     omni.h \
-    omnithread.h
+    omnithread.h \
+    epos2.h
 
 FORMS    += icebot_gui.ui \
-    omni.ui
+    omni.ui \
+    epos2.ui
 
 win32: LIBS += -L$$PWD/../../../../../OpenHaptics/Developer/3.4.0/lib/Win32/Release/ -lhd
 

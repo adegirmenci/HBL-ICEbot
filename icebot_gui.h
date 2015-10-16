@@ -17,6 +17,8 @@ public:
     explicit ICEbot_GUI(QWidget *parent = 0);
     ~ICEbot_GUI();    
 
+private slots:
+
 private:
     Ui::ICEbot_GUI *ui;
 
