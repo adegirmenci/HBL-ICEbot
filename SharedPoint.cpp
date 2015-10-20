@@ -17,12 +17,12 @@ public:
         m_z = z;
     }
 
-    SharedPointData(const SharedPointData &other)
-            : QSharedData(other)
+    SharedPointData(const SharedPointData &rhs)
+            : QSharedData(rhs)
     {
-        m_x = other.m_x;
-        m_y = other.m_y;
-        m_z = other.m_z;
+        m_x = rhs.m_x;
+        m_y = rhs.m_y;
+        m_z = rhs.m_z;
     }
 
     ~SharedPointData() {}
@@ -55,15 +55,6 @@ SharedPoint &SharedPoint::operator=(const SharedPoint &rhs)
 // Destructor
 SharedPoint::~SharedPoint() {}
 
-// modifiers
-void SharedPoint::setx(double pk) { data->m_x = pk; }
-void SharedPoint::sety(double pk) { data->m_y = pk; }
-void SharedPoint::setz(double pk) { data->m_z = pk; }
-
-// accessors
-double SharedPoint::getx() { return data->m_x; }
-double SharedPoint::gety() { return data->m_y; }
-double SharedPoint::getz() { return data->m_z; }
 
 SharedPoint SharedPoint::update(double px, double py, double pz)
 {
@@ -74,20 +65,20 @@ SharedPoint SharedPoint::update(double px, double py, double pz)
 }
 
 // Distance to another point.  Pythagorean thm.
-double SharedPoint::dist(SharedPoint other) {
+double SharedPoint::dist(SharedPoint& other) {
     double xd = this->getx() - other.getx();
     double yd = this->gety() - other.gety();
     double zd = this->getz() - other.getz();
     return sqrt(xd*xd + yd*yd + zd*zd);
 }
 
-SharedPoint SharedPoint::operator+(const SharedPoint b) const
+SharedPoint SharedPoint::operator+(const SharedPoint& b) const
 {
     return SharedPoint(this->getx() + b.getx(),
                        this->gety() + b.gety(),
                        this->getz() + b.getz());
 }
-SharedPoint SharedPoint::operator-(const SharedPoint b) const
+SharedPoint SharedPoint::operator-(const SharedPoint& b) const
 {
     return SharedPoint(this->getx() - b.getx(),
                        this->gety() - b.gety(),
@@ -106,4 +97,11 @@ SharedPoint SharedPoint::operator/(const double k) const
     return SharedPoint(this->getx()/k,
                        this->gety()/k,
                        this->getz()/k);
+}
+
+void SharedPoint::move(double a, double b, double c)
+{
+    this->setx(this->getx() + a);
+    this->sety(this->gety() + b);
+    this->setz(this->getz() + c);
 }

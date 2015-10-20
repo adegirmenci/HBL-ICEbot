@@ -10,25 +10,27 @@ class SharedPoint
 public:
     SharedPoint();
     SharedPoint(double x, double y, double z);
-    SharedPoint(const SharedPoint & rhs);
-    SharedPoint &operator=(const SharedPoint &);
+    SharedPoint(const SharedPoint& rhs);
+    SharedPoint &operator=(const SharedPoint& rhs);
     ~SharedPoint();
 
-    void setx(double pk);
-    void sety(double pk);
-    void setz(double pk);
+    // modifiers
+    void setx(double pk) { data->m_x = pk; }
+    void sety(double pk) { data->m_y = pk; }
+    void setz(double pk) { data->m_z = pk; }
 
-    double getx();
-    double gety();
-    double getz();
+    // accessors
+    double getx() const { return data->m_x; }
+    double gety() const { return data->m_y; }
+    double getz() const { return data->m_z; }
 
     SharedPoint update(double px, double py, double pz);
-    double dist(SharedPoint other);
+    double dist(SharedPoint& other);
 
-    SharedPoint operator+(SharedPoint b) const;
-    SharedPoint operator-(SharedPoint b) const;
-    SharedPoint operator*(double k) const;
-    SharedPoint operator/(double k) const;
+    SharedPoint operator+(const SharedPoint& b) const;
+    SharedPoint operator-(const SharedPoint& b) const;
+    SharedPoint operator*(const double k) const;
+    SharedPoint operator/(const double k) const;
     void move(double a, double b, double c);
 
 signals:
