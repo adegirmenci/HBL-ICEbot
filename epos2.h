@@ -4,12 +4,13 @@
 #include <QWidget>
 #include <QSharedPointer>
 #include <QList>
+#include <QElapsedTimer>
 
 #include "MaxonLibs/Definitions.h"
 #include <stdio.h>
 #include <Windows.h>
 
-#define EPOS_VELOCITY 2000
+#define EPOS_VELOCITY 5000
 #define EPOS_ACCEL 8000
 #define EPOS_DECEL 8000
 
@@ -58,7 +59,8 @@ public:
     long m_lStartPosition;
     long m_lTargetPosition;
 
-    void moveMotor(long targetPos, QSharedPointer<eposMotor> mot, BOOL moveAbs);
+    void moveMotor(long targetPos, QSharedPointer<eposMotor> mot, BOOL moveAbsOrRel);
+    void getMotorQC(QSharedPointer<eposMotor> mot);
     void haltMotor(QSharedPointer<eposMotor> mot);
     
     BOOL m_motorsEnabled;

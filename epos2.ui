@@ -36,6 +36,9 @@
     <string>EPOS Connect/Disconnect</string>
    </property>
    <widget class="QDialogButtonBox" name="connectionButtonBox">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -107,6 +110,9 @@
      </item>
      <item row="4" column="1">
       <widget class="QPushButton" name="moveRelButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Move Relative</string>
        </property>
@@ -114,6 +120,9 @@
      </item>
      <item row="3" column="1">
       <widget class="QPushButton" name="moveAbsButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Move Absolute</string>
        </property>
@@ -121,6 +130,9 @@
      </item>
      <item row="4" column="0">
       <widget class="QPushButton" name="haltButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Halt</string>
        </property>
@@ -135,6 +147,9 @@
      </item>
      <item row="3" column="0">
       <widget class="QPushButton" name="homingButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Homing</string>
        </property>
@@ -142,6 +157,9 @@
      </item>
      <item row="1" column="0">
       <widget class="QPushButton" name="enableNodeButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Enable</string>
        </property>
@@ -149,6 +167,9 @@
      </item>
      <item row="1" column="1">
       <widget class="QPushButton" name="disableNodeButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Disable</string>
        </property>

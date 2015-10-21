@@ -29,14 +29,13 @@ epos2::epos2(QWidget *parent) :
 
 epos2::~epos2()
 {
-    for(int i = 0; i < 4; i++)
-        DisableMotor(m_motors[i]);
+    on_connectionButtonBox_rejected(); //disable motors and close EPOS connection
 
     m_motors.clear();
+    qDebug() << "Cleared motor list.";
 
-    //VCS_CloseDevice(m_KeyHandle, &m_ulErrorCode);
-    VCS_CloseAllDevices(&m_ulErrorCode);
-    qDebug() << "EPOS closed successfully.";
+    //VCS_CloseAllDevices(&m_ulErrorCode);
+
     delete ui;
 }
 
@@ -119,9 +118,17 @@ BOOL epos2::InitMotor(QSharedPointer<eposMotor> mot)
 
 BOOL epos2::DisableMotor(QSharedPointer<eposMotor> mot)
 {
-    WORD nodeId = mot.data()->m_nodeID;
-    mot.data()->m_enabled = FALSE;
-    return VCS_SetDisableState(m_KeyHandle, nodeId, &m_ulErrorCode);
+    WORD nodeId = mot.data()->m_nodeID; //get motor ID
+    mot.data()->m_enabled = FALSE; // set flag to false
+
+    // disable motor
+    BOOL result = VCS_SetDisableState(m_KeyHandle, nodeId, &m_ulErrorCode);
+    if(result)
+        qDebug() <<"Motor " << nodeId << " disabled.";
+    else
+        ShowErrorInformation(m_ulErrorCode);
+
+    return result;
 }
 
 BOOL epos2::OpenDevice() //(WORD motorID)
@@ -159,26 +166,41 @@ BOOL epos2::OpenDevice() //(WORD motorID)
     return initSuccess;
 }
 
-void epos2::moveMotor(long targetPos, QSharedPointer<eposMotor> mot, BOOL moveAbs)
+void epos2::moveMotor(long targetPos, QSharedPointer<eposMotor> mot, BOOL moveAbsOrRel)
 {
     mot.data()->m_lTargetPosition = targetPos;
     WORD usNodeId = mot.data()->m_nodeID;
 
+    QElapsedTimer elTimer;
+    qDebug() << "Using clock type " << elTimer.clockType();
+    elTimer.start();
+
     if(mot.data()->m_enabled)
     {
-        if(!VCS_MoveToPosition(m_KeyHandle, usNodeId, targetPos, moveAbs, m_oImmediately, &m_ulErrorCode))
+        if(!VCS_MoveToPosition(m_KeyHandle, usNodeId, targetPos, moveAbsOrRel, m_oImmediately, &m_ulErrorCode))
         {
             ShowErrorInformation(m_ulErrorCode);
         }
     }
+    qDebug() << "Elapsed Time: " << elTimer.nsecsElapsed()/1000000. << " ms";
 
-//    if(VCS_GetPositionIs(m_KeyHandle, m_usNodeId, &m_lStartPosition, &m_ulErrorCode))
-//    {
-//        if(!VCS_MoveToPosition(m_KeyHandle, m_usNodeId, m_lTargetPosition, moveAbs, m_oImmediately, &m_ulErrorCode))
-//        {
-//            ShowErrorInformation(m_ulErrorCode);
-//        }
-//    }
+    getMotorQC(mot);
+}
+
+void epos2::getMotorQC(QSharedPointer<eposMotor> mot)
+{
+    WORD usNodeId = mot.data()->m_nodeID;
+
+    QElapsedTimer elTimer;
+    elTimer.start();
+
+    if(!VCS_GetPositionIs(m_KeyHandle, usNodeId, &(mot.data()->m_lStartPosition), &m_ulErrorCode))
+    {
+        ShowErrorInformation(m_ulErrorCode);
+    }
+
+    qDebug() << "Elapsed Time: " << elTimer.nsecsElapsed()/1000000. << " ms";
+    qDebug() << "Motor is at " << mot.data()->m_lStartPosition << " qc";
 }
 
 void epos2::haltMotor(QSharedPointer<eposMotor> mot)
@@ -228,18 +250,63 @@ void epos2::on_connectionButtonBox_accepted()
         m_motorsEnabled = TRUE;
         ui->enableNodeButton->setEnabled(false);
         ui->disableNodeButton->setEnabled(true);
+        ui->moveAbsButton->setEnabled(true);
+        ui->moveRelButton->setEnabled(true);
+        ui->haltButton->setEnabled(true);
+        ui->homingButton->setEnabled(true);
     }
     else
+    {
         m_motorsEnabled = FALSE;
+        ui->enableNodeButton->setEnabled(true);
+        ui->disableNodeButton->setEnabled(false);
+        ui->moveAbsButton->setEnabled(false);
+        ui->moveRelButton->setEnabled(false);
+        ui->haltButton->setEnabled(false);
+        ui->homingButton->setEnabled(false);
+    }
 }
 
 void epos2::on_connectionButtonBox_rejected()
 {
     m_motorsEnabled = FALSE;
-    VCS_CloseAllDevices(&m_ulErrorCode);
-    ui->outputText->append("Closed.\n");
-    ui->enableNodeButton->setEnabled(false);
-    ui->disableNodeButton->setEnabled(false);
+
+    if(m_KeyHandle)
+    {
+        for(int i = 0; i < 4; i++)
+        {
+            DisableMotor(m_motors[i]);
+        }
+        qDebug() << "Motors disabled.";
+
+        if(VCS_CloseDevice(m_KeyHandle, &m_ulErrorCode))
+        {
+            m_KeyHandle = 0;
+
+            qDebug() << "EPOS closed successfully.";
+            ui->outputText->append("Closed.\n");
+            ui->enableNodeButton->setEnabled(false);
+            ui->disableNodeButton->setEnabled(false);
+            ui->moveAbsButton->setEnabled(false);
+            ui->moveRelButton->setEnabled(false);
+            ui->haltButton->setEnabled(false);
+            ui->homingButton->setEnabled(false);
+        }
+        else
+            ShowErrorInformation(m_ulErrorCode);
+    }
+    else
+    {
+        ui->outputText->append("EPOS is already closed.\n");
+        ui->enableNodeButton->setEnabled(false);
+        ui->disableNodeButton->setEnabled(false);
+        ui->moveAbsButton->setEnabled(false);
+        ui->moveRelButton->setEnabled(false);
+        ui->haltButton->setEnabled(false);
+        ui->homingButton->setEnabled(false);
+    }
+    //VCS_CloseAllDevices(&m_ulErrorCode);
+
 }
 
 void epos2::on_enableNodeButton_clicked()
@@ -249,6 +316,10 @@ void epos2::on_enableNodeButton_clicked()
     {
         ui->enableNodeButton->setEnabled(false);
         ui->disableNodeButton->setEnabled(true);
+        ui->moveAbsButton->setEnabled(true);
+        ui->moveRelButton->setEnabled(true);
+        ui->haltButton->setEnabled(true);
+        ui->homingButton->setEnabled(true);
     }
 }
 
@@ -259,6 +330,10 @@ void epos2::on_disableNodeButton_clicked()
     {
         ui->enableNodeButton->setEnabled(true);
         ui->disableNodeButton->setEnabled(false);
+        ui->moveAbsButton->setEnabled(false);
+        ui->moveRelButton->setEnabled(false);
+        ui->haltButton->setEnabled(false);
+        ui->homingButton->setEnabled(false);
     }
 }
 
@@ -283,11 +358,19 @@ void epos2::on_nodeIDcomboBox_currentIndexChanged(int index)
     {
         ui->enableNodeButton->setEnabled(false);
         ui->disableNodeButton->setEnabled(true);
+        ui->moveAbsButton->setEnabled(true);
+        ui->moveRelButton->setEnabled(true);
+        ui->haltButton->setEnabled(true);
+        ui->homingButton->setEnabled(true);
     }
     else
     {
         ui->enableNodeButton->setEnabled(true);
         ui->disableNodeButton->setEnabled(false);
+        ui->moveAbsButton->setEnabled(false);
+        ui->moveRelButton->setEnabled(false);
+        ui->haltButton->setEnabled(false);
+        ui->homingButton->setEnabled(false);
     }
 }
 
