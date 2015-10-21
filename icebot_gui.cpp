@@ -15,6 +15,7 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
     b = a*-2.0;
     c = a*5.0 + b;
     qDebug() << c.getx() << c.gety() << c.getz();
+
 }
 
 ICEbot_GUI::~ICEbot_GUI()

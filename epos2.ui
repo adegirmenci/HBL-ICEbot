@@ -52,6 +52,124 @@
     </property>
    </widget>
   </widget>
+  <widget class="QGroupBox" name="manualControlGroupBox">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>110</y>
+     <width>201</width>
+     <height>181</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Manual Control</string>
+   </property>
+   <widget class="QWidget" name="gridLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>30</y>
+      <width>181</width>
+      <height>135</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="1">
+      <widget class="QComboBox" name="nodeIDcomboBox">
+       <item>
+        <property name="text">
+         <string>1 (Trans)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>2 (Pitch)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>3 (Yaw)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>4 (Roll)</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="nodeIDlabel">
+       <property name="text">
+        <string>Node ID</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QPushButton" name="moveRelButton">
+       <property name="text">
+        <string>Move Relative</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QPushButton" name="moveAbsButton">
+       <property name="text">
+        <string>Move Absolute</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QPushButton" name="haltButton">
+       <property name="text">
+        <string>Halt</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="targetQClabel">
+       <property name="text">
+        <string>Target QC</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QPushButton" name="homingButton">
+       <property name="text">
+        <string>Homing</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QPushButton" name="enableNodeButton">
+       <property name="text">
+        <string>Enable</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QPushButton" name="disableNodeButton">
+       <property name="text">
+        <string>Disable</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QSpinBox" name="targetQClineEdit">
+       <property name="minimum">
+        <number>-9999999</number>
+       </property>
+       <property name="maximum">
+        <number>9999999</number>
+       </property>
+       <property name="singleStep">
+        <number>1000</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
  </widget>
  <resources/>
  <connections/>
