@@ -16,15 +16,15 @@
 
 // node ID's for motors
 #define TRANS_MOTOR_ID 1
-#define ROLL_MOTOR_ID 2
-#define PITCH_MOTOR_ID 3
-#define YAW_MOTOR_ID 4
+#define PITCH_MOTOR_ID 2
+#define YAW_MOTOR_ID 3
+#define ROLL_MOTOR_ID 4
 
 // indices for the motor in list
 #define TRANS 0
-#define ROLL 1
-#define PITCH 2
-#define YAW 3
+#define PITCH 1
+#define YAW 2
+#define ROLL 3
 
 struct eposMotor
 {
@@ -98,12 +98,11 @@ private:
     DWORD m_ulErrorCode;
     HANDLE m_KeyHandle;
 
-
     QList<QSharedPointer<eposMotor>> m_motors;
     eposMotor m_transMotor;
-    eposMotor m_rollMotor;
     eposMotor m_pitchMotor;
     eposMotor m_yawMotor;
+    eposMotor m_rollMotor;
 };
 
 #endif // EPOS2_H

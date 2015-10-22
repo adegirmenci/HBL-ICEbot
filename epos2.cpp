@@ -14,17 +14,17 @@ epos2::epos2(QWidget *parent) :
     m_motorsEnabled = FALSE;
 
     m_transMotor.m_nodeID = TRANS_MOTOR_ID;
-    m_rollMotor.m_nodeID = ROLL_MOTOR_ID;
     m_pitchMotor.m_nodeID = PITCH_MOTOR_ID;
     m_yawMotor.m_nodeID = YAW_MOTOR_ID;
+    m_rollMotor.m_nodeID = ROLL_MOTOR_ID;
 
     qDebug() << "Initizializing pointers to eposMotor";
 
     m_motors.reserve(4);
     m_motors.push_back(QSharedPointer<eposMotor>(&m_transMotor));
-    m_motors.push_back(QSharedPointer<eposMotor>(&m_rollMotor));
     m_motors.push_back(QSharedPointer<eposMotor>(&m_pitchMotor));
     m_motors.push_back(QSharedPointer<eposMotor>(&m_yawMotor));
+    m_motors.push_back(QSharedPointer<eposMotor>(&m_rollMotor));
 }
 
 epos2::~epos2()
@@ -159,16 +159,20 @@ BOOL epos2::OpenDevice() //(WORD motorID)
     // Set properties of each motor
     BOOL initSuccess = TRUE;
     initSuccess = initSuccess && InitMotor(m_motors[TRANS]);
-    initSuccess = initSuccess && InitMotor(m_motors[ROLL]);
     initSuccess = initSuccess && InitMotor(m_motors[PITCH]);
     initSuccess = initSuccess && InitMotor(m_motors[YAW]);
+    initSuccess = initSuccess && InitMotor(m_motors[ROLL]);
 
     return initSuccess;
 }
 
 void epos2::moveMotor(long targetPos, QSharedPointer<eposMotor> mot, BOOL moveAbsOrRel)
 {
-    mot.data()->m_lTargetPosition = targetPos;
+    if(moveAbsOrRel)
+        mot.data()->m_lTargetPosition = targetPos;
+    else
+        mot.data()->m_lTargetPosition += targetPos;
+
     WORD usNodeId = mot.data()->m_nodeID;
 
     QElapsedTimer elTimer;
