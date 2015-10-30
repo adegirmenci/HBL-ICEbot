@@ -30,12 +30,20 @@ LabJackWorker::LabJackWorker(int samplesPsec)
 
     m_LabJackReady = false;
 
-    m_keepRecording = false; // flag for the while loop
+    //m_keepRecording = false; // flag for the while loop
+
+    m_eventTimer = new QTimer(this->thread());
+    connect(m_eventTimer, SIGNAL(timeout()), this, SLOT(ReadStream()));
 }
 
 LabJackWorker::~LabJackWorker()
 {
-    m_outputFile->close();
+
+    delete m_eventTimer;
+
+    m_outputFile.close();
+
+    free( m_adblData );
 }
 
 bool LabJackWorker::ConnectToLabJack()
@@ -59,9 +67,33 @@ bool LabJackWorker::ConnectToLabJack()
     return success;
 }
 
-bool LabJackWorker::configStream()
+bool LabJackWorker::SetFileName(const QString &fileName)
+{
+    if(!m_outputFile.isOpen()) // file is not open
+    {
+        m_outputFile.setFileName(fileName);
+        return true;
+    }
+    else // file is already open
+        return false;
+}
+
+bool LabJackWorker::ConfigureStream()
 {
     bool success = false;
+
+    //Open file for write and append
+    if(!m_outputFile.open(QIODevice::WriteOnly | QIODevice::Append))
+    {
+        qDebug() << "File could not be opened: " << m_outputFile.fileName();
+        return false;
+    }
+    else
+    {
+        m_textStream.setDevice(&m_outputFile);
+        m_textStream << "File opened at: " << getCurrDateTimeStr() << '\n';
+    }
+
     //Configure the stream:
 
     //Configure resolution of the analog inputs (pass a non-zero value for quick sampling).
@@ -114,10 +146,139 @@ bool LabJackWorker::configStream()
     return m_LabJackReady = success;
 }
 
-void LabJackWorker::doWork(const QString &parameter) {
-    QString result;
-    /* ... here is the expensive or blocking operation ... */
-    emit resultReady(result);
+bool LabJackWorker::StartStream()
+{
+    if(m_LabJackReady) // ready to read data
+    {
+        m_timeCurr = m_epoch.elapsed(); // msec since epoch
+
+        //Start the stream.
+        m_lngErrorcode = eGet(m_lngHandle, LJ_ioSTART_STREAM, 0, &m_dblValue, 0);
+        ErrorHandler(m_lngErrorcode, __LINE__, 0);
+
+        // Write start time
+        if(m_outputFile.isOpen())
+        {
+            m_textStream << "Epoch at: "
+                         << m_epoch.toString("dd/MM/yyyy - hh:mm:ss.zzz") << '\n';
+            m_textStream << "Recording started at: " << getCurrTimeStr() << '\n';
+
+            // write actual scan rate to file
+            m_textStream << "Actual Scan Rate = " << m_dblValue << '\n';
+            m_textStream << "Time Since Epoch (ms) \t Voltage (V)" << '\n';
+        }
+        else
+        {
+            qDebug() << getCurrTimeStr() << "[StartStream] File is closed.";
+            return false;
+        }
+
+        qDebug() << "Starting timer.";
+        m_eventTimer->start(1000); // 1 sec intervals
+
+
+        if(m_eventTimer->isActive())
+        {
+            qDebug() << "Timer started.";
+            return true;
+        }
+        else
+        {
+            qDebug() << getCurrTimeStr() << "[StartStream] m_eventTimer is not active.";
+            return false;
+        }
+    }
+    else
+    {
+        qDebug() << getCurrTimeStr() << "[StartStream] LabJack is not ready.";
+        return false;
+    }
+}
+
+bool LabJackWorker::StopStream()
+{
+    if(m_eventTimer->isActive())
+    {
+        m_eventTimer->stop();
+        while(m_eventTimer->isActive())
+        {
+            ; // twiddle thumbs
+        }
+        m_lngErrorcode = eGet(m_lngHandle, LJ_ioSTOP_STREAM, 0, 0, 0);
+        ErrorHandler(m_lngErrorcode, __LINE__, 0);
+        return true;
+    }
+    else
+        return false;
+}
+
+bool LabJackWorker::DisconnectFromLabJack()
+{
+    // nothing to do...
+    return true;
+}
+
+bool LabJackWorker::ReadStream() {
+    if(m_LabJackReady)
+    {
+        for (m_k = 0; m_k < m_numScans; m_k++)
+        {
+            m_adblData[m_k] = 9999.0;
+        }
+
+        //Read the data.  We will request twice the number we expect, to
+        //make sure we get everything that is available.
+        //Note that the array we pass must be sized to hold enough SAMPLES, and
+        //the Value we pass specifies the number of SCANS to read.
+        m_numScansRequested = m_numScans;
+        m_lngErrorcode = eGet(m_lngHandle, LJ_ioGET_STREAM_DATA, LJ_chALL_CHANNELS,
+                              &m_numScansRequested, m_padblData);
+
+        //The displays the number of scans that were actually read.
+        //printf("\nIteration # %d\n", i);
+        //printf("Number scans read = %.0f\n", numScansRequested);
+        //outputFile << "Number scans read = " << numScansRequested << std::endl;
+
+        //This displays just the first and last scans.
+        //printf("First scan = %.3f, %.3f\n", adblData[0], adblData[(int)numScansRequested - 1]);
+        ErrorHandler(m_lngErrorcode, __LINE__, 0);
+
+        //Retrieve the current Comm backlog.  The UD driver retrieves stream data from
+        //the U6 in the background, but if the computer is too slow for some reason
+        //the driver might not be able to read the data as fast as the U6 is
+        //acquiring it, and thus there will be data left over in the U6 buffer.
+        //lngErrorcode = eGet(lngHandle, LJ_ioGET_CONFIG, LJ_chSTREAM_BACKLOG_COMM, &dblCommBacklog, 0);
+        //printf("Comm Backlog = %.0f\n", dblCommBacklog);
+
+        //Retrieve the current UD driver backlog.  If this is growing, then the application
+        //software is not pulling data from the UD driver fast enough.
+        //lngErrorcode = eGet(lngHandle, LJ_ioGET_CONFIG, LJ_chSTREAM_BACKLOG_UD, &dblUDBacklog, 0);
+        //printf("UD Backlog = %.0f\n", dblUDBacklog);
+
+        double tick = 1000.0/((double)m_scanRate); // msec
+
+        // Write to file
+        if (m_outputFile.isOpen()) // file is ready
+        {
+            for (int idx = 0; idx < m_numScansRequested; idx++)
+            {
+                m_textStream << QString::number(m_timeCurr + idx*tick, 'f', 3)
+                             << '\t' << QString::number(m_adblData[idx], 'f', 6) << '\n';
+            }
+
+            // update current time for next iteration
+            m_timeCurr += m_numScansRequested*tick;
+
+            m_i++;
+            return true;
+        }
+        else // file is not ready
+        {
+            return false;
+        }
+    }
+    else // LabJack not ready
+        return false;
 }
 
 bool LabJackWorker::ErrorHandler(LJ_ERROR lngErrorcode, long lngLineNumber, long lngIteration)
@@ -156,6 +317,10 @@ LabJack::~LabJack()
 {
     workerThread->quit();
     workerThread->wait();
+
+    delete worker;
+    delete workerThread;
+
     delete ui;
 }
 
@@ -175,27 +340,139 @@ bool LabJack::isRecording()
         return false;
 }
 
-void LabJack::ConfigureStream(int samplesPsec)
+bool LabJack::setWorkerEpoch(const QTime &epoch)
+{
+    if(workerThread->isRunning())
+    {
+        worker->setEpoch(epoch);
+        return true;
+    }
+    else
+        return false;
+}
+
+bool LabJack::setWorkerFileName(const QString &fileName)
+{
+    if(workerThread->isRunning())
+    {
+        if(!isRecording())
+        {
+            worker->SetFileName(fileName);
+            return true;
+        }
+        else
+            return false;
+    }
+    else
+        return false;
+}
+
+bool LabJack::ConfigureWorker(int samplesPsec)
 {
     workerThread = new QThread;
     worker = new LabJackWorker(samplesPsec);
 
     worker->moveToThread(workerThread);
     connect(workerThread, &QThread::finished, worker, &QObject::deleteLater);
-    connect(this, &LabJack::operate, worker, &LabJackWorker::doWork);
-    connect(worker, &LabJackWorker::resultReady, this, &LabJack::handleResults);
     workerThread->start();
+    return workerThread->isRunning();
 }
 
-void LabJack::handleResults(const QString &str)
-{
-
-}
 
 void LabJack::on_connectButton_clicked()
 {
     // get the desired number of samples from the GUI
     int samplesPsec = ui->samplesPsecSpinBox->value();
 
-    ConfigureStream(samplesPsec);
+    bool result = ConfigureWorker(samplesPsec);
+
+    // TODO: EPOCH SHOULD COME FROM MAIN GUI
+    QTime tmp;
+    tmp.start();
+    result = result && setWorkerEpoch(tmp);
+    // TODO: FILENAME SHOULD COME FROM MAIN GUI
+    result = result && setWorkerFileName("test.txt");
+
+    result = result && worker->ConnectToLabJack();
+
+    if( result )
+    {
+        // update GUI elements
+        ui->connectButton->setEnabled(false);
+        ui->disconnectButton->setEnabled(true);
+        ui->samplesPsecSpinBox->setEnabled(false);
+        ui->statusLineEdit->setText("Connected");
+        ui->initializeLJbutton->setEnabled(true);
+    }
+}
+
+void LabJack::on_disconnectButton_clicked()
+{
+    worker->DisconnectFromLabJack();
+
+    // update GUI elements
+    ui->connectButton->setEnabled(true);
+    ui->disconnectButton->setEnabled(false);
+    ui->samplesPsecSpinBox->setEnabled(true);
+    ui->statusLineEdit->setText("Disconnected");
+    ui->initializeLJbutton->setEnabled(false);
+    ui->startRecordButton->setEnabled(false);
+    ui->stopRecordButton->setEnabled(false);
+
+    // TODO: Stop collection, stop thread, delete worker
+    worker->StopStream();
+    workerThread->quit();
+    workerThread->wait();
+    delete worker;
+    delete workerThread;
+}
+
+void LabJack::on_initializeLJbutton_clicked()
+{
+    bool result = worker->ConfigureStream();
+
+    if( result )
+    {
+        // update GUI elements
+        ui->statusLineEdit->setText("Initialized.");
+        ui->initializeLJbutton->setEnabled(false);
+        ui->startRecordButton->setEnabled(true);
+        ui->stopRecordButton->setEnabled(false);
+    }
+}
+
+void LabJack::on_startRecordButton_clicked()
+{
+    bool result = worker->StartStream();
+
+    if( result )
+    {
+        // update GUI elements
+        ui->statusLineEdit->setText("Recording!");
+        ui->startRecordButton->setEnabled(false);
+        ui->stopRecordButton->setEnabled(true);
+    }
+}
+
+void LabJack::on_stopRecordButton_clicked()
+{
+    bool result = worker->StopStream();
+
+    if( result )
+    {
+        // update GUI elements
+        ui->statusLineEdit->setText("Stopped! Ready.");
+        ui->startRecordButton->setEnabled(true);
+        ui->stopRecordButton->setEnabled(false);
+    }
+}
+
+inline const QString getCurrTimeStr()
+{
+    return QTime::currentTime().toString("HH.mm.ss.zzz");
+}
+
+inline const QString getCurrDateTimeStr()
+{
+    return QDateTime::currentDateTime().toString("dd/MM/yyyy - hh:mm:ss.zzz");
 }

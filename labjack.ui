@@ -127,21 +127,64 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QPushButton" name="recordButton">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
+  <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
-     <x>200</x>
+     <x>60</x>
      <y>130</y>
-     <width>101</width>
-     <height>41</height>
+     <width>191</width>
+     <height>101</height>
     </rect>
    </property>
-   <property name="text">
-    <string>Record Data</string>
+   <property name="title">
+    <string>Data Streaming</string>
    </property>
+   <widget class="QWidget" name="verticalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>174</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QPushButton" name="initializeLJbutton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Initialize LabJack</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QPushButton" name="startRecordButton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Start Recording</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="stopRecordButton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Stop Recording</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
   </widget>
  </widget>
  <resources/>
