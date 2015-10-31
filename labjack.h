@@ -5,6 +5,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDebug>
+#include <QPointer>
 #include <QThread>
 #include <QTimer>
 #include <QDateTime>
@@ -23,22 +24,26 @@ public:
     LabJackWorker(int samplesPsec);
     ~LabJackWorker();
 
+public slots:
     bool ConnectToLabJack(); // helper function to connect to LabJack
     bool SetFileName(const QString &fileName);
     bool ConfigureStream();
     bool StartStream();
     bool StopStream();
     bool DisconnectFromLabJack(); // helper function to disconnect from LabJack
-    void setEpoch(const QTime &epoch) { m_epoch = epoch; }
+    void setEpoch(const QTime &epoch);
 
-    bool workerIsReady() { return m_LabJackReady; }
-    bool workerIsRecording() { return m_eventTimer->isActive(); }
+    bool workerIsReady();
+    bool workerIsRecording();
 
 private slots:
     bool ReadStream();
 
+signals:
+    void finished();
+
 private:
-    QTimer *m_eventTimer; // timer for event loop
+    QPointer<QTimer> m_eventTimer; // timer for event loop
     QFile m_outputFile; // output file
     QTextStream m_textStream;
     int m_timeCurr;
@@ -46,6 +51,11 @@ private:
 
     // Flag to keep track of connection
     bool m_LabJackReady;
+
+    // DO NOT use m_mutex.lock()
+    // INSTEAD use "QMutexLocker locker(&m_mutex);"
+    // this will unlock the mutex when the locker goes out of scope
+    mutable QMutex m_mutex;
 
     // LabJack specific variables
     LJ_ERROR m_lngErrorcode;
@@ -55,6 +65,7 @@ private:
     long m_lngIOType, m_lngChannel;
     double m_dblValue, m_dblCommBacklog, m_dblUDBacklog;
     double m_scanRate; //scan rate = sample rate / #channels
+    int m_delayms;
     double m_numScans; //Max number of scans per read.  2x the expected # of scans (2*scanRate*delayms/1000).
     double m_numScansRequested;
     double *m_adblData;
@@ -75,7 +86,7 @@ class LabJack;
 class LabJack : public QWidget
 {
     Q_OBJECT
-    QThread* workerThread;
+    QPointer<QThread> workerThread;
 
 public:
     explicit LabJack(QWidget *parent = 0);
@@ -105,7 +116,7 @@ private slots:
 private:
     Ui::LabJack *ui;
 
-    LabJackWorker* worker;
+    QPointer<LabJackWorker> worker;
 
     bool ConfigureWorker(int samplesPsec);
 

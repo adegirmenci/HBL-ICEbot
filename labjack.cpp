@@ -13,6 +13,8 @@ LabJackWorker::LabJackWorker()
 
 LabJackWorker::LabJackWorker(int samplesPsec)
 {
+    QMutexLocker locker(&m_mutex); // lock mutex
+
     m_lngErrorcode = 0;
     m_lngHandle = 0;
     m_i = 0;
@@ -23,8 +25,8 @@ LabJackWorker::LabJackWorker(int samplesPsec)
     m_dblCommBacklog = 0;
     m_dblUDBacklog = 0;
     m_scanRate = samplesPsec; //scan rate = sample rate / #channels
-    //m_delayms = 1000 - 10; // 1 seconds per 1000 samples - subtract 10 ms for other processing
-    m_numScans = 2*m_scanRate;  //Max number of scans per read.  2x the expected # of scans (2*scanRate*delayms/1000).
+    m_delayms = 1000; // 1 seconds per 1000 samples
+    m_numScans = 2*m_scanRate*m_delayms/1000;  //Max number of scans per read.  2x the expected # of scans (2*scanRate*delayms/1000).
     m_adblData = (double *)calloc( m_numScans, sizeof(double)); //Max buffer size (#channels*numScansRequested)
     m_padblData = (long)&m_adblData[0];
 
@@ -34,21 +36,28 @@ LabJackWorker::LabJackWorker(int samplesPsec)
 
     m_eventTimer = new QTimer(this->thread());
     connect(m_eventTimer, SIGNAL(timeout()), this, SLOT(ReadStream()));
+
+    // mutex unlocks when locker goes out of scope
 }
 
 LabJackWorker::~LabJackWorker()
 {
+    qDebug() << "[Destroy LabJack Worker] Disconnect From Labjack" <<
+    DisconnectFromLabJack();
 
-    delete m_eventTimer;
+    qDebug() << "[Destroy LabJack Worker] DeleteLater m_eventTimer";
+    if(!m_eventTimer.isNull())
+        delete m_eventTimer;//->deleteLater();
 
-    m_outputFile.close();
-
+    qDebug() << "[Destroy LabJack Worker] Free m_adblData";
     free( m_adblData );
 }
 
 bool LabJackWorker::ConnectToLabJack()
 {
     bool success = false;
+
+    QMutexLocker locker(&m_mutex); // lock mutex
 
     //Open the first found LabJack U6.
     m_lngErrorcode = OpenLabJack(LJ_dtU6, LJ_ctUSB, "1", 1, &m_lngHandle);
@@ -65,22 +74,32 @@ bool LabJackWorker::ConnectToLabJack()
     ErrorHandler(m_lngErrorcode, __LINE__, 0);
 
     return success;
+
+    // mutex unlocks when locker goes out of scope
 }
 
 bool LabJackWorker::SetFileName(const QString &fileName)
 {
+    QMutexLocker locker(&m_mutex); // lock mutex
+    // mutex unlocks when locker goes out of scope
+
     if(!m_outputFile.isOpen()) // file is not open
     {
         m_outputFile.setFileName(fileName);
         return true;
     }
     else // file is already open
+    {
         return false;
+    }
 }
 
 bool LabJackWorker::ConfigureStream()
 {
     bool success = false;
+
+    QMutexLocker locker(&m_mutex); // lock mutex
+    // mutex unlocks when locker goes out of scope
 
     //Open file for write and append
     if(!m_outputFile.open(QIODevice::WriteOnly | QIODevice::Append))
@@ -148,6 +167,9 @@ bool LabJackWorker::ConfigureStream()
 
 bool LabJackWorker::StartStream()
 {
+    QMutexLocker locker(&m_mutex); // lock mutex
+    // mutex unlocks when locker goes out of scope
+
     if(m_LabJackReady) // ready to read data
     {
         m_timeCurr = m_epoch.elapsed(); // msec since epoch
@@ -174,7 +196,7 @@ bool LabJackWorker::StartStream()
         }
 
         qDebug() << "Starting timer.";
-        m_eventTimer->start(1000); // 1 sec intervals
+        m_eventTimer->start(m_delayms);
 
 
         if(m_eventTimer->isActive())
@@ -197,6 +219,9 @@ bool LabJackWorker::StartStream()
 
 bool LabJackWorker::StopStream()
 {
+    QMutexLocker locker(&m_mutex); // lock mutex
+    // mutex unlocks when locker goes out of scope
+
     if(m_eventTimer->isActive())
     {
         m_eventTimer->stop();
@@ -204,21 +229,81 @@ bool LabJackWorker::StopStream()
         {
             ; // twiddle thumbs
         }
+
         m_lngErrorcode = eGet(m_lngHandle, LJ_ioSTOP_STREAM, 0, 0, 0);
         ErrorHandler(m_lngErrorcode, __LINE__, 0);
+
+        m_textStream << "Recording stopped at: " << getCurrTimeStr() << '\n\n';
+        m_textStream.flush();
+        qDebug() << "Timer stopped.";
         return true;
     }
     else
+    {
+        qDebug() << "Timer already stopped.";
         return false;
+    }
 }
 
 bool LabJackWorker::DisconnectFromLabJack()
 {
-    // nothing to do...
-    return true;
+    bool success = StopStream();
+
+    QMutexLocker locker(&m_mutex); // lock mutex
+    // mutex unlocks when locker goes out of scope
+
+    if(m_outputFile.isOpen())
+    {
+        m_textStream.flush();
+        m_outputFile.flush();
+        m_outputFile.close();
+    }
+    else
+        qDebug() << "textStream is already closed!";
+
+    emit finished();
+
+    //this->moveToThread(this->thread());
+
+    return success;
 }
 
+void LabJackWorker::setEpoch(const QTime &epoch)
+{
+    QMutexLocker locker(&m_mutex); // lock mutex
+    // mutex unlocks when locker goes out of scope
+
+    m_epoch = epoch;
+}
+
+bool LabJackWorker::workerIsReady()
+{
+    QMutexLocker locker(&m_mutex); // lock mutex
+    // mutex unlocks when locker goes out of scope
+
+    bool result = m_LabJackReady;
+
+    return result;
+}
+
+bool LabJackWorker::workerIsRecording()
+{
+    QMutexLocker locker(&m_mutex); // lock mutex
+    // mutex unlocks when locker goes out of scope
+
+    bool result = m_eventTimer->isActive();
+
+    return result;
+}
+
+
 bool LabJackWorker::ReadStream() {
+    QTime tmr;
+    tmr.start();
+
+    QMutexLocker locker(&m_mutex); // lock mutex
+    // mutex unlocks when locker goes out of scope
+
     if(m_LabJackReady)
     {
         for (m_k = 0; m_k < m_numScans; m_k++)
@@ -255,7 +340,7 @@ bool LabJackWorker::ReadStream() {
         //lngErrorcode = eGet(lngHandle, LJ_ioGET_CONFIG, LJ_chSTREAM_BACKLOG_UD, &dblUDBacklog, 0);
         //printf("UD Backlog = %.0f\n", dblUDBacklog);
 
-        double tick = 1000.0/((double)m_scanRate); // msec
+        double tick = 1000./((double)m_scanRate); // msec
 
         // Write to file
         if (m_outputFile.isOpen()) // file is ready
@@ -269,16 +354,23 @@ bool LabJackWorker::ReadStream() {
             // update current time for next iteration
             m_timeCurr += m_numScansRequested*tick;
 
+            m_textStream.flush();
+
             m_i++;
+            qDebug() << "Data acq took (ms): " << tmr.elapsed();
             return true;
         }
         else // file is not ready
         {
+            qDebug() << "Data acq took (ms): " << tmr.elapsed();
             return false;
         }
     }
     else // LabJack not ready
+    {
+        qDebug() << "Data acq took (ms): " << tmr.elapsed();
         return false;
+    }
 }
 
 bool LabJackWorker::ErrorHandler(LJ_ERROR lngErrorcode, long lngLineNumber, long lngIteration)
@@ -315,11 +407,27 @@ LabJack::LabJack(QWidget *parent) :
 
 LabJack::~LabJack()
 {
-    workerThread->quit();
-    workerThread->wait();
+    if(ui->disconnectButton->isEnabled())
+        ui->disconnectButton->click();
 
-    delete worker;
-    delete workerThread;
+//    if(!workerThread.isNull())
+//    {
+//        if(workerThread->isRunning())
+//        {
+//            workerThread->quit();
+//            workerThread->terminate();
+//            workerThread->wait();
+//            if(!worker.isNull())
+//            {
+//                delete worker;//->deleteLater();
+//            }
+//        }
+//        delete workerThread;//->deleteLater();
+//    }
+//    if(!worker.isNull())
+//    {
+//        delete worker;//->deleteLater();
+//    }
 
     delete ui;
 }
@@ -373,7 +481,9 @@ bool LabJack::ConfigureWorker(int samplesPsec)
     worker = new LabJackWorker(samplesPsec);
 
     worker->moveToThread(workerThread);
-    connect(workerThread, &QThread::finished, worker, &QObject::deleteLater);
+    connect(worker, SIGNAL(finished()), workerThread, SLOT(quit()));
+    connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
+    connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
     workerThread->start();
     return workerThread->isRunning();
 }
@@ -410,6 +520,14 @@ void LabJack::on_disconnectButton_clicked()
 {
     worker->DisconnectFromLabJack();
 
+    // Stop collection, stop thread, delete worker
+    //worker->StopStream();
+//    workerThread->quit();
+//    workerThread->terminate();
+//    workerThread->wait();
+//    delete worker;//->deleteLater();
+//    delete workerThread;//->deleteLater();
+
     // update GUI elements
     ui->connectButton->setEnabled(true);
     ui->disconnectButton->setEnabled(false);
@@ -418,13 +536,6 @@ void LabJack::on_disconnectButton_clicked()
     ui->initializeLJbutton->setEnabled(false);
     ui->startRecordButton->setEnabled(false);
     ui->stopRecordButton->setEnabled(false);
-
-    // TODO: Stop collection, stop thread, delete worker
-    worker->StopStream();
-    workerThread->quit();
-    workerThread->wait();
-    delete worker;
-    delete workerThread;
 }
 
 void LabJack::on_initializeLJbutton_clicked()
