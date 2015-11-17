@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>500</width>
-    <height>300</height>
+    <width>811</width>
+    <height>506</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,32 +31,116 @@
       <x>10</x>
       <y>20</y>
       <width>91</width>
-      <height>81</height>
+      <height>83</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="connectButton">
        <property name="text">
         <string>Connect</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="initButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Initialize</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_3">
+      <widget class="QPushButton" name="disconnectButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Disconnect</string>
        </property>
       </widget>
      </item>
     </layout>
+   </widget>
+  </widget>
+  <widget class="QGraphicsView" name="graphicsView">
+   <property name="geometry">
+    <rect>
+     <x>160</x>
+     <y>10</y>
+     <width>640</width>
+     <height>480</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_2">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>150</y>
+     <width>111</width>
+     <height>80</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Acquisiton</string>
+   </property>
+   <widget class="QPushButton" name="acquireButton">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>20</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Acquire</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="saveButton">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>50</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Save</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_3">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>240</y>
+     <width>131</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Status</string>
+   </property>
+   <widget class="QLineEdit" name="statusLineEdit">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>113</width>
+      <height>20</height>
+     </rect>
+    </property>
    </widget>
   </widget>
  </widget>

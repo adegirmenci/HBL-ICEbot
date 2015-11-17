@@ -7,6 +7,10 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    m_epoch.start();
+    if( ui->frmGrabWidget->setEpoch(m_epoch) )
+        qDebug() << "FrameGrabber epoch set.";
+
     qDebug() << "Ready";
 
     Point a,b,c;
