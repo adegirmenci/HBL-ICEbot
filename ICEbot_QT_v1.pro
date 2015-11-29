@@ -19,7 +19,8 @@ SOURCES += main.cpp\
     omnithread.cpp \
     epos2.cpp \
     labjack.cpp \
-    frmgrab.cpp
+    frmgrab.cpp \
+    ascensionem.cpp
 
 HEADERS  += icebot_gui.h \
     Point.h \
@@ -27,13 +28,15 @@ HEADERS  += icebot_gui.h \
     omnithread.h \
     epos2.h \
     labjack.h \
-    frmgrab.h
+    frmgrab.h \
+    ascensionem.h
 
 FORMS    += icebot_gui.ui \
     omni.ui \
     epos2.ui \
     labjack.ui \
-    frmgrab.ui
+    frmgrab.ui \
+    ascensionem.ui
 
 win32: LIBS += -L$$PWD/../../../../../OpenHaptics/Developer/3.4.0/lib/Win32/Release/ -lhd
 
@@ -89,3 +92,8 @@ INCLUDEPATH += $$PWD/epiphan/frmgrab/include
 
 #INCLUDEPATH += "C:\\epiphan_sdk_32800009\\epiphan\\include"
 #INCLUDEPATH += "C:\\epiphan_sdk_32800009\\epiphan\\\frmgrab\\include"
+
+win32: LIBS += -L$$PWD/3DGAPI/ -lATC3DG
+
+INCLUDEPATH += $$PWD/3DGAPI
+DEPENDPATH += $$PWD/3DGAPI

@@ -24,12 +24,22 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="emTab">
      <attribute name="title">
       <string>EM</string>
      </attribute>
+     <widget class="AscensionEM" name="widget" native="true">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>40</y>
+        <width>491</width>
+        <height>331</height>
+       </rect>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="eposTab">
      <attribute name="title">
@@ -100,7 +110,7 @@
     <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
-    <bool>false</bool>
+    <bool>true</bool>
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
@@ -134,6 +144,12 @@
    <class>FrmGrab</class>
    <extends>QWidget</extends>
    <header>frmgrab.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AscensionEM</class>
+   <extends>QWidget</extends>
+   <header>ascensionem.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
