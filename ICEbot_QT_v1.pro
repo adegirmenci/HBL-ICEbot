@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     epos2.cpp \
     labjack.cpp \
     frmgrab.cpp \
-    ascensionem.cpp
+    ascensionthread.cpp \
+    ascensionwidget.cpp
 
 HEADERS  += icebot_gui.h \
     Point.h \
@@ -29,14 +30,15 @@ HEADERS  += icebot_gui.h \
     epos2.h \
     labjack.h \
     frmgrab.h \
-    ascensionem.h
+    ascensionthread.h \
+    ascensionwidget.h
 
 FORMS    += icebot_gui.ui \
     omni.ui \
     epos2.ui \
     labjack.ui \
     frmgrab.ui \
-    ascensionem.ui
+    ascensionwidget.ui
 
 win32: LIBS += -L$$PWD/../../../../../OpenHaptics/Developer/3.4.0/lib/Win32/Release/ -lhd
 
