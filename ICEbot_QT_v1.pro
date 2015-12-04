@@ -31,7 +31,8 @@ HEADERS  += icebot_gui.h \
     labjack.h \
     frmgrab.h \
     ascensionthread.h \
-    ascensionwidget.h
+    ascensionwidget.h \
+    icebot_definitions.h
 
 FORMS    += icebot_gui.ui \
     omni.ui \

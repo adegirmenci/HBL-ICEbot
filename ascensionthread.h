@@ -1,6 +1,7 @@
 #ifndef ASCENSIONTHREAD_H
 #define ASCENSIONTHREAD_H
 
+#include <QObject>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QThread>
@@ -9,6 +10,8 @@
 #include <QTime>
 #include <QTimer>
 #include <QDebug>
+
+#include <vector>
 
 #include "icebot_definitions.h"
 
@@ -49,8 +52,8 @@ public:
     explicit AscensionThread(QObject *parent = 0);
     ~AscensionThread();
 
-    bool isEMready();
-    bool isRecording();
+    //bool isEMready();
+    //bool isRecording();
 
     int getSampleRate();
     int getNumSensors();
@@ -82,6 +85,8 @@ public slots:
     bool disconnectEM(); // disconnect from EM
     void setEpoch(QTime &time); // set Epoch
     void setSampleRate(int freq); // set freq
+    void getLatestReading(const int sensorID, DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD &dataContainer);
+    void getLatestReadingsAll(std::vector<DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD> &dataContainer);
 
 private slots:
     void getSample(); // called by timer
@@ -123,6 +128,8 @@ private:
     int m_samplingFreq;
     int m_records;
     int m_numberBytes;
+    // latest reading
+    std::vector<DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD> m_latestReading;
 
     const int m_prec = 4; // precision for print operations
 

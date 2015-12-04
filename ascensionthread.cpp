@@ -10,6 +10,7 @@ AscensionThread::AscensionThread(QObject *parent) :
 
     m_numSensorsAttached = 0;
     m_records = 0;
+    m_latestReading.resize(4);
 }
 
 AscensionThread::~AscensionThread()
@@ -162,6 +163,10 @@ bool AscensionThread::initializeEM() // open connection to EM
         }
     }
 
+    // resize container based on the number of sensors
+    m_latestReading.resize(m_numSensorsAttached);
+
+    // set flag to ready
     m_isReady = status;
 
     locker.unlock();
@@ -226,6 +231,7 @@ void AscensionThread::getSample() // called by timer
 
         if( status == VALID_STATUS)
         {
+            m_latestReading[m_sensorID] = record[m_sensorID];
             emit logData(tstamp, m_sensorID, record[m_sensorID]);
             //emit logData(tstamp, m_sensorID, record);
             if( m_i == 0 )
@@ -302,39 +308,49 @@ void AscensionThread::setSampleRate(int freq) // set freq
 {
     QMutexLocker locker(&m_mutex);
 
-    // freq too low, clamp
-    if( EM_MIN_SAMPLE_RATE > freq )
+    // not recording
+    if(!m_keepRecording)
     {
-        freq = EM_MIN_SAMPLE_RATE;
-        emit logError(LOG_ERROR, QTime::currentTime(),
-                      EM_BELOW_MIN_SAMPLE_RATE, QString::number(freq));
-    }
-    // freq too high, clamp
-    else if( EM_MAX_SAMPLE_RATE < freq )
-    {
-        freq = EM_ABOVE_MAX_SAMPLE_RATE;
-        emit logError(LOG_ERROR, QTime::currentTime(),
-                      EM_ABOVE_MAX_SAMPLE_RATE, QString::number(freq));
-    }
+        // freq too low, clamp
+        if( EM_MIN_SAMPLE_RATE > freq )
+        {
+            freq = EM_MIN_SAMPLE_RATE;
+            emit logError(LOG_ERROR, QTime::currentTime(),
+                          EM_BELOW_MIN_SAMPLE_RATE, QString::number(freq));
+        }
+        // freq too high, clamp
+        else if( EM_MAX_SAMPLE_RATE < freq )
+        {
+            freq = EM_ABOVE_MAX_SAMPLE_RATE;
+            emit logError(LOG_ERROR, QTime::currentTime(),
+                          EM_ABOVE_MAX_SAMPLE_RATE, QString::number(freq));
+        }
 
-    // set freq
-    double rate = freq*1.0f;
-    m_errorCode = SetSystemParameter(MEASUREMENT_RATE, &rate, sizeof(rate));
-    if(m_errorCode!=BIRD_ERROR_SUCCESS)
-    {
-        errorHandler_(m_errorCode);
-        emit statusChanged(EM_FREQ_SET_FAILED);
+        // set freq
+        double rate = freq*1.0f;
+        m_errorCode = SetSystemParameter(MEASUREMENT_RATE, &rate, sizeof(rate));
+        if(m_errorCode!=BIRD_ERROR_SUCCESS)
+        {
+            errorHandler_(m_errorCode);
+            emit statusChanged(EM_FREQ_SET_FAILED);
+        }
+        else
+        {
+            m_samplingFreq = freq;
+
+            // log event
+            emit logEventWithMessage(LOG_INFO, QTime::currentTime(), EM_FREQ_SET,
+                                     QString::number(m_samplingFreq));
+
+            // emit status change
+            emit statusChanged(EM_FREQ_SET);
+        }
     }
     else
     {
-        m_samplingFreq = freq;
-
-        // log event
-        emit logEventWithMessage(LOG_INFO, QTime::currentTime(), EM_FREQ_SET,
-                                 QString::number(m_samplingFreq));
-
-        // emit status change
-        emit statusChanged(EM_FREQ_SET);
+        emit logError(LOG_ERROR, QTime::currentTime(),
+                      EM_CANT_MUTATE_WHILE_RUNNING, QString(""));
+        emit statusChanged(EM_FREQ_SET_FAILED);
     }
 }
 
@@ -352,6 +368,18 @@ int AscensionThread::getNumSensors()
 {
     QMutexLocker locker(&m_mutex);
     return m_numSensorsAttached;
+}
+
+void AscensionThread::getLatestReading(const int sensorID, DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD &dataContainer)
+{
+    QMutexLocker locker(&m_mutex);
+    dataContainer = m_latestReading[sensorID];
+}
+
+void AscensionThread::getLatestReadingsAll(std::vector<DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD> &dataContainer)
+{
+    QMutexLocker locker(&m_mutex);
+    dataContainer = m_latestReading;
 }
 
 // ----------------
