@@ -8,17 +8,24 @@ AscensionThread::AscensionThread(QObject *parent) :
     m_keepRecording = false;
     m_abort = false;
 
+    m_mutex = new QMutex(QMutex::Recursive);
+
     m_numSensorsAttached = 0;
     m_records = 0;
     m_latestReading.resize(4);
+
+    qRegisterMetaType<DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD>("DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD");
 }
 
 AscensionThread::~AscensionThread()
 {
     stopAcquisition();
-    m_mutex.lock();
+    m_mutex->lock();
     m_abort = true;
-    m_mutex.unlock();
+    qDebug() << "Ending AscensionThread.";
+    m_mutex->unlock();
+
+    delete m_mutex;
 
     emit finished();
 }
@@ -30,7 +37,7 @@ bool AscensionThread::initializeEM() // open connection to EM
 {
     bool status = true;
 
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker(m_mutex);
 
     // Initialize the ATC3DG driver and DLL
     // It is always necessary to first initialize the ATC3DG "system". By
@@ -169,7 +176,7 @@ bool AscensionThread::initializeEM() // open connection to EM
     // set flag to ready
     m_isReady = status;
 
-    locker.unlock();
+    //locker.unlock();
     // set sample rate
     setSampleRate(EM_DEFAULT_SAMPLE_RATE);
 
@@ -181,11 +188,11 @@ bool AscensionThread::initializeEM() // open connection to EM
 
 void AscensionThread::startAcquisition() // start timer
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker(m_mutex);
 
     m_timer = new QTimer(this);
-    m_timer->start(1000./m_samplingFreq);
     connect(m_timer,SIGNAL(timeout()),this,SLOT(getSample()));
+    m_timer->start(1000./m_samplingFreq);
 
     m_keepRecording = true;
     m_i = 0;
@@ -205,7 +212,7 @@ void AscensionThread::getSample() // called by timer
     //DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD *pRecord = record
     //DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD record, *pRecord = &record;
 
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker(m_mutex);
 
     QTime tstamp = QTime::currentTime(); // get time
     // scan the sensors and request a record
@@ -217,7 +224,7 @@ void AscensionThread::getSample() // called by timer
         {
             errorHandler_(m_errorCode);
             emit statusChanged(EM_ACQUIRE_FAILED);
-            locker.unlock();
+            //locker.unlock();
             stopAcquisition();
             return;
         }
@@ -246,7 +253,7 @@ void AscensionThread::getSample() // called by timer
 
 void AscensionThread::stopAcquisition() // stop timer
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker(m_mutex);
 
     if ( m_keepRecording )
     {
@@ -268,7 +275,7 @@ bool AscensionThread::disconnectEM() // disconnect from EM
 
     stopAcquisition();
 
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker(m_mutex);
     // Turn off the transmitter before exiting
     // We turn off the transmitter by "selecting" a transmitter with an id of "-1"
     m_id = -1;
@@ -289,16 +296,16 @@ bool AscensionThread::disconnectEM() // disconnect from EM
     return status;
 }
 
-void AscensionThread::setEpoch(QTime &time) // set Epoch
+void AscensionThread::setEpoch(const QDateTime &datetime) // set Epoch
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker(m_mutex);
     if(!m_keepRecording)
     {
-        m_epoch = time;
+        m_epoch = datetime;
         m_isEpochSet = true;
 
         emit logEventWithMessage(LOG_INFO, QTime::currentTime(), EM_EPOCH_SET,
-                                 m_epoch.toString("HH.mm.ss.zzz"));
+                                 m_epoch.toString("dd/MM/yyyy - hh:mm:ss.zzz"));
     }
     else
         emit logEvent(LOG_INFO, QTime::currentTime(), EM_EPOCH_SET_FAILED);
@@ -306,7 +313,7 @@ void AscensionThread::setEpoch(QTime &time) // set Epoch
 
 void AscensionThread::setSampleRate(int freq) // set freq
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker(m_mutex);
 
     // not recording
     if(!m_keepRecording)
@@ -360,25 +367,25 @@ void AscensionThread::setSampleRate(int freq) // set freq
 // ----------------
 int AscensionThread::getSampleRate()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker(m_mutex);
     return m_samplingFreq;
 }
 
 int AscensionThread::getNumSensors()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker(m_mutex);
     return m_numSensorsAttached;
 }
 
 void AscensionThread::getLatestReading(const int sensorID, DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD &dataContainer)
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker(m_mutex);
     dataContainer = m_latestReading[sensorID];
 }
 
 void AscensionThread::getLatestReadingsAll(std::vector<DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD> &dataContainer)
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker(m_mutex);
     dataContainer = m_latestReading;
 }
 

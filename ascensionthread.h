@@ -7,13 +7,13 @@
 #include <QThread>
 #include <QWaitCondition>
 #include <QString>
-#include <QTime>
+#include <QDateTime>
 #include <QTimer>
 #include <QDebug>
 
 #include <vector>
 
-#include "icebot_definitions.h"
+#include "../AscensionWidget/icebot_definitions.h"
 
 #include "3DGAPI/ATC3DG.h"
 
@@ -63,7 +63,7 @@ signals:
     //void EM_Ready(bool status); // tells the widget that the EM tracker is ready
     void logData(QTime timeStamp,
                  int sensorID,
-                 DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD &data);
+                 DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD data);
     void logEvent(LOG_TYPES logType,
                   QTime timeStamp,
                   EM_EVENT_IDS eventID);
@@ -83,7 +83,7 @@ public slots:
     void startAcquisition(); // start timer
     void stopAcquisition(); // stop timer
     bool disconnectEM(); // disconnect from EM
-    void setEpoch(QTime &time); // set Epoch
+    void setEpoch(const QDateTime &datetime); // set Epoch
     void setSampleRate(int freq); // set freq
     void getLatestReading(const int sensorID, DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD &dataContainer);
     void getLatestReadingsAll(std::vector<DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD> &dataContainer);
@@ -95,7 +95,7 @@ private:
     // Instead of using "m_mutex.lock()"
     // use "QMutexLocker locker(&m_mutex);"
     // this will unlock the mutex when the locker goes out of scope
-    mutable QMutex m_mutex;
+    mutable QMutex *m_mutex;
 
     // Timer for calling acquire data every 1/m_samplingFreq
     QTimer *m_timer;
@@ -104,7 +104,7 @@ private:
     // During initializeEM(), check 'isEpochSet' flag
     // If Epoch is set externally from MainWindow, the flag will be true
     // Otherwise, Epoch will be set internally
-    QTime m_epoch;
+    QDateTime m_epoch;
     bool m_isEpochSet;
 
     // Flag to indicate if EM tracker is ready for data collection

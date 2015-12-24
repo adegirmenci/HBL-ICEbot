@@ -7,19 +7,13 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    m_epoch.start();
-    if( ui->frmGrabWidget->setEpoch(m_epoch) )
-        qDebug() << "FrameGrabber epoch set.";
+    qDebug() << "Setting up GUI connections.";
 
-    qDebug() << "Ready";
+    //connect(ui->frmGrabWidget->m_worker, SIGNAL(pleaseSaveImage(std::shared_ptr<Frame>)), ui->dataLogWidget->m_worker, SLOT(...));
+    connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD)),
+            ui->dataLogWidget->m_worker, SLOT(logEMdata(QTime,int,DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD)));
 
-    Point a,b,c;
-    a = Point();
-    a.update(1.0,2.0,3.0);
-    b = a*-2.0;
-    c = a*5.0 + b;
-    qDebug() << c.getx() << c.gety() << c.getz();
-
+    qDebug() << "GUI ready.";
 }
 
 ICEbot_GUI::~ICEbot_GUI()

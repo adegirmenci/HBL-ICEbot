@@ -17,29 +17,39 @@ SOURCES += main.cpp\
     Point.cpp \
     omni.cpp \
     omnithread.cpp \
-    epos2.cpp \
-    labjack.cpp \
-    frmgrab.cpp \
     ascensionthread.cpp \
-    ascensionwidget.cpp
+    ascensionwidget.cpp \
+    dataloggerthread.cpp \
+    dataloggerwidget.cpp \
+    epos2thread.cpp \
+    epos2widget.cpp \
+    frmgrabthread.cpp \
+    frmgrabwidget.cpp \
+    labjackthread.cpp \
+    labjackwidget.cpp
 
 HEADERS  += icebot_gui.h \
     Point.h \
     omni.h \
     omnithread.h \
-    epos2.h \
-    labjack.h \
-    frmgrab.h \
     ascensionthread.h \
     ascensionwidget.h \
-    icebot_definitions.h
+    dataloggerthread.h \
+    dataloggerwidget.h \
+    epos2thread.h \
+    epos2widget.h \
+    frmgrabthread.h \
+    frmgrabwidget.h \
+    labjackthread.h \
+    labjackwidget.h
 
 FORMS    += icebot_gui.ui \
     omni.ui \
-    epos2.ui \
-    labjack.ui \
-    frmgrab.ui \
-    ascensionwidget.ui
+    ascensionwidget.ui \
+    dataloggerwidget.ui \
+    epos2widget.ui \
+    frmgrabwidget.ui \
+    labjackwidget.ui
 
 win32: LIBS += -L$$PWD/../../../../../OpenHaptics/Developer/3.4.0/lib/Win32/Release/ -lhd
 
@@ -85,16 +95,16 @@ win32 {
     }
 }
 
-win32: LIBS += -L$$PWD/epiphan/frmgrab/lib/win/Win32/ -lfrmgrab
+#win32: LIBS += -L$$PWD/epiphan/frmgrab/lib/win/Win32/ -lfrmgrab
 
-INCLUDEPATH += $$PWD/epiphan/include
-INCLUDEPATH += $$PWD/epiphan/frmgrab/include
+#INCLUDEPATH += $$PWD/epiphan/include
+#INCLUDEPATH += $$PWD/epiphan/frmgrab/include
 
-#win32: LIBS += -L"C:\\epiphan_sdk_32800009\\epiphan\\frmgrab\\lib\\win\\Win32" \
-#             -lfrmgrab
+win32: LIBS += -L"C:\\epiphan_sdk_32800009\\epiphan\\frmgrab\\lib\\win\\Win32" \
+             -lfrmgrab
 
-#INCLUDEPATH += "C:\\epiphan_sdk_32800009\\epiphan\\include"
-#INCLUDEPATH += "C:\\epiphan_sdk_32800009\\epiphan\\\frmgrab\\include"
+INCLUDEPATH += "C:\\epiphan_sdk_32800009\\epiphan\\include"
+INCLUDEPATH += "C:\\epiphan_sdk_32800009\\epiphan\\\frmgrab\\include"
 
 win32: LIBS += -L$$PWD/3DGAPI/ -lATC3DG
 

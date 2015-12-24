@@ -25,7 +25,6 @@ private:
     Ui::ICEbot_GUI *ui;
 
     QTime m_epoch;
-
 };
 
 #endif // ICEBOT_GUI_H

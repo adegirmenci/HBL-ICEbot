@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>514</width>
-    <height>441</height>
+    <width>490</width>
+    <height>418</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,10 +16,10 @@
   <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>10</x>
      <y>0</y>
-     <width>221</width>
-     <height>101</height>
+     <width>200</width>
+     <height>90</height>
     </rect>
    </property>
    <property name="title">
@@ -28,7 +28,7 @@
    <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>110</x>
+      <x>100</x>
       <y>20</y>
       <width>91</width>
       <height>61</height>
@@ -116,20 +116,20 @@
   <widget class="QPlainTextEdit" name="outputTextEdit">
    <property name="geometry">
     <rect>
-     <x>230</x>
-     <y>10</y>
-     <width>261</width>
-     <height>411</height>
+     <x>220</x>
+     <y>6</y>
+     <width>260</width>
+     <height>400</height>
     </rect>
    </property>
   </widget>
   <widget class="QGroupBox" name="groupBox_3">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>200</y>
-     <width>191</width>
-     <height>51</height>
+     <x>10</x>
+     <y>190</y>
+     <width>200</width>
+     <height>50</height>
     </rect>
    </property>
    <property name="title">
@@ -140,7 +140,7 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>169</width>
+      <width>180</width>
       <height>20</height>
      </rect>
     </property>
@@ -149,9 +149,9 @@
   <widget class="QGroupBox" name="groupBox_2">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>110</y>
-     <width>111</width>
+     <x>10</x>
+     <y>100</y>
+     <width>110</width>
      <height>80</height>
     </rect>
    </property>

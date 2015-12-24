@@ -18,6 +18,8 @@ public:
     explicit AscensionWidget(QWidget *parent = 0);
     ~AscensionWidget();
 
+    AscensionThread *m_worker;
+
 private slots:
     void workerStatusChanged(int status);
     void on_initButton_clicked();
@@ -28,7 +30,6 @@ private:
     Ui::AscensionWidget *ui;
 
     QThread m_thread; // Ascension Thread will live in here
-    AscensionThread *m_worker;
 };
 
 #endif // ASCENSIONWIDGET_H

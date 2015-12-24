@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>600</width>
+    <height>560</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,26 +17,26 @@
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>150</x>
-      <y>90</y>
-      <width>591</width>
-      <height>441</height>
+      <x>20</x>
+      <y>20</y>
+      <width>541</width>
+      <height>480</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="emTab">
      <attribute name="title">
       <string>EM</string>
      </attribute>
-     <widget class="AscensionWidget" name="widget" native="true">
+     <widget class="AscensionWidget" name="emWidget" native="true">
       <property name="geometry">
        <rect>
         <x>20</x>
         <y>20</y>
-        <width>541</width>
-        <height>381</height>
+        <width>500</width>
+        <height>420</height>
        </rect>
       </property>
      </widget>
@@ -45,13 +45,13 @@
      <attribute name="title">
       <string>EPOS</string>
      </attribute>
-     <widget class="epos2" name="eposWidget" native="true">
+     <widget class="EPOS2Widget" name="eposWidget" native="true">
       <property name="geometry">
        <rect>
-        <x>40</x>
-        <y>30</y>
+        <x>20</x>
+        <y>20</y>
         <width>500</width>
-        <height>300</height>
+        <height>420</height>
        </rect>
       </property>
      </widget>
@@ -60,13 +60,13 @@
      <attribute name="title">
       <string>Frame Grabber</string>
      </attribute>
-     <widget class="FrmGrab" name="frmGrabWidget" native="true">
+     <widget class="FrmGrabWidget" name="frmGrabWidget" native="true">
       <property name="geometry">
        <rect>
-        <x>40</x>
-        <y>30</y>
+        <x>20</x>
+        <y>20</y>
         <width>500</width>
-        <height>300</height>
+        <height>420</height>
        </rect>
       </property>
      </widget>
@@ -75,13 +75,28 @@
      <attribute name="title">
       <string>LabJack</string>
      </attribute>
-     <widget class="LabJack" name="labjackWidget" native="true">
+     <widget class="LabJackWidget" name="labjackWidget" native="true">
       <property name="geometry">
        <rect>
-        <x>40</x>
-        <y>30</y>
+        <x>20</x>
+        <y>20</y>
         <width>500</width>
-        <height>300</height>
+        <height>420</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="dataLoggerTab">
+     <attribute name="title">
+      <string>DataLogger</string>
+     </attribute>
+     <widget class="DataLoggerWidget" name="dataLogWidget" native="true">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>500</width>
+        <height>420</height>
        </rect>
       </property>
      </widget>
@@ -93,7 +108,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>600</width>
      <height>21</height>
     </rect>
    </property>
@@ -129,27 +144,33 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>epos2</class>
-   <extends>QWidget</extends>
-   <header>epos2.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>LabJack</class>
-   <extends>QWidget</extends>
-   <header>labjack.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>FrmGrab</class>
-   <extends>QWidget</extends>
-   <header>frmgrab.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>AscensionWidget</class>
    <extends>QWidget</extends>
    <header>ascensionwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>DataLoggerWidget</class>
+   <extends>QWidget</extends>
+   <header>dataloggerwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>LabJackWidget</class>
+   <extends>QWidget</extends>
+   <header>labjackwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FrmGrabWidget</class>
+   <extends>QWidget</extends>
+   <header>frmgrabwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>EPOS2Widget</class>
+   <extends>QWidget</extends>
+   <header>epos2widget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

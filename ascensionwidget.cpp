@@ -28,6 +28,8 @@ AscensionWidget::~AscensionWidget()
     m_thread.quit();
     m_thread.wait();
 
+    qDebug() << "Ascension thread quit.";
+
     delete ui;
 }
 
