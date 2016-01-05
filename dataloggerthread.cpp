@@ -11,11 +11,15 @@ DataLoggerThread::DataLoggerThread(QObject *parent) : QObject(parent)
 
     m_mutex = new QMutex(QMutex::Recursive);
 
-    for (int i = 0; i < DATALOG_NUM_FILES; i++)
-    {
-        m_files.push_back(std::shared_ptr<QFile>(new QFile()) );
-        m_streams.push_back(std::shared_ptr<QTextStream>(new QTextStream()));
-    }
+//    for (int i = 0; i < DATALOG_NUM_FILES; i++)
+//    {
+//        m_files.push_back(std::shared_ptr<QFile>(new QFile()) );
+//        m_TextStreams.push_back(std::shared_ptr<QTextStream>(new QTextStream()));
+//        m_DataStreams.push_back(std::shared_ptr<QTextStream>(new QTextStream()));
+//    }
+    m_files.resize(DATALOG_NUM_FILES);
+    m_TextStreams.resize(DATALOG_NUM_FILES);
+    m_DataStreams.resize(DATALOG_NUM_FILES);
 
     //qRegisterMetaType<DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD>("DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD");
 
@@ -71,13 +75,23 @@ void DataLoggerThread::initializeDataLogger(std::vector<int> enableMask, std::ve
 
                 if(status) // no issues with folder creation
                 {
+                    m_files[i].reset(new QFile());
                     m_files[i]->setFileName(fileNames[i]); // set filename of QFile
 
                     if(m_files[i]->open(QIODevice::WriteOnly | QIODevice::Append)) // opened successfuly
                     {
-
-                        m_streams[i]->setDevice(&(*m_files.at(i)));
-                        (*m_streams[i]) << "File opened at: " << getCurrDateTimeStr() << '\n';
+                        if( DATALOG_EM_ID == i)
+                        {
+                            m_DataStreams[i].reset(new QDataStream());
+                            m_DataStreams[i]->setDevice(&(*m_files.at(i)));
+                            (*m_DataStreams[i]) << QDateTime::currentMSecsSinceEpoch();
+                        }
+                        else
+                        {
+                            m_TextStreams[i].reset(new QTextStream());
+                            m_TextStreams[i]->setDevice(&(*m_files.at(i)));
+                            (*m_TextStreams[i]) << "File opened at: " << getCurrDateTimeStr() << '\n';
+                        }
 
                         emit fileStatusChanged(i, DATALOG_FILE_OPENED);
                     }
@@ -101,40 +115,71 @@ void DataLoggerThread::initializeDataLogger(std::vector<int> enableMask, std::ve
         emit statusChanged(DATALOG_INITIALIZE_FAILED); //error!
 }
 
+// This is for writing to EM file as text
+//void DataLoggerThread::logEMdata(QTime timeStamp,
+//                                 int sensorID,
+//                                 DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD data)
+//{
+//    QDateTime ts;
+//    ts.setMSecsSinceEpoch(data.time*1000);
+
+//    // Data Format
+//    // | Sensor ID | Time Stamp | x | y | z | r11 | r12 | ... | r33 |
+
+//    QString output;
+//    output.append(QString("%1\t%2\t%3\t%4\t%5\t%6\t%7\t%8\t%9\t%10\t%11\t%12\t%13\t%14\n")
+//                     .arg(sensorID)
+//                     .arg(QString::number(data.x,'f',m_prec))
+//                     .arg(QString::number(data.y,'f',m_prec))
+//                     .arg(QString::number(data.z,'f',m_prec))
+//                     .arg(QString::number(data.s[0][0],'f',m_prec))
+//                     .arg(QString::number(data.s[0][1],'f',m_prec))
+//                     .arg(QString::number(data.s[0][2],'f',m_prec))
+//                     .arg(QString::number(data.s[1][0],'f',m_prec))
+//                     .arg(QString::number(data.s[1][1],'f',m_prec))
+//                     .arg(QString::number(data.s[1][2],'f',m_prec))
+//                     .arg(QString::number(data.s[2][0],'f',m_prec))
+//                     .arg(QString::number(data.s[2][1],'f',m_prec))
+//                     .arg(QString::number(data.s[2][2],'f',m_prec))
+//                     .arg(QString::number(data.time*1000,'f',m_prec)));
+//                     //.arg(ts.toString("hh:mm:ss:zzz")));
+
+//    QMutexLocker locker(m_mutex);
+
+//    if(m_files[DATALOG_EM_ID]->isOpen())
+//    {
+//        (*m_TextStreams[DATALOG_EM_ID]) << output;
+//    }
+//    else
+//        qDebug() << "File is closed.";
+//}
 
 void DataLoggerThread::logEMdata(QTime timeStamp,
                                  int sensorID,
                                  DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD data)
 {
-    QDateTime ts;
-    ts.setMSecsSinceEpoch(data.time*1000);
-
     // Data Format
-    // | Sensor ID | Time Stamp | x | y | z | r11 | r12 | ... | r33 |
-
-    QString output;
-    output.append(QString("%1\t%2\t%3\t%4\t%5\t%6\t%7\t%8\t%9\t%10\t%11\t%12\t%13\t%14\n")
-                     .arg(sensorID)
-                     .arg(QString::number(data.x,'f',m_prec))
-                     .arg(QString::number(data.y,'f',m_prec))
-                     .arg(QString::number(data.z,'f',m_prec))
-                     .arg(QString::number(data.s[0][0],'f',m_prec))
-                     .arg(QString::number(data.s[0][1],'f',m_prec))
-                     .arg(QString::number(data.s[0][2],'f',m_prec))
-                     .arg(QString::number(data.s[1][0],'f',m_prec))
-                     .arg(QString::number(data.s[1][1],'f',m_prec))
-                     .arg(QString::number(data.s[1][2],'f',m_prec))
-                     .arg(QString::number(data.s[2][0],'f',m_prec))
-                     .arg(QString::number(data.s[2][1],'f',m_prec))
-                     .arg(QString::number(data.s[2][2],'f',m_prec))
-                     .arg(QString::number(data.time*1000,'f',m_prec)));
-                     //.arg(ts.toString("hh:mm:ss:zzz")));
+    // | Sensor ID | Time Stamp | x | y | z | r11 | r12 | .... | r33 |
+    // |    int    |   double   |      ...      double      ...      |
 
     QMutexLocker locker(m_mutex);
 
     if(m_files[DATALOG_EM_ID]->isOpen())
     {
-        (*m_streams[DATALOG_EM_ID]) << output;
+        (*m_DataStreams[DATALOG_EM_ID]) << sensorID
+                                        << data.time*1000
+                                        << data.x
+                                        << data.y
+                                        << data.z
+                                        << data.s[0][0]
+                                        << data.s[0][1]
+                                        << data.s[0][2]
+                                        << data.s[1][0]
+                                        << data.s[1][1]
+                                        << data.s[1][2]
+                                        << data.s[2][0]
+                                        << data.s[2][1]
+                                        << data.s[2][2];
     }
     else
         qDebug() << "File is closed.";
@@ -175,7 +220,7 @@ void DataLoggerThread::logEPOSEvent(int logType, QTime timeStamp, int eventID)
 
     if(m_files[DATALOG_Log_ID]->isOpen())
     {
-        (*m_streams[DATALOG_Log_ID]) << output;
+        (*m_TextStreams[DATALOG_Log_ID]) << output;
     }
     else
         qDebug() << "File is closed.";
@@ -204,7 +249,7 @@ void DataLoggerThread::logNote(QTime timeStamp, QString note)
 {
     if(m_files[DATALOG_Note_ID]->isOpen())
     {
-        (*m_streams[DATALOG_Note_ID]) << "[" << timeStamp.toString("HH:mm:ss.zzz") << "] " << note << endl;
+        (*m_TextStreams[DATALOG_Note_ID]) << "[" << timeStamp.toString("HH:mm:ss.zzz") << "] " << note << endl;
 
         emit fileStatusChanged(DATALOG_Note_ID, DATALOG_FILE_DATA_LOGGED);
     }
@@ -216,7 +261,9 @@ void DataLoggerThread::closeLogFile(const unsigned short fileID)
 
     if(m_files[fileID]->isOpen())
     {
-        m_streams[fileID]->flush();
+        if( DATALOG_EM_ID != fileID )
+            m_TextStreams[fileID]->flush();
+            //m_DataStreams[fileID]->flush(); // no need to flush, data is not buffered
         m_files[fileID]->close();
 
         emit fileStatusChanged(fileID, DATALOG_FILE_CLOSED);

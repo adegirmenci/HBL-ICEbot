@@ -8,6 +8,7 @@
 //#include <QWaitCondition>
 #include <QString>
 #include <QFile>
+#include <QDataStream>
 #include <QTextStream>
 #include <QDir>
 #include <QTime>
@@ -115,7 +116,8 @@ private:
     const int m_prec = 4; // precision for print operations
 
     std::vector< std::shared_ptr<QFile> > m_files;
-    std::vector< std::shared_ptr<QTextStream> > m_streams;
+    std::vector< std::shared_ptr<QTextStream> > m_TextStreams;
+    std::vector< std::shared_ptr<QDataStream> > m_DataStreams;
 
 
 };
