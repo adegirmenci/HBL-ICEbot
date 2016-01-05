@@ -3,9 +3,8 @@
 
 #include <QMainWindow>
 #include <QDebug>
-#include "Point.h"
 
-#include <QTime>
+#include <QDateTime>
 
 namespace Ui {
 class ICEbot_GUI;
@@ -24,7 +23,7 @@ private slots:
 private:
     Ui::ICEbot_GUI *ui;
 
-    QTime m_epoch;
+    QDateTime m_epoch;
 };
 
 #endif // ICEBOT_GUI_H

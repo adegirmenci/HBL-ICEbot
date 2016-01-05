@@ -85,7 +85,7 @@ void EPOS2Widget::workerStatusChanged(int status)
 //                                            .arg(m_worker->getNumMotors()));
         break;
     case EPOS_DISCONNECTED:
-        ui->connectButton->setEnabled(false);
+        ui->connectButton->setEnabled(true);
         ui->disconnectButton->setEnabled(false);
         ui->enableNodeButton->setEnabled(false);
         ui->nodeIDcomboBox->setEnabled(false);

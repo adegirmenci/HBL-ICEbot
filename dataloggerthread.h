@@ -17,7 +17,7 @@
 #include <memory>
 
 #include "../AscensionWidget/icebot_definitions.h"
-#include "3DGAPI/ATC3DG.h"
+#include "../AscensionWidget/3DGAPI/ATC3DG.h"
 
 //Q_DECLARE_METATYPE(DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD)
 
@@ -67,9 +67,9 @@ public slots:
 //    void logData(QTime timeStamp,
 //                 EPOS_DATA_IDS dataType,
 //                 std::vector<long> data);
-//    void logEvent(LOG_TYPES logType,
-//                  QTime timeStamp,
-//                  EPOS_EVENT_IDS eventID);
+    void logEPOSEvent(int logType, // LOG_TYPES
+                  QTime timeStamp,
+                  int eventID); // EPOS_EVENT_IDS
 //    void logEventWithMessage(LOG_TYPES logType,
 //                  QTime timeStamp,
 //                  EPOS_EVENT_IDS eventID,

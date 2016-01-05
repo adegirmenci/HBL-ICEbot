@@ -58,22 +58,22 @@ signals:
     void motorQcChanged(std::vector<long> QCs);
     //void EPOS_Ready(bool status); // tells the widget that the EPOS is ready
     void logData(QTime timeStamp,
-                 EPOS_DATA_IDS dataType,
+                 int dataType, // EPOS_DATA_IDS
                  const int motID,
                  long data);
     void logData(QTime timeStamp,
-                 EPOS_DATA_IDS dataType,
+                 int dataType, // EPOS_DATA_IDS
                  std::vector<long> data);
-    void logEvent(LOG_TYPES logType,
+    void logEvent(int logType, // LOG_TYPE
                   QTime timeStamp,
-                  EPOS_EVENT_IDS eventID);
-    void logEventWithMessage(LOG_TYPES logType,
+                  int eventID); // EPOS_EVENT_IDS
+    void logEventWithMessage(int logType,
                   QTime timeStamp,
-                  EPOS_EVENT_IDS eventID,
+                  int eventID,  // EPOS_EVENT_IDS
                   QString &message);
-    void logError(LOG_TYPES logType,
+    void logError(int logType, // LOG_TYPE
                   QTime timeStamp,
-                  EPOS_ERROR_CODES,
+                  int errCode, // EPOS_ERROR_CODES
                   QString &message);
     void sendDataToGUI(const int id, const QString &output);
     void finished(); // emit upon termination

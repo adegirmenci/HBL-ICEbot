@@ -14,7 +14,6 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         icebot_gui.cpp \
-    Point.cpp \
     omni.cpp \
     omnithread.cpp \
     ascensionthread.cpp \
@@ -29,7 +28,6 @@ SOURCES += main.cpp\
     labjackwidget.cpp
 
 HEADERS  += icebot_gui.h \
-    Point.h \
     omni.h \
     omnithread.h \
     ascensionthread.h \
@@ -41,7 +39,8 @@ HEADERS  += icebot_gui.h \
     frmgrabthread.h \
     frmgrabwidget.h \
     labjackthread.h \
-    labjackwidget.h
+    labjackwidget.h \
+    icebot_definitions.h
 
 FORMS    += icebot_gui.ui \
     omni.ui \

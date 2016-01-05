@@ -13,7 +13,16 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
     connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD)),
             ui->dataLogWidget->m_worker, SLOT(logEMdata(QTime,int,DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD)));
 
+    connect(ui->eposWidget->m_worker, SIGNAL(logEvent(int,QTime,int)),
+            ui->dataLogWidget->m_worker, SLOT(logEPOSEvent(int,QTime,int)));
+
     qDebug() << "GUI ready.";
+
+    // get current date time
+    m_epoch = QDateTime::currentDateTime();
+
+    // set date time of widgets
+    ui->emWidget->m_worker->setEpoch(m_epoch);
 }
 
 ICEbot_GUI::~ICEbot_GUI()

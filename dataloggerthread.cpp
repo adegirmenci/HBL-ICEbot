@@ -140,6 +140,47 @@ void DataLoggerThread::logEMdata(QTime timeStamp,
         qDebug() << "File is closed.";
 }
 
+void DataLoggerThread::logEPOSEvent(int logType, QTime timeStamp, int eventID)
+{
+    // Data Format
+    // | Time Stamp | Log Type | Source | eventID |
+
+    QString output = timeStamp.toString("HH:mm:ss.zzz");
+
+    switch(logType)
+    {
+    case LOG_INFO:
+        output.append(" INFO ");
+        break;
+    case LOG_WARNING:
+        output.append(" WARNING ");
+        break;
+    case LOG_ERROR:
+        output.append(" ERROR ");
+        break;
+    case LOG_FATAL:
+        output.append(" FATAL ");
+        break;
+    default:
+        output.append(" UNKNOWN ");
+        break;
+    }
+
+    output.append("EPOS ");
+
+    output.append(QString("%1\n").arg(eventID));
+
+
+    QMutexLocker locker(m_mutex);
+
+    if(m_files[DATALOG_Log_ID]->isOpen())
+    {
+        (*m_streams[DATALOG_Log_ID]) << output;
+    }
+    else
+        qDebug() << "File is closed.";
+}
+
 void DataLoggerThread::startLogging()
 {
     QMutexLocker locker(m_mutex);

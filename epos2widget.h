@@ -20,6 +20,8 @@ public:
     explicit EPOS2Widget(QWidget *parent = 0);
     ~EPOS2Widget();
 
+    EPOS2Thread *m_worker;
+
 signals:
     void setServoTargetPos(const int axisID, long targetPos, bool moveAbsOrRel);
     void servoToPos();
@@ -63,7 +65,6 @@ private:
     Ui::EPOS2Widget *ui;
 
     QThread m_thread; // EPOS Thread will live in here
-    EPOS2Thread *m_worker;
 
     std::vector<QLabel*> motLabels;
     std::vector<QLCDNumber*> motQCs;
