@@ -43,6 +43,8 @@ struct Frame{
     }
 };
 
+Q_DECLARE_METATYPE(std::shared_ptr<Frame>)
+
 class FrmGrabThread : public QObject
 {
     Q_OBJECT

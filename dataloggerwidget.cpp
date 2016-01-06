@@ -16,6 +16,7 @@ DataLoggerWidget::DataLoggerWidget(QWidget *parent) :
     // connect widget signals to worker slots
     connect(this, SIGNAL(initializeDataLogger(std::vector<int>,std::vector<QString>)),
             m_worker, SLOT(initializeDataLogger(std::vector<int>,std::vector<QString>)));
+    connect(this, SIGNAL(setRootDir(QString)), m_worker, SLOT(setRootDirectory(QString)));
     connect(this, SIGNAL(closeLogFiles()), m_worker, SLOT(closeLogFiles()));
     connect(this, SIGNAL(startLogging()), m_worker, SLOT(startLogging()));
     connect(this, SIGNAL(stopLogging()), m_worker, SLOT(stopLogging()));
@@ -204,6 +205,8 @@ void DataLoggerWidget::on_initFilesButton_clicked()
         fname.append(m_fileNameList[i]->text());
         fileNames.push_back(fname);
     }
+
+    emit setRootDir(ui->dataDirLineEdit->text());
 
     emit initializeDataLogger(enableMask, fileNames);
 

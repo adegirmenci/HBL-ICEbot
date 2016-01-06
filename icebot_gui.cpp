@@ -13,6 +13,9 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
     connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD)),
             ui->dataLogWidget->m_worker, SLOT(logEMdata(QTime,int,DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD)));
 
+    connect(ui->frmGrabWidget->m_worker, SIGNAL(pleaseSaveImage(std::shared_ptr<Frame>)),
+            ui->dataLogWidget->m_worker, SLOT(logFrmGrabImage(std::shared_ptr<Frame>)));
+
     connect(ui->eposWidget->m_worker, SIGNAL(logEvent(int,QTime,int)),
             ui->dataLogWidget->m_worker, SLOT(logEPOSEvent(int,QTime,int)));
 
@@ -23,6 +26,8 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
 
     // set date time of widgets
     ui->emWidget->m_worker->setEpoch(m_epoch);
+    ui->frmGrabWidget->m_worker->setEpoch(m_epoch);
+    ui->eposWidget->m_worker->setEpoch(m_epoch);
 }
 
 ICEbot_GUI::~ICEbot_GUI()

@@ -2,6 +2,8 @@
 
 FrmGrabThread::FrmGrabThread(QObject *parent) : QObject(parent)
 {
+    qRegisterMetaType< std::shared_ptr<Frame> >("std::shared_ptr<Frame>");
+
     m_isEpochSet = false;
     m_isReady = false;
     m_keepStreaming = false;

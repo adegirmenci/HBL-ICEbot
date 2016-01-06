@@ -19,6 +19,7 @@
 
 #include "../AscensionWidget/icebot_definitions.h"
 #include "../AscensionWidget/3DGAPI/ATC3DG.h"
+#include "../FrmGrabWidget/frmgrabthread.h"
 
 //Q_DECLARE_METATYPE(DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD)
 
@@ -39,7 +40,7 @@ signals:
 
 public slots:
     // Widget slots
-    void setRootDirectory(QString &dir);
+    void setRootDirectory(QString dir);
     void initializeDataLogger(std::vector<int> enableMask, std::vector<QString> fileNames);
     void startLogging();
     void stopLogging();
@@ -50,6 +51,7 @@ public slots:
     void logEMdata(QTime timeStamp,
                  int sensorID,
                  DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD data);
+    void logFrmGrabImage(std::shared_ptr<Frame> frm);
 //    void logEvent(LOG_TYPES logType,
 //                  QTime timeStamp,
 //                  EM_EVENT_IDS eventID);

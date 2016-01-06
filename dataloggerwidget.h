@@ -26,6 +26,7 @@ public:
 
 signals:
     void initializeDataLogger(std::vector<int> enableMask, std::vector<QString> fileNames);
+    void setRootDir(QString dir);
     void closeLogFiles();
     void startLogging();
     void stopLogging();

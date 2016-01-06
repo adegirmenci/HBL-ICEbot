@@ -17,6 +17,8 @@ public:
     explicit FrmGrabWidget(QWidget *parent = 0);
     ~FrmGrabWidget();
 
+    FrmGrabThread *m_worker;
+
 signals:
     void frmGrabConnect();
     void frmGrabInitialize(int width, int height, double fps);
@@ -47,7 +49,7 @@ private:
     Ui::FrmGrabWidget *ui;
 
     QThread m_thread; // FrmGrab Thread will live in here
-    FrmGrabThread *m_worker;
+
 };
 
 #endif // FRMGRABWIDGET_H

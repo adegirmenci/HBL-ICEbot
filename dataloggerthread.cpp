@@ -34,7 +34,7 @@ DataLoggerThread::~DataLoggerThread()
     emit finished();
 }
 
-void DataLoggerThread::setRootDirectory(QString &dir)
+void DataLoggerThread::setRootDirectory(QString dir)
 {
     QMutexLocker locker(m_mutex);
 
@@ -183,6 +183,35 @@ void DataLoggerThread::logEMdata(QTime timeStamp,
     }
     else
         qDebug() << "File is closed.";
+}
+
+// save image and write details to text file
+void DataLoggerThread::logFrmGrabImage(std::shared_ptr<Frame> frm)
+{
+    QDateTime imgTime;
+    imgTime.setMSecsSinceEpoch(frm->timestamp_);
+
+    // file name of frame
+    QString m_imgFname = imgTime.toString("ddMMyyyy_hhmmsszzz");
+    // populate m_imgFname with index
+    m_imgFname.append( QString("_%1.jpg").arg(frm->index_) );
+
+    QString m_DirImgFname = m_rootDirectory;
+    m_DirImgFname.append("/");
+    m_DirImgFname.append(m_imgFname);
+    // save frame
+    //state = frame->image_.save(m_imgFname, "JPG", 100);
+    cv::imwrite(m_DirImgFname.toStdString().c_str(), frm->image_ ); // write frame
+
+    // output to text
+    if(m_files[DATALOG_FrmGrab_ID]->isOpen())
+    {
+        (*m_TextStreams[DATALOG_FrmGrab_ID]) << m_imgFname << "\t"
+                     << QString::number(frm->timestamp_, 'f', 1) << '\n';
+    }
+    else
+        qDebug() << "FrmGrab text file closed.";
+
 }
 
 void DataLoggerThread::logEPOSEvent(int logType, QTime timeStamp, int eventID)
