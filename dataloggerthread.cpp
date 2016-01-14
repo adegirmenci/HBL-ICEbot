@@ -110,6 +110,7 @@ void DataLoggerThread::initializeDataLogger(std::vector<int> enableMask, std::ve
             }
         }
         emit statusChanged(DATALOG_INITIALIZED);
+        m_isReady = true;
     }
     else
         emit statusChanged(DATALOG_INITIALIZE_FAILED); //error!
@@ -164,7 +165,7 @@ void DataLoggerThread::logEMdata(QTime timeStamp,
 
     QMutexLocker locker(m_mutex);
 
-    if(m_files[DATALOG_EM_ID]->isOpen())
+    if(m_isReady && m_files[DATALOG_EM_ID]->isOpen())
     {
         (*m_DataStreams[DATALOG_EM_ID]) << sensorID
                                         << data.time*1000
@@ -204,7 +205,7 @@ void DataLoggerThread::logFrmGrabImage(std::shared_ptr<Frame> frm)
     cv::imwrite(m_DirImgFname.toStdString().c_str(), frm->image_ ); // write frame
 
     // output to text
-    if(m_files[DATALOG_FrmGrab_ID]->isOpen())
+    if(m_isReady && m_files[DATALOG_FrmGrab_ID]->isOpen())
     {
         (*m_TextStreams[DATALOG_FrmGrab_ID]) << m_imgFname << "\t"
                      << QString::number(frm->timestamp_, 'f', 1) << '\n';
@@ -214,7 +215,23 @@ void DataLoggerThread::logFrmGrabImage(std::shared_ptr<Frame> frm)
 
 }
 
-void DataLoggerThread::logEPOSEvent(int logType, QTime timeStamp, int eventID)
+void DataLoggerThread::logLabJackData(QTime timeStamp, double data)
+{
+    QString output = QString("%1\t").arg(timeStamp.msecsSinceStartOfDay());
+    output.append(QString::number(data, 'f', 6));
+
+    QMutexLocker locker(m_mutex);
+
+    if(m_isReady && m_files[DATALOG_ECG_ID]->isOpen())
+    {
+//        (*m_TextStreams[DATALOG_ECG_ID]) << timeStamp.toString("HH:mm:ss.zzz") << "\t" << QString::number(data, 'f', 6) << '\n';
+        (*m_TextStreams[DATALOG_ECG_ID]) << output << '\n';
+    }
+    else
+        ;//qDebug() << "File is closed.";
+}
+
+void DataLoggerThread::logEvent(int source, int logType, QTime timeStamp, int eventID)
 {
     // Data Format
     // | Time Stamp | Log Type | Source | eventID |
@@ -240,19 +257,47 @@ void DataLoggerThread::logEPOSEvent(int logType, QTime timeStamp, int eventID)
         break;
     }
 
-    output.append("EPOS ");
+    switch(source)
+    {
+    case SRC_EM:
+        output.append("EM ");
+        break;
+    case SRC_EPOS:
+        output.append("EPOS ");
+        break;
+    case SRC_FRMGRAB:
+        output.append("FRMGRAB ");
+        break;
+    case SRC_EPIPHAN:
+        output.append("EPIPHAN ");
+        break;
+    case SRC_LABJACK:
+        output.append("LABJACK ");
+        break;
+    case SRC_OMNI:
+        output.append("OMNI ");
+        break;
+    case SRC_GUI:
+        output.append("GUI ");
+        break;
+    case SRC_UNKNOWN:
+        output.append("UNKNOWN ");
+        break;
+    default:
+        output.append("UNKNOWN ");
+        break;
+    }
 
     output.append(QString("%1\n").arg(eventID));
 
-
     QMutexLocker locker(m_mutex);
 
-    if(m_files[DATALOG_Log_ID]->isOpen())
+    if(m_isReady && m_files[DATALOG_Log_ID]->isOpen())
     {
         (*m_TextStreams[DATALOG_Log_ID]) << output;
     }
     else
-        qDebug() << "File is closed.";
+        qDebug() << "Event logger: File is closed!";
 }
 
 void DataLoggerThread::startLogging()
@@ -291,8 +336,11 @@ void DataLoggerThread::closeLogFile(const unsigned short fileID)
     if(m_files[fileID]->isOpen())
     {
         if( DATALOG_EM_ID != fileID )
+        {
+            (*m_TextStreams[fileID]) << "File closed at: " << getCurrDateTimeStr() << '\n';
             m_TextStreams[fileID]->flush();
             //m_DataStreams[fileID]->flush(); // no need to flush, data is not buffered
+        }
         m_files[fileID]->close();
 
         emit fileStatusChanged(fileID, DATALOG_FILE_CLOSED);
@@ -308,6 +356,8 @@ void DataLoggerThread::closeLogFiles()
         closeLogFile(i);
     }
     emit statusChanged(DATALOG_CLOSED);
+
+    m_isReady = false;
 }
 
 // Helper functions

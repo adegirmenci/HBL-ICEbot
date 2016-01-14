@@ -64,14 +64,17 @@ signals:
     void logData(QTime timeStamp,
                  int dataType, // EPOS_DATA_IDS
                  std::vector<long> data);
-    void logEvent(int logType, // LOG_TYPE
+    void logEvent(int source, // LOG_SOURCE
+                  int logType, // LOG_TYPE
                   QTime timeStamp,
                   int eventID); // EPOS_EVENT_IDS
-    void logEventWithMessage(int logType,
+    void logEventWithMessage(int source, // LOG_SOURCE
+                  int logType, // LOG_TYPE
                   QTime timeStamp,
                   int eventID,  // EPOS_EVENT_IDS
                   QString &message);
-    void logError(int logType, // LOG_TYPE
+    void logError(int source, // LOG_SOURCE
+                  int logType, // LOG_TYPE
                   QTime timeStamp,
                   int errCode, // EPOS_ERROR_CODES
                   QString &message);

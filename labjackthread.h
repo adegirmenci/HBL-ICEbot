@@ -30,16 +30,19 @@ signals:
     //void EM_Ready(bool status); // tells the widget that the EM tracker is ready
     void logData(QTime timeStamp,
                  double data);
-    void logEvent(LOG_TYPES logType,
+    void logEvent(int source, // LOG_SOURCE
+                  int logType, // LOG_TYPES
                   QTime timeStamp,
-                  LABJACK_EVENT_IDS eventID);
-    void logEventWithMessage(LOG_TYPES logType,
+                  int eventID); // LABJACK_EVENT_IDS
+    void logEventWithMessage(int source, // LOG_SOURCE
+                  int logType, // LOG_TYPES
                   QTime timeStamp,
-                  LABJACK_EVENT_IDS eventID,
+                  int eventID, // LABJACK_EVENT_IDS
                   QString &message);
-    void logError(LOG_TYPES logType,
+    void logError(int source, // LOG_SOURCE
+                  int logType, // LOG_TYPES
                   QTime timeStamp,
-                  LJ_ERROR errorCode,
+                  long errorCode, // LJ_ERROR
                   QString &message);
     //void sendDataToGUI(int sensorID, const QString &output);
     void finished(); // emit upon termination

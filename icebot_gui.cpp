@@ -13,11 +13,20 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
     connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD)),
             ui->dataLogWidget->m_worker, SLOT(logEMdata(QTime,int,DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD)));
 
+    connect(ui->labjackWidget->m_worker, SIGNAL(logData(QTime,double)),
+            ui->dataLogWidget->m_worker, SLOT(logLabJackData(QTime,double)));
+
     connect(ui->frmGrabWidget->m_worker, SIGNAL(pleaseSaveImage(std::shared_ptr<Frame>)),
             ui->dataLogWidget->m_worker, SLOT(logFrmGrabImage(std::shared_ptr<Frame>)));
 
-    connect(ui->eposWidget->m_worker, SIGNAL(logEvent(int,QTime,int)),
-            ui->dataLogWidget->m_worker, SLOT(logEPOSEvent(int,QTime,int)));
+    connect(ui->emWidget->m_worker, SIGNAL(logEvent(int,int,QTime,int)),
+            ui->dataLogWidget->m_worker, SLOT(logEvent(int,int,QTime,int)));
+    connect(ui->eposWidget->m_worker, SIGNAL(logEvent(int,int,QTime,int)),
+            ui->dataLogWidget->m_worker, SLOT(logEvent(int,int,QTime,int)));
+    connect(ui->frmGrabWidget->m_worker, SIGNAL(logEvent(int,int,QTime,int)),
+            ui->dataLogWidget->m_worker, SLOT(logEvent(int,int,QTime,int)));
+    connect(ui->labjackWidget->m_worker, SIGNAL(logEvent(int,int,QTime,int)),
+            ui->dataLogWidget->m_worker, SLOT(logEvent(int,int,QTime,int)));
 
     qDebug() << "GUI ready.";
 

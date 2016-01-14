@@ -55,7 +55,7 @@ void LabJackThread::connectLabJack()
     //Read and display the hardware version of this U6.
     m_lngErrorcode = eGet(m_lngHandle, LJ_ioGET_CONFIG, LJ_chHARDWARE_VERSION, &m_dblValue, 0);
     success = success && ErrorHandler(m_lngErrorcode, __LINE__, 0);
-    emit logEventWithMessage(LOG_INFO, QTime::currentTime(), LABJACK_CONNECTED,
+    emit logEventWithMessage(SRC_LABJACK, LOG_INFO, QTime::currentTime(), LABJACK_CONNECTED,
                              QString("U6 Hardware Version = %1\n")
                              .arg(QString::number(m_dblValue,'f',3))          );
     qDebug() << "U6 Hardware Version = " << m_dblValue;
@@ -63,7 +63,7 @@ void LabJackThread::connectLabJack()
     //Read and display the firmware version of this U6.
     m_lngErrorcode = eGet(m_lngHandle, LJ_ioGET_CONFIG, LJ_chFIRMWARE_VERSION, &m_dblValue, 0);
     success = success && ErrorHandler(m_lngErrorcode, __LINE__, 0);
-    emit logEventWithMessage(LOG_INFO, QTime::currentTime(), LABJACK_CONNECTED,
+    emit logEventWithMessage(SRC_LABJACK, LOG_INFO, QTime::currentTime(), LABJACK_CONNECTED,
                              QString("U6 Firmware Version = %1\n")
                              .arg(QString::number(m_dblValue,'f',3))          );
     qDebug() << "U6 Firmware Version = " << m_dblValue;
@@ -107,22 +107,26 @@ void LabJackThread::initializeLabJack(const unsigned int samplesPerSec)
     m_lngErrorcode = AddRequest(m_lngHandle, LJ_ioPUT_CONFIG, LJ_chAIN_RESOLUTION, 3, 0, 0);
     ErrorHandler(m_lngErrorcode, __LINE__, 0);
 
-    //Set the scan rate.
-    m_lngErrorcode = AddRequest(m_lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_SCAN_FREQUENCY, m_scanRate, 0, 0);
-    ErrorHandler(m_lngErrorcode, __LINE__, 0);
+//    //Set the scan rate.
+//    m_lngErrorcode = AddRequest(m_lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_SCAN_FREQUENCY, m_scanRate, 0, 0);
+//    ErrorHandler(m_lngErrorcode, __LINE__, 0);
 
-    //Give the driver a 5 second buffer (scanRate * 1 channels * 5 seconds).
-    m_lngErrorcode = AddRequest(m_lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_BUFFER_SIZE, m_scanRate * 1 * 5, 0, 0);
-    ErrorHandler(m_lngErrorcode, __LINE__, 0);
+//    //Give the driver a 5 second buffer (scanRate * 1 channels * 5 seconds).
+//    m_lngErrorcode = AddRequest(m_lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_BUFFER_SIZE, m_scanRate * 1 * 5, 0, 0);
+//    ErrorHandler(m_lngErrorcode, __LINE__, 0);
 
-    //Configure reads to retrieve whatever data is available without waiting (wait mode LJ_swNONE).
-    m_lngErrorcode = AddRequest(m_lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_WAIT_MODE, LJ_swNONE, 0, 0);
-    ErrorHandler(m_lngErrorcode, __LINE__, 0);
+//    //Configure reads to retrieve whatever data is available without waiting (wait mode LJ_swNONE).
+//    m_lngErrorcode = AddRequest(m_lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_WAIT_MODE, LJ_swNONE, 0, 0);
+//    ErrorHandler(m_lngErrorcode, __LINE__, 0);
 
-    //Define the scan list as AIN0.
-    m_lngErrorcode = AddRequest(m_lngHandle, LJ_ioCLEAR_STREAM_CHANNELS, 0, 0, 0, 0);
-    ErrorHandler(m_lngErrorcode, __LINE__, 0);
-    m_lngErrorcode = AddRequest(m_lngHandle, LJ_ioADD_STREAM_CHANNEL, 0, 0, 0, 0); // first method for single ended reading - AIN0
+//    //Define the scan list as AIN0.
+//    m_lngErrorcode = AddRequest(m_lngHandle, LJ_ioCLEAR_STREAM_CHANNELS, 0, 0, 0, 0);
+//    ErrorHandler(m_lngErrorcode, __LINE__, 0);
+//    m_lngErrorcode = AddRequest(m_lngHandle, LJ_ioADD_STREAM_CHANNEL, 0, 0, 0, 0); // first method for single ended reading - AIN0
+//    ErrorHandler(m_lngErrorcode, __LINE__, 0);
+
+    //Request AIN0.
+    m_lngErrorcode = AddRequest (m_lngHandle, LJ_ioGET_AIN, 2, 0, 0, 0);
     ErrorHandler(m_lngErrorcode, __LINE__, 0);
 
     //Execute the list of requests.
@@ -168,26 +172,27 @@ void LabJackThread::startAcquisition()
         m_timer = new QTimer(this);
         connect(m_timer, SIGNAL(timeout()), this, SLOT(ReadStream()));
 
-        m_timer->start(m_delayms);
+        //m_timer->start(m_delayms);
+        m_timer->start(1);
 
         if(m_timer->isActive())
         {
             qDebug() << "Timer started.";
             emit statusChanged(LABJACK_LOOP_STARTED);
-            emit logEvent(LOG_INFO, QTime::currentTime(), LABJACK_LOOP_STARTED);
+            emit logEvent(SRC_LABJACK, LOG_INFO, QTime::currentTime(), LABJACK_LOOP_STARTED);
         }
         else
         {
             qDebug() << "Timer is not active.";
             emit statusChanged(LABJACK_LOOP_STOPPED);
-            emit logError(LOG_ERROR, QTime::currentTime(), LJE_TIMER_INVALID_MODE, QString("Timer is not active."));
+            emit logError(SRC_LABJACK, LOG_ERROR, QTime::currentTime(), LJE_TIMER_INVALID_MODE, QString("Timer is not active."));
         }
     }
     else
     {
         qDebug() << "LabJack is not ready.";
         emit statusChanged(LABJACK_INITIALIZE_FAILED);
-        emit logError(LOG_ERROR, QTime::currentTime(), LJE_DEVICE_NOT_OPEN, QString("LabJack is not ready."));
+        emit logError(SRC_LABJACK, LOG_ERROR, QTime::currentTime(), LJE_DEVICE_NOT_OPEN, QString("LabJack is not ready."));
     }
 }
 
@@ -205,11 +210,11 @@ void LabJackThread::stopAcquisition()
 
         delete m_timer;
 
-        emit logEvent(LOG_INFO, QTime::currentTime(), LABJACK_LOOP_STOPPED);
+        emit logEvent(SRC_LABJACK, LOG_INFO, QTime::currentTime(), LABJACK_LOOP_STOPPED);
         emit statusChanged(LABJACK_LOOP_STOPPED);
 
-        m_lngErrorcode = eGet(m_lngHandle, LJ_ioSTOP_STREAM, 0, 0, 0);
-        ErrorHandler(m_lngErrorcode, __LINE__, 0);
+//        m_lngErrorcode = eGet(m_lngHandle, LJ_ioSTOP_STREAM, 0, 0, 0);
+//        ErrorHandler(m_lngErrorcode, __LINE__, 0);
 
         qDebug() << "Timer stopped.";
     }
@@ -242,11 +247,11 @@ void LabJackThread::setEpoch(const QTime &epoch)
         m_epoch = epoch;
         m_isEpochSet = true;
 
-        emit logEventWithMessage(LOG_INFO, QTime::currentTime(), LABJACK_EPOCH_SET,
+        emit logEventWithMessage(SRC_LABJACK, LOG_INFO, QTime::currentTime(), LABJACK_EPOCH_SET,
                                  m_epoch.toString("HH.mm.ss.zzz"));
     }
     else
-        emit logEvent(LOG_INFO, QTime::currentTime(), LABJACK_EPOCH_SET_FAILED);
+        emit logEvent(SRC_LABJACK, LOG_INFO, QTime::currentTime(), LABJACK_EPOCH_SET_FAILED);
 }
 
 void LabJackThread::ReadStream()
@@ -255,19 +260,24 @@ void LabJackThread::ReadStream()
 
     if(m_isReady)
     {
-        for (m_k = 0; m_k < m_numScans; m_k++)
-        {
-            m_adblData[m_k] = 9999.0;
-        }
+//        for (m_k = 0; m_k < m_numScans; m_k++)
+//        {
+//            m_adblData[m_k] = 9999.0;
+//        }
 
         //Read the data.  We will request twice the number we expect, to
         //make sure we get everything that is available.
         //Note that the array we pass must be sized to hold enough SAMPLES, and
         //the Value we pass specifies the number of SCANS to read.
-        m_numScansRequested = m_numScans;
-        m_lngErrorcode = eGet(m_lngHandle, LJ_ioGET_STREAM_DATA, LJ_chALL_CHANNELS,
-                              &m_numScansRequested, m_padblData);
+//        m_numScansRequested = m_numScans;
+//        m_lngErrorcode = eGet(m_lngHandle, LJ_ioGET_STREAM_DATA, LJ_chALL_CHANNELS,
+//                              &m_numScansRequested, m_padblData);
+        double newData = 9999.0;
+        m_lngErrorcode = eGet (m_lngHandle, LJ_ioGET_AIN, 0, &newData, 0); // single read
         ErrorHandler(m_lngErrorcode, __LINE__, 0);
+
+//        emit logData(QTime::currentTime(), m_adblData[0]);
+        emit logData(QTime::currentTime(), newData);
     }
 }
 
@@ -288,7 +298,7 @@ bool LabJackThread::ErrorHandler(LJ_ERROR lngErrorcode,
         if (lngErrorcode > LJE_MIN_GROUP_ERROR)
         {
             qDebug() << "FATAL ERROR!" << msg;
-            logError(LOG_FATAL,
+            logError(SRC_LABJACK, LOG_FATAL,
                           QTime::currentTime(),
                           lngErrorcode,
                           msg);
@@ -296,7 +306,7 @@ bool LabJackThread::ErrorHandler(LJ_ERROR lngErrorcode,
         else
         {
             qDebug() << msg;
-            logError(LOG_ERROR, QTime::currentTime(), lngErrorcode,
+            logError(SRC_LABJACK, LOG_ERROR, QTime::currentTime(), lngErrorcode,
                           msg);
         }
         return false; // there was an error

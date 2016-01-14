@@ -50,7 +50,7 @@ bool AscensionThread::initializeEM() // open connection to EM
     // permanent failure - contact tech support.
     // A call to InitializeBIRDSystem() does not return any information.
     //
-    emit logEvent(LOG_INFO, QTime::currentTime(), EM_INITIALIZE_BEGIN);
+    emit logEvent(SRC_EM, LOG_INFO, QTime::currentTime(), EM_INITIALIZE_BEGIN);
     emit statusChanged(EM_INITIALIZE_BEGIN);
 
     m_errorCode = InitializeBIRDSystem();
@@ -104,7 +104,7 @@ bool AscensionThread::initializeEM() // open connection to EM
             m_numSensorsAttached = m_i + 1;
     }
 
-    emit logEventWithMessage(LOG_INFO, QTime::currentTime(), EM_SENSORS_DETECTED,
+    emit logEventWithMessage(SRC_EM, LOG_INFO, QTime::currentTime(), EM_SENSORS_DETECTED,
                              QString::number(m_numSensorsAttached));
 
     // GET TRANSMITTER CONFIGURATION
@@ -149,12 +149,12 @@ bool AscensionThread::initializeEM() // open connection to EM
 
     // report the transmitter being used
 
-    emit logEventWithMessage(LOG_INFO, QTime::currentTime(), EM_TRANSMITTER_SET,
+    emit logEventWithMessage(SRC_EM, LOG_INFO, QTime::currentTime(), EM_TRANSMITTER_SET,
                              QString::number(m_id));
 
     // report the detected sampling rate
     m_samplingFreq = m_ATC3DG.m_config.measurementRate;
-    emit logEventWithMessage(LOG_INFO, QTime::currentTime(), EM_FREQ_DETECTED,
+    emit logEventWithMessage(SRC_EM, LOG_INFO, QTime::currentTime(), EM_FREQ_DETECTED,
                              QString::number(m_samplingFreq));
 
     // Set sensor output to position + rotation matrix + time stamp
@@ -180,7 +180,7 @@ bool AscensionThread::initializeEM() // open connection to EM
     // set sample rate
     setSampleRate(EM_DEFAULT_SAMPLE_RATE);
 
-    emit logEvent(LOG_INFO, QTime::currentTime(), EM_INITIALIZED);
+    emit logEvent(SRC_EM, LOG_INFO, QTime::currentTime(), EM_INITIALIZED);
     emit statusChanged(EM_INITIALIZED);
 
     return status;
@@ -197,7 +197,7 @@ void AscensionThread::startAcquisition() // start timer
     m_keepRecording = true;
     m_i = 0;
 
-    emit logEvent(LOG_INFO, QTime::currentTime(), EM_ACQUISITION_STARTED);
+    emit logEvent(SRC_EM, LOG_INFO, QTime::currentTime(), EM_ACQUISITION_STARTED);
     emit statusChanged(EM_ACQUISITION_STARTED);
 }
 
@@ -264,7 +264,7 @@ void AscensionThread::stopAcquisition() // stop timer
 
         delete m_timer;
 
-        emit logEvent(LOG_INFO, QTime::currentTime(), EM_ACQUISITION_STOPPED);
+        emit logEvent(SRC_EM, LOG_INFO, QTime::currentTime(), EM_ACQUISITION_STOPPED);
         emit statusChanged(EM_ACQUISITION_STOPPED);
     }
 }
@@ -291,7 +291,7 @@ bool AscensionThread::disconnectEM() // disconnect from EM
     delete[] m_pSensor;
     delete[] m_pXmtr;
 
-    emit logEvent(LOG_INFO, QTime::currentTime(), EM_DISCONNECTED);
+    emit logEvent(SRC_EM, LOG_INFO, QTime::currentTime(), EM_DISCONNECTED);
     emit statusChanged(EM_DISCONNECTED);
     return status;
 }
@@ -304,11 +304,11 @@ void AscensionThread::setEpoch(const QDateTime &datetime) // set Epoch
         m_epoch = datetime;
         m_isEpochSet = true;
 
-        emit logEventWithMessage(LOG_INFO, QTime::currentTime(), EM_EPOCH_SET,
+        emit logEventWithMessage(SRC_EM, LOG_INFO, QTime::currentTime(), EM_EPOCH_SET,
                                  m_epoch.toString("dd/MM/yyyy - hh:mm:ss.zzz"));
     }
     else
-        emit logEvent(LOG_INFO, QTime::currentTime(), EM_EPOCH_SET_FAILED);
+        emit logEvent(SRC_EM, LOG_INFO, QTime::currentTime(), EM_EPOCH_SET_FAILED);
 }
 
 void AscensionThread::setSampleRate(int freq) // set freq
@@ -322,14 +322,14 @@ void AscensionThread::setSampleRate(int freq) // set freq
         if( EM_MIN_SAMPLE_RATE > freq )
         {
             freq = EM_MIN_SAMPLE_RATE;
-            emit logError(LOG_ERROR, QTime::currentTime(),
+            emit logError(SRC_EM, LOG_ERROR, QTime::currentTime(),
                           EM_BELOW_MIN_SAMPLE_RATE, QString::number(freq));
         }
         // freq too high, clamp
         else if( EM_MAX_SAMPLE_RATE < freq )
         {
             freq = EM_ABOVE_MAX_SAMPLE_RATE;
-            emit logError(LOG_ERROR, QTime::currentTime(),
+            emit logError(SRC_EM, LOG_ERROR, QTime::currentTime(),
                           EM_ABOVE_MAX_SAMPLE_RATE, QString::number(freq));
         }
 
@@ -346,7 +346,7 @@ void AscensionThread::setSampleRate(int freq) // set freq
             m_samplingFreq = freq;
 
             // log event
-            emit logEventWithMessage(LOG_INFO, QTime::currentTime(), EM_FREQ_SET,
+            emit logEventWithMessage(SRC_EM, LOG_INFO, QTime::currentTime(), EM_FREQ_SET,
                                      QString::number(m_samplingFreq));
 
             // emit status change
@@ -355,7 +355,7 @@ void AscensionThread::setSampleRate(int freq) // set freq
     }
     else
     {
-        emit logError(LOG_ERROR, QTime::currentTime(),
+        emit logError(SRC_EM, LOG_ERROR, QTime::currentTime(),
                       EM_CANT_MUTATE_WHILE_RUNNING, QString(""));
         emit statusChanged(EM_FREQ_SET_FAILED);
     }
@@ -407,7 +407,7 @@ void AscensionThread::errorHandler_(int error)
         //printf("%s", buffer);
         msg.append(buffer);
         qDebug() << msg;
-        emit logError(LOG_ERROR, QTime::currentTime(), EM_FAIL, msg);
+        emit logError(SRC_EM, LOG_ERROR, QTime::currentTime(), EM_FAIL, msg);
     }
 }
 

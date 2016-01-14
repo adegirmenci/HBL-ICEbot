@@ -60,16 +60,19 @@ signals:
     void logData(QTime timeStamp,
                  int frameIdx,
                  QString &data);
-    void logEvent(LOG_TYPES logType,
+    void logEvent(int source, // LOG_SOURCE
+                  int logType, // LOG_TYPES
                   QTime timeStamp,
-                  FRMGRAB_EVENT_IDS eventID);
-    void logEventWithMessage(LOG_TYPES logType,
+                  int eventID); // FRMGRAB_EVENT_IDS
+    void logEventWithMessage(int source, // LOG_SOURCE
+                  int logType, // LOG_TYPES
                   QTime timeStamp,
-                  FRMGRAB_EVENT_IDS eventID,
+                  int eventID, // FRMGRAB_EVENT_IDS
                   QString &message);
-    void logError(LOG_TYPES logType,
+    void logError(int source, // LOG_SOURCE
+                  int logType, // LOG_TYPES
                   QTime timeStamp,
-                  FRMGRAB_ERROR_CODES,
+                  int errCode, // FRMGRAB_ERROR_CODES
                   QString &message);
     void finished(); // emit upon termination
 

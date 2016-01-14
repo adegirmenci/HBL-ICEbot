@@ -64,16 +64,19 @@ signals:
     void logData(QTime timeStamp,
                  int sensorID,
                  DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD data);
-    void logEvent(LOG_TYPES logType,
+    void logEvent(int source, // LOG_SOURCE
+                  int logType, // LOG_TYPES
                   QTime timeStamp,
-                  EM_EVENT_IDS eventID);
-    void logEventWithMessage(LOG_TYPES logType,
+                  int eventID); // EM_EVENT_IDS
+    void logEventWithMessage(int source, // LOG_SOURCE
+                  int logType,  // LOG_TYPES
                   QTime timeStamp,
-                  EM_EVENT_IDS eventID,
+                  int eventID, // EM_EVENT_IDS
                   QString &message);
-    void logError(LOG_TYPES logType,
+    void logError(int source,  // LOG_SOURCE
+                  int logType,   // LOG_TYPES
                   QTime timeStamp,
-                  EM_ERROR_CODES,
+                  int errCode, // EM_ERROR_CODES
                   QString &message);
     void sendDataToGUI(int sensorID, const QString &output);
     void finished(); // emit upon termination

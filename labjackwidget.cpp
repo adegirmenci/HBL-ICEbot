@@ -22,6 +22,33 @@ LabJackWidget::LabJackWidget(QWidget *parent) :
 
     // connect worker signals to widget slots
     connect(m_worker, SIGNAL(statusChanged(int)), this, SLOT(workerStatusChanged(int)));
+
+    // QCustomPlot
+    // include this section to fully disable antialiasing for higher performance:
+    ui->plotWidget->setNotAntialiasedElements(QCP::aeAll);
+    QFont font;
+    font.setStyleStrategy(QFont::NoAntialias);
+    ui->plotWidget->xAxis->setTickLabelFont(font);
+    ui->plotWidget->yAxis->setTickLabelFont(font);
+    ui->plotWidget->legend->setFont(font);
+
+    ui->plotWidget->addGraph(); // blue line
+    ui->plotWidget->graph(0)->setPen(QPen(Qt::blue));
+    //ui->plotWidget->graph(0)->setBrush(QBrush(QColor(240, 255, 200)));
+    ui->plotWidget->graph(0)->setAntialiasedFill(false);
+
+    ui->plotWidget->xAxis->setTickLabelType(QCPAxis::ltDateTime);
+    ui->plotWidget->xAxis->setDateTimeFormat("hh:mm:ss");
+    ui->plotWidget->xAxis->setAutoTickStep(false);
+    ui->plotWidget->xAxis->setTickStep(2);
+    ui->plotWidget->axisRect()->setupFullAxesBox();
+
+    // make left and bottom axes transfer their ranges to right and top axes:
+    connect(ui->plotWidget->xAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotWidget->xAxis2, SLOT(setRange(QCPRange)));
+    connect(ui->plotWidget->yAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotWidget->yAxis2, SLOT(setRange(QCPRange)));
+
+    // setup a timer that repeatedly calls MainWindow::realtimeDataSlot:
+    connect(m_worker, SIGNAL(logData(QTime,double)), this, SLOT(addDataToPlot(QTime,double)));
 }
 
 LabJackWidget::~LabJackWidget()
@@ -31,6 +58,25 @@ LabJackWidget::~LabJackWidget()
     qDebug() << "LabJack thread quit.";
 
     delete ui;
+}
+
+void LabJackWidget::addDataToPlot(QTime timeStamp, double data)
+{
+    double key = timeStamp.msecsSinceStartOfDay()/1000.0;
+    static double lastPointKey = 0;
+    if( (key - lastPointKey) > 0.01) // at most add point every 10 ms
+    {
+      // add data to lines:
+      ui->plotWidget->graph(0)->addData(key, data);
+      // remove data of lines that's outside visible range:
+      ui->plotWidget->graph(0)->removeDataBefore(key-8);
+      // rescale value (vertical) axis to fit the current data:
+      ui->plotWidget->graph(0)->rescaleValueAxis();
+      lastPointKey = key;
+    }
+    // make key axis range scroll with the data (at a constant range size of 8):
+    ui->plotWidget->xAxis->setRange(key+0.25, 8, Qt::AlignRight);
+    ui->plotWidget->replot();
 }
 
 void LabJackWidget::workerStatusChanged(int status)

@@ -52,6 +52,7 @@ public slots:
                  int sensorID,
                  DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD data);
     void logFrmGrabImage(std::shared_ptr<Frame> frm);
+    void logLabJackData(QTime timeStamp, double data);
 //    void logEvent(LOG_TYPES logType,
 //                  QTime timeStamp,
 //                  EM_EVENT_IDS eventID);
@@ -70,9 +71,10 @@ public slots:
 //    void logData(QTime timeStamp,
 //                 EPOS_DATA_IDS dataType,
 //                 std::vector<long> data);
-    void logEPOSEvent(int logType, // LOG_TYPES
+    void logEvent(int source,
+                  int logType, // LOG_TYPES
                   QTime timeStamp,
-                  int eventID); // EPOS_EVENT_IDS
+                  int eventID);
 //    void logEventWithMessage(LOG_TYPES logType,
 //                  QTime timeStamp,
 //                  EPOS_EVENT_IDS eventID,

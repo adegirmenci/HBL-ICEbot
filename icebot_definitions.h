@@ -19,10 +19,22 @@
 
 enum LOG_TYPES
 {
-    LOG_INFO, // regular messages
+    LOG_INFO = 0, // regular messages
     LOG_WARNING, // warnings
     LOG_ERROR, // errors
     LOG_FATAL // fatal errors
+};
+
+enum LOG_SOURCE
+{
+    SRC_EM = 0,
+    SRC_EPOS,
+    SRC_FRMGRAB,
+    SRC_EPIPHAN,
+    SRC_LABJACK,
+    SRC_OMNI,
+    SRC_GUI,
+    SRC_UNKNOWN
 };
 
 // **********************

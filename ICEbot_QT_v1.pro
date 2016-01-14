@@ -6,7 +6,7 @@
 
 QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 TARGET = ICEbot_QT_v1
 TEMPLATE = app
@@ -25,7 +25,8 @@ SOURCES += main.cpp\
     frmgrabthread.cpp \
     frmgrabwidget.cpp \
     labjackthread.cpp \
-    labjackwidget.cpp
+    labjackwidget.cpp \
+    qcustomplot.cpp
 
 HEADERS  += icebot_gui.h \
     omni.h \
@@ -40,7 +41,8 @@ HEADERS  += icebot_gui.h \
     frmgrabwidget.h \
     labjackthread.h \
     labjackwidget.h \
-    icebot_definitions.h
+    icebot_definitions.h \
+    qcustomplot.h
 
 FORMS    += icebot_gui.ui \
     omni.ui \

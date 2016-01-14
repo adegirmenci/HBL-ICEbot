@@ -18,6 +18,8 @@ public:
     explicit LabJackWidget(QWidget *parent = 0);
     ~LabJackWidget();
 
+    LabJackThread *m_worker;
+
 signals:
     void connectLabJack(); // open connection
     void initializeLabJack(const unsigned int samplesPerSec); // initialize settings
@@ -27,6 +29,7 @@ signals:
 
 private slots:
     void workerStatusChanged(int status);
+    void addDataToPlot(QTime timeStamp, double data);
 
     void on_connectButton_clicked();
 
@@ -42,7 +45,7 @@ private:
     Ui::LabJackWidget *ui;
 
     QThread m_thread; // LabJack Thread will live in here
-    LabJackThread *m_worker;
+
 };
 
 #endif // LABJACKWIDGET_H

@@ -45,7 +45,7 @@ bool EPOS2Thread::initializeEPOS()
 {
     QMutexLocker locker(m_mutex);
 
-    emit logEvent(LOG_INFO, QTime::currentTime(), EPOS_INITIALIZE_BEGIN);
+    emit logEvent(SRC_EPOS, LOG_INFO, QTime::currentTime(), EPOS_INITIALIZE_BEGIN);
     emit statusChanged(EPOS_INITIALIZE_BEGIN);
 
     qDebug() << "Opening connection to EPOS...";
@@ -72,7 +72,7 @@ bool EPOS2Thread::initializeEPOS()
     else
     {
         ShowErrorInformation(m_ulErrorCode);
-        emit logEvent(LOG_INFO, QTime::currentTime(), EPOS_INITIALIZE_FAILED);
+        emit logEvent(SRC_EPOS, LOG_INFO, QTime::currentTime(), EPOS_INITIALIZE_FAILED);
         emit statusChanged(EPOS_INITIALIZE_FAILED);
         return false;
     }
@@ -93,7 +93,7 @@ bool EPOS2Thread::initializeEPOS()
     }
     //locker.relock();
 
-    emit logEvent(LOG_INFO, QTime::currentTime(), EPOS_INITIALIZED);
+    emit logEvent(SRC_EPOS, LOG_INFO, QTime::currentTime(), EPOS_INITIALIZED);
     emit statusChanged(EPOS_INITIALIZED);
 
     return status;
@@ -109,7 +109,7 @@ void EPOS2Thread::startServoing()
 
     m_keepServoing = true;
 
-    emit logEvent(LOG_INFO, QTime::currentTime(), EPOS_SERVO_LOOP_STARTED);
+    emit logEvent(SRC_EPOS, LOG_INFO, QTime::currentTime(), EPOS_SERVO_LOOP_STARTED);
     emit statusChanged(EPOS_SERVO_LOOP_STARTED);
 
     qDebug() << "Servo loop started.";
@@ -213,7 +213,7 @@ void EPOS2Thread::stopServoing()
 
         delete m_timer;
 
-        emit logEvent(LOG_INFO, QTime::currentTime(), EPOS_SERVO_LOOP_STOPPED);
+        emit logEvent(SRC_EPOS, LOG_INFO, QTime::currentTime(), EPOS_SERVO_LOOP_STOPPED);
         emit statusChanged(EPOS_SERVO_LOOP_STOPPED);
         qDebug() << "Servo loop stopped.";
     }
@@ -363,11 +363,11 @@ void EPOS2Thread::setEpoch(const QDateTime &datetime)
         m_epoch = datetime;
         m_isEpochSet = true;
 
-        emit logEventWithMessage(LOG_INFO, QTime::currentTime(), EPOS_EPOCH_SET,
+        emit logEventWithMessage(SRC_EPOS, LOG_INFO, QTime::currentTime(), EPOS_EPOCH_SET,
                                  m_epoch.toString("dd/MM/yyyy - hh:mm:ss.zzz"));
     }
     else
-        emit logEvent(LOG_INFO, QTime::currentTime(), EPOS_EPOCH_SET_FAILED);
+        emit logEvent(SRC_EPOS, LOG_INFO, QTime::currentTime(), EPOS_EPOCH_SET_FAILED);
 }
 
 // ----------------
@@ -535,7 +535,7 @@ bool EPOS2Thread::ShowErrorInformation(DWORD p_ulErrorCode)
         msg.append(strDescription);
 
         qDebug() << "Maxon: " << msg;
-        emit logError(LOG_ERROR, QTime::currentTime(), EPOS_FAIL, msg);
+        emit logError(SRC_EPOS, LOG_ERROR, QTime::currentTime(), EPOS_FAIL, msg);
 
         free(pStrErrorInfo);
 
@@ -548,7 +548,7 @@ bool EPOS2Thread::ShowErrorInformation(DWORD p_ulErrorCode)
         free(pStrErrorInfo);
 
         qDebug() << "Maxon: " << msg;
-        emit logError(LOG_ERROR, QTime::currentTime(), EPOS_FAIL, msg);
+        emit logError(SRC_EPOS, LOG_ERROR, QTime::currentTime(), EPOS_FAIL, msg);
 
         return false;
     }
@@ -560,7 +560,7 @@ bool EPOS2Thread::checkMotorID(const int motID)
     {
         QString msg = QString("Motor ID (%1) out of bounds").arg(motID);
 
-        emit logEventWithMessage(LOG_ERROR,
+        emit logEventWithMessage(SRC_EPOS, LOG_ERROR,
                       QTime::currentTime(),
                       EPOS_DISABLE_MOTOR_FAILED,
                       msg);

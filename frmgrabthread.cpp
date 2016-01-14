@@ -85,7 +85,7 @@ void FrmGrabThread::startStream()
 
         m_keepStreaming = true;
 
-        emit logEvent(LOG_INFO, QTime::currentTime(), FRMGRAB_LOOP_STARTED);
+        emit logEvent(SRC_FRMGRAB, LOG_INFO, QTime::currentTime(), FRMGRAB_LOOP_STARTED);
         emit statusChanged(FRMGRAB_LOOP_STARTED);
 
         qDebug() << "Streaming started.";
@@ -108,7 +108,7 @@ void FrmGrabThread::stopStream()
 
         delete m_timer;
 
-        emit logEvent(LOG_INFO, QTime::currentTime(), FRMGRAB_LOOP_STOPPED);
+        emit logEvent(SRC_FRMGRAB, LOG_INFO, QTime::currentTime(), FRMGRAB_LOOP_STOPPED);
 
         qDebug() << "Streaming stopped.";
     }
@@ -215,9 +215,9 @@ void FrmGrabThread::setEpoch(const QDateTime &datetime)
         m_epoch = datetime;
         m_isEpochSet = true;
 
-        emit logEventWithMessage(LOG_INFO, QTime::currentTime(), FRMGRAB_EPOCH_SET,
+        emit logEventWithMessage(SRC_FRMGRAB, LOG_INFO, QTime::currentTime(), FRMGRAB_EPOCH_SET,
                                  m_epoch.toString("dd/MM/yyyy - hh:mm:ss.zzz"));
     }
     else
-        emit logEvent(LOG_INFO, QTime::currentTime(), FRMGRAB_EPOCH_SET_FAILED);
+        emit logEvent(SRC_FRMGRAB, LOG_INFO, QTime::currentTime(), FRMGRAB_EPOCH_SET_FAILED);
 }
