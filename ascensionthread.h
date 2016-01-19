@@ -77,7 +77,7 @@ signals:
                   int logType,   // LOG_TYPES
                   QTime timeStamp,
                   int errCode, // EM_ERROR_CODES
-                  QString &message);
+                  QString message);
     void sendDataToGUI(int sensorID, const QString &output);
     void finished(); // emit upon termination
 

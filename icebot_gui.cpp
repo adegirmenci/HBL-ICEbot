@@ -9,7 +9,6 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
 
     qDebug() << "Setting up GUI connections.";
 
-    //connect(ui->frmGrabWidget->m_worker, SIGNAL(pleaseSaveImage(std::shared_ptr<Frame>)), ui->dataLogWidget->m_worker, SLOT(...));
     connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD)),
             ui->dataLogWidget->m_worker, SLOT(logEMdata(QTime,int,DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD)));
 
@@ -19,6 +18,11 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
     connect(ui->frmGrabWidget->m_worker, SIGNAL(pleaseSaveImage(std::shared_ptr<Frame>)),
             ui->dataLogWidget->m_worker, SLOT(logFrmGrabImage(std::shared_ptr<Frame>)));
 
+    connect(ui->eposWidget->m_worker, SIGNAL(logData(QTime,int,int,long)),
+            ui->dataLogWidget->m_worker, SLOT(logEPOSdata(QTime,int,int,long)));
+    connect(ui->eposWidget->m_worker, SIGNAL(logData(QTime,int,std::vector<long>)),
+            ui->dataLogWidget->m_worker, SLOT(logEPOSdata(QTime,int,std::vector<long>)));
+
     connect(ui->emWidget->m_worker, SIGNAL(logEvent(int,int,QTime,int)),
             ui->dataLogWidget->m_worker, SLOT(logEvent(int,int,QTime,int)));
     connect(ui->eposWidget->m_worker, SIGNAL(logEvent(int,int,QTime,int)),
@@ -27,6 +31,15 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
             ui->dataLogWidget->m_worker, SLOT(logEvent(int,int,QTime,int)));
     connect(ui->labjackWidget->m_worker, SIGNAL(logEvent(int,int,QTime,int)),
             ui->dataLogWidget->m_worker, SLOT(logEvent(int,int,QTime,int)));
+
+    connect(ui->emWidget->m_worker, SIGNAL(logError(int,int,QTime,int,QString)),
+            ui->dataLogWidget->m_worker, SLOT(logError(int,int,QTime,int,QString)));
+    connect(ui->eposWidget->m_worker, SIGNAL(logError(int,int,QTime,int,QString)),
+            ui->dataLogWidget->m_worker, SLOT(logError(int,int,QTime,int,QString)));
+    connect(ui->frmGrabWidget->m_worker, SIGNAL(logError(int,int,QTime,int,QString)),
+            ui->dataLogWidget->m_worker, SLOT(logError(int,int,QTime,int,QString)));
+    connect(ui->labjackWidget->m_worker, SIGNAL(logError(int,int,QTime,int,QString)),
+            ui->dataLogWidget->m_worker, SLOT(logError(int,int,QTime,int,QString)));
 
     qDebug() << "GUI ready.";
 

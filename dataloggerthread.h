@@ -53,6 +53,13 @@ public slots:
                  DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD data);
     void logFrmGrabImage(std::shared_ptr<Frame> frm);
     void logLabJackData(QTime timeStamp, double data);
+    void logEPOSdata(QTime timeStamp,
+                     int dataType, // EPOS_DATA_IDS
+                     const int motID,
+                     long data);
+    void logEPOSdata(QTime timeStamp,
+                     int dataType, // EPOS_DATA_IDS
+                     std::vector<long> data);
 //    void logEvent(LOG_TYPES logType,
 //                  QTime timeStamp,
 //                  EM_EVENT_IDS eventID);
@@ -75,6 +82,12 @@ public slots:
                   int logType, // LOG_TYPES
                   QTime timeStamp,
                   int eventID);
+    // log error and log event with message can be combined
+    void logError(int source, // LOG_SOURCE
+                  int logType, // LOG_TYPE
+                  QTime timeStamp,
+                  int errCode, // EPOS_ERROR_CODES
+                  QString message);
 //    void logEventWithMessage(LOG_TYPES logType,
 //                  QTime timeStamp,
 //                  EPOS_EVENT_IDS eventID,

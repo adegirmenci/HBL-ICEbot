@@ -231,6 +231,62 @@ void DataLoggerThread::logLabJackData(QTime timeStamp, double data)
         ;//qDebug() << "File is closed.";
 }
 
+void DataLoggerThread::logEPOSdata(QTime timeStamp, int dataType, const int motID, long data)
+{
+    QString output = QString("%1\t").arg(timeStamp.msecsSinceStartOfDay());
+    switch(dataType)
+    {
+    case EPOS_COMMANDED:
+        output.append("CMND\t");
+        break;
+    case EPOS_READ:
+        output.append("READ\t");
+        break;
+    }
+
+    output.append(QString("%1\t%2\n").arg(motID).arg(data));
+
+
+    QMutexLocker locker(m_mutex);
+
+    if(m_isReady && m_files[DATALOG_EPOS_ID]->isOpen())
+    {
+        (*m_TextStreams[DATALOG_EPOS_ID]) << output;
+    }
+    else
+        ;//qDebug() << "File is closed.";
+}
+
+void DataLoggerThread::logEPOSdata(QTime timeStamp, int dataType, std::vector<long> data)
+{
+    QString output;
+
+    for(size_t i = 0; i < data.size(); i++)
+    {
+        output.append(QString("%1\t").arg(timeStamp.msecsSinceStartOfDay()));
+        switch(dataType)
+        {
+        case EPOS_COMMANDED:
+            output.append("CMND\t");
+            break;
+        case EPOS_READ:
+            output.append("READ\t");
+            break;
+        }
+
+        output.append(QString("%1\t%2\n").arg(i).arg(data[i]));
+    }
+
+    QMutexLocker locker(m_mutex);
+
+    if(m_isReady && m_files[DATALOG_EPOS_ID]->isOpen())
+    {
+        (*m_TextStreams[DATALOG_EPOS_ID]) << output << '\n';
+    }
+    else
+        ;//qDebug() << "File is closed.";
+}
+
 void DataLoggerThread::logEvent(int source, int logType, QTime timeStamp, int eventID)
 {
     // Data Format
@@ -298,6 +354,79 @@ void DataLoggerThread::logEvent(int source, int logType, QTime timeStamp, int ev
     }
     else
         qDebug() << "Event logger: File is closed!";
+}
+
+void DataLoggerThread::logError(int source, int logType,
+                                QTime timeStamp, int errCode,
+                                QString message)
+{
+    // Data Format
+    // | Time Stamp | Log Type | Source | eventID |
+
+    QString output = timeStamp.toString("HH:mm:ss.zzz");
+
+    switch(logType)
+    {
+    case LOG_INFO:
+        output.append(" INFO ");
+        break;
+    case LOG_WARNING:
+        output.append(" WARNING ");
+        break;
+    case LOG_ERROR:
+        output.append(" ERROR ");
+        break;
+    case LOG_FATAL:
+        output.append(" FATAL ");
+        break;
+    default:
+        output.append(" UNKNOWN ");
+        break;
+    }
+
+    switch(source)
+    {
+    case SRC_EM:
+        output.append("EM ");
+        break;
+    case SRC_EPOS:
+        output.append("EPOS ");
+        break;
+    case SRC_FRMGRAB:
+        output.append("FRMGRAB ");
+        break;
+    case SRC_EPIPHAN:
+        output.append("EPIPHAN ");
+        break;
+    case SRC_LABJACK:
+        output.append("LABJACK ");
+        break;
+    case SRC_OMNI:
+        output.append("OMNI ");
+        break;
+    case SRC_GUI:
+        output.append("GUI ");
+        break;
+    case SRC_UNKNOWN:
+        output.append("UNKNOWN ");
+        break;
+    default:
+        output.append("UNKNOWN ");
+        break;
+    }
+
+    output.append(QString("%1 ").arg(errCode));
+
+    output.append(message);
+
+    QMutexLocker locker(m_mutex);
+
+    if(m_isReady && m_files[DATALOG_Error_ID]->isOpen())
+    {
+        (*m_TextStreams[DATALOG_Error_ID]) << output << '\n';
+    }
+    else
+        qDebug() << "Error logger: File is closed!";
 }
 
 void DataLoggerThread::startLogging()

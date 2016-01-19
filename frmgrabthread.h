@@ -73,7 +73,7 @@ signals:
                   int logType, // LOG_TYPES
                   QTime timeStamp,
                   int errCode, // FRMGRAB_ERROR_CODES
-                  QString &message);
+                  QString message);
     void finished(); // emit upon termination
 
 public slots:

@@ -77,7 +77,7 @@ signals:
                   int logType, // LOG_TYPE
                   QTime timeStamp,
                   int errCode, // EPOS_ERROR_CODES
-                  QString &message);
+                  QString message);
     void sendDataToGUI(const int id, const QString &output);
     void finished(); // emit upon termination
 

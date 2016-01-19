@@ -42,8 +42,8 @@ signals:
     void logError(int source, // LOG_SOURCE
                   int logType, // LOG_TYPES
                   QTime timeStamp,
-                  long errorCode, // LJ_ERROR
-                  QString &message);
+                  int errorCode, // LJ_ERROR
+                  QString message);
     //void sendDataToGUI(int sensorID, const QString &output);
     void finished(); // emit upon termination
 
