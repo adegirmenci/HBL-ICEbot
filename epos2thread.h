@@ -8,6 +8,7 @@
 #include <QString>
 #include <QDateTime>
 #include <QTimer>
+#include <QElapsedTimer>
 #include <QDebug>
 #include <QSharedPointer>
 

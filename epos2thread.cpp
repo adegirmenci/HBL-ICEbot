@@ -33,7 +33,7 @@ EPOS2Thread::~EPOS2Thread()
 
     m_mutex->lock();
     m_abort = true;
-    qDebug() << "Ending EPOS2Thread.";
+    qDebug() << "Ending EPOS2Thread - ID: " << QThread::currentThreadId() << ".";
     m_mutex->unlock();
 
     delete m_mutex;
@@ -104,7 +104,7 @@ void EPOS2Thread::startServoing()
     QMutexLocker locker(m_mutex);
 
     m_timer = new QTimer(this);
-    m_timer->start(4);
+    m_timer->start(1);
     connect(m_timer,SIGNAL(timeout()),this,SLOT(servoToPosition()));
 
     m_keepServoing = true;
@@ -113,7 +113,6 @@ void EPOS2Thread::startServoing()
     emit statusChanged(EPOS_SERVO_LOOP_STARTED);
 
     qDebug() << "Servo loop started.";
-
 }
 
 void EPOS2Thread::setServoTargetPos(const int axisID, long targetPos, bool moveAbsOrRel)
@@ -164,16 +163,16 @@ void EPOS2Thread::servoToPosition()
 {
     QMutexLocker locker(m_mutex);
 
-    //        QElapsedTimer elTimer;
-    //        qDebug() << "Using clock type " << elTimer.clockType();
-    //        elTimer.start();
+//  QElapsedTimer elTimer;
+//  qDebug() << "Using clock type " << elTimer.clockType();
+//  elTimer.start();
 
     for(int i = 0; i < EPOS_NUM_MOTORS; i++)
     {
         servoToPosition(i);
     }
 
-    //        qDebug() << "Elapsed Time: " << elTimer.nsecsElapsed()/1000000. << " ms";
+//  qDebug() << "Elapsed Time: " << elTimer.nsecsElapsed()/1000000. << " ms";
 }
 
 void EPOS2Thread::servoToPosition(const int axisID)
@@ -189,6 +188,7 @@ void EPOS2Thread::servoToPosition(const int axisID)
             updateMotorQC(axisID); // this may not be the best place to put this
 
             emit logData(QTime::currentTime(), EPOS_COMMANDED, axisID, m_motors[axisID]->m_lTargetPosition);
+
             if(!VCS_MoveToPosition(m_KeyHandle, usNodeId, m_motors[axisID]->m_lTargetPosition, true, m_oImmediately, &m_ulErrorCode))
             {
                 ShowErrorInformation(m_ulErrorCode);

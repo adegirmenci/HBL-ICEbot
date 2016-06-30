@@ -50,6 +50,7 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
     ui->emWidget->m_worker->setEpoch(m_epoch);
     ui->frmGrabWidget->m_worker->setEpoch(m_epoch);
     ui->eposWidget->m_worker->setEpoch(m_epoch);
+
 }
 
 ICEbot_GUI::~ICEbot_GUI()

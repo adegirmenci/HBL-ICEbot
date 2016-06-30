@@ -27,9 +27,9 @@ DataLoggerThread::DataLoggerThread(QObject *parent) : QObject(parent)
 
 DataLoggerThread::~DataLoggerThread()
 {
+    qDebug() << "Ending DataLoggerThread - ID: " << QThread::currentThreadId() << ".";
 
-
-    qDebug() << "Ending DataLoggerThread.";
+    delete m_mutex;
 
     emit finished();
 }

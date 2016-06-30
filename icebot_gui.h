@@ -16,7 +16,7 @@ class ICEbot_GUI : public QMainWindow
 
 public:
     explicit ICEbot_GUI(QWidget *parent = 0);
-    ~ICEbot_GUI();    
+    ~ICEbot_GUI();
 
 private slots:
 

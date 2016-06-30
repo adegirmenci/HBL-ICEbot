@@ -32,7 +32,7 @@ LabJackThread::~LabJackThread()
 
     m_mutex->lock();
     m_abort = true;
-    qDebug() << "Ending LabJackThread.";
+    qDebug() << "Ending LabJackThread - ID: " << QThread::currentThreadId() << ".";
     m_mutex->unlock();
 
     delete m_mutex;
@@ -164,8 +164,8 @@ void LabJackThread::startAcquisition()
     if(m_isReady && !m_keepAcquiring) // ready to read data
     {
         //Start the stream.
-        m_lngErrorcode = eGet(m_lngHandle, LJ_ioSTART_STREAM, 0, &m_dblValue, 0);
-        ErrorHandler(m_lngErrorcode, __LINE__, 0);
+//        m_lngErrorcode = eGet(m_lngHandle, LJ_ioSTART_STREAM, 0, &m_dblValue, 0);
+//        ErrorHandler(m_lngErrorcode, __LINE__, 0);
 
         m_keepAcquiring = true;
 

@@ -111,3 +111,8 @@ win32: LIBS += -L$$PWD/3DGAPI/ -lATC3DG
 
 INCLUDEPATH += $$PWD/3DGAPI
 DEPENDPATH += $$PWD/3DGAPI
+
+# Eigen
+INCLUDEPATH += "D:\\Eigen\\Eigen"
+INCLUDEPATH += "D:\\Eigen"
+DEPENDPATH += "D:\\Eigen\\Eigen"
