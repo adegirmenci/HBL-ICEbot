@@ -33,6 +33,8 @@ enum LOG_SOURCE
     SRC_EPIPHAN,
     SRC_LABJACK,
     SRC_OMNI,
+    SRC_DATALOGGER,
+    SRC_CONTROLLER,
     SRC_GUI,
     SRC_UNKNOWN
 };
@@ -75,9 +77,19 @@ enum EM_EVENT_IDS
 	EM_SET_DATA_FORMAT_TYPE_FAILED
 };
 
+enum EM_SENSOR_IDS
+{
+    EM_SENSOR_BB = 0,
+    EM_SENSOR_BT,
+    EM_SENSOR_INST,
+    EM_SENSOR_CHEST
+};
+
 static const int EM_DEFAULT_SAMPLE_RATE = 150;
 static const int EM_MIN_SAMPLE_RATE = 20;
 static const int EM_MAX_SAMPLE_RATE = 250;
+
+// Preferred EM reading type is : DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD
 
 // **********************
 // ******** EPOS ********
@@ -222,6 +234,31 @@ static const int FRMGRAB_IM_WIDTH = 1920; // 640;
 static const int FRMGRAB_IM_HEIGHT = 1080; // 480;
 static const int FRMGRAB_FPS = 60;
 
+// **************************
+// ******  CONTROLLER  ******
+// **************************
+
+enum CONTROLLER_ERROR_CODES
+{
+    CONTROLLER_SUCCESS = 0,     //
+    CONTROLLER_FAIL,
+    CONTROLLER_CANT_MUTATE_WHILE_RUNNING
+};
+
+enum CONTROLLER_EVENT_IDS
+{
+    CONTROLLER_INITIALIZE_BEGIN = 0,
+    CONTROLLER_INITIALIZE_FAILED,
+    CONTROLLER_INITIALIZED,
+    CONTROLLER_LOOP_STARTED,
+    CONTROLLER_LOOP_STOPPED,
+    CONTROLLER_EPOCH_SET,
+    CONTROLLER_EPOCH_SET_FAILED,
+    CONTROLLER_RESET,
+    CONTROLLER_RESET_FAILED
+};
+
+static const int CONTROLLER_LOOP_TIMER_MSEC = 1;
 // ***********************
 // ***** DATA LOGGER *****
 // ***********************

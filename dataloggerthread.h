@@ -40,6 +40,7 @@ signals:
 
 public slots:
     // Widget slots
+    void setEpoch(const QDateTime &epoch);
     void setRootDirectory(QString dir);
     void initializeDataLogger(std::vector<int> enableMask, std::vector<QString> fileNames);
     void startLogging();
@@ -50,7 +51,7 @@ public slots:
     // EM slots
     void logEMdata(QTime timeStamp,
                  int sensorID,
-                 DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD data);
+                 DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data);
     void logFrmGrabImage(std::shared_ptr<Frame> frm);
     void logLabJackData(QTime timeStamp, double data);
     void logEPOSdata(QTime timeStamp,
@@ -107,7 +108,7 @@ private:
     // During initializeDataLogger(), check 'isEpochSet' flag
     // If Epoch is set externally from MainWindow, the flag will be true
     // Otherwise, Epoch will be set internally
-    QTime m_epoch;
+    QDateTime m_epoch;
     bool m_isEpochSet;
 
     // Flag to indicate if DataLogger is ready for data logging

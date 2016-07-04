@@ -63,7 +63,7 @@ signals:
     //void EM_Ready(bool status); // tells the widget that the EM tracker is ready
     void logData(QTime timeStamp,
                  int sensorID,
-                 DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD data);
+                 DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data);
     void logEvent(int source, // LOG_SOURCE
                   int logType, // LOG_TYPES
                   QTime timeStamp,
@@ -88,8 +88,8 @@ public slots:
     bool disconnectEM(); // disconnect from EM
     void setEpoch(const QDateTime &datetime); // set Epoch
     void setSampleRate(int freq); // set freq
-    void getLatestReading(const int sensorID, DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD &dataContainer);
-    void getLatestReadingsAll(std::vector<DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD> &dataContainer);
+    void getLatestReading(const int sensorID, DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD &dataContainer);
+    void getLatestReadingsAll(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> &dataContainer);
 
 private slots:
     void getSample(); // called by timer
@@ -132,7 +132,7 @@ private:
     int m_records;
     int m_numberBytes;
     // latest reading
-    std::vector<DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD> m_latestReading;
+    std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> m_latestReading;
 
     const int m_prec = 4; // precision for print operations
 
@@ -141,7 +141,7 @@ private:
 
     QString formatOutput(QTime &timeStamp,
                          int sensorID,
-                         DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD &record);
+                         DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD &record);
 
 };
 

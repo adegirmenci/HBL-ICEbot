@@ -14,7 +14,7 @@ AscensionThread::AscensionThread(QObject *parent) :
     m_records = 0;
     m_latestReading.resize(4);
 
-    qRegisterMetaType<DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD>("DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD");
+    qRegisterMetaType<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD>("DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD");
 }
 
 AscensionThread::~AscensionThread()
@@ -160,7 +160,7 @@ bool AscensionThread::initializeEM() // open connection to EM
     // Set sensor output to position + rotation matrix + time stamp
     for(m_sensorID = 0; m_sensorID < m_numSensorsAttached; m_sensorID++)
     {
-        DATA_FORMAT_TYPE buf = DOUBLE_POSITION_MATRIX_TIME_STAMP;
+        DATA_FORMAT_TYPE buf = DOUBLE_POSITION_QUATERNION_TIME_Q;
         DATA_FORMAT_TYPE *pBuf = &buf;
         m_errorCode = SetSensorParameter(m_sensorID, DATA_FORMAT, pBuf, sizeof(buf));
         if(m_errorCode!=BIRD_ERROR_SUCCESS) {
@@ -179,6 +179,15 @@ bool AscensionThread::initializeEM() // open connection to EM
     //locker.unlock();
     // set sample rate
     setSampleRate(EM_DEFAULT_SAMPLE_RATE);
+
+    // set to METRIC
+    BOOL isMetric = TRUE;
+    m_errorCode = SetSystemParameter(METRIC, &isMetric, sizeof(isMetric));
+    if(m_errorCode!=BIRD_ERROR_SUCCESS) {
+        errorHandler_(m_errorCode);
+        emit statusChanged(EM_INITIALIZE_FAILED);
+        return status = false;
+    }
 
     emit logEvent(SRC_EM, LOG_INFO, QTime::currentTime(), EM_INITIALIZED);
     emit statusChanged(EM_INITIALIZED);
@@ -208,7 +217,7 @@ void AscensionThread::getSample() // called by timer
     // format without first setting it.
 
     // 4 sensors
-    DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD record[4];
+    DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD record[4];
     //DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD *pRecord = record
     //DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD record, *pRecord = &record;
 
@@ -377,13 +386,13 @@ int AscensionThread::getNumSensors()
     return m_numSensorsAttached;
 }
 
-void AscensionThread::getLatestReading(const int sensorID, DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD &dataContainer)
+void AscensionThread::getLatestReading(const int sensorID, DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD &dataContainer)
 {
     QMutexLocker locker(m_mutex);
     dataContainer = m_latestReading[sensorID];
 }
 
-void AscensionThread::getLatestReadingsAll(std::vector<DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD> &dataContainer)
+void AscensionThread::getLatestReadingsAll(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> &dataContainer)
 {
     QMutexLocker locker(m_mutex);
     dataContainer = m_latestReading;
@@ -411,7 +420,7 @@ void AscensionThread::errorHandler_(int error)
     }
 }
 
-QString AscensionThread::formatOutput(QTime &timeStamp, int sensorID, DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD &data)
+QString AscensionThread::formatOutput(QTime &timeStamp, int sensorID, DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD &data)
 {
     QDateTime ts;
     ts.setMSecsSinceEpoch(data.time*1000);
@@ -424,17 +433,26 @@ QString AscensionThread::formatOutput(QTime &timeStamp, int sensorID, DOUBLE_POS
                         .arg(QString::number(data.x,'f',m_prec))
                         .arg(QString::number(data.y,'f',m_prec))
                         .arg(QString::number(data.z,'f',m_prec)));
-    output.append("Rot\n");
-    output.append(QString("%1\t%2\t%3\n%4\t%5\t%6\n%7\t%8\t%9\n")
-                        .arg(QString::number(data.s[0][0],'f',m_prec))
-                        .arg(QString::number(data.s[0][1],'f',m_prec))
-                        .arg(QString::number(data.s[0][2],'f',m_prec))
-                        .arg(QString::number(data.s[1][0],'f',m_prec))
-                        .arg(QString::number(data.s[1][1],'f',m_prec))
-                        .arg(QString::number(data.s[1][2],'f',m_prec))
-                        .arg(QString::number(data.s[2][0],'f',m_prec))
-                        .arg(QString::number(data.s[2][1],'f',m_prec))
-                        .arg(QString::number(data.s[2][2],'f',m_prec)));
+//    output.append("Rot\n");
+//    output.append(QString("%1\t%2\t%3\n%4\t%5\t%6\n%7\t%8\t%9\n")
+//                        .arg(QString::number(data.s[0][0],'f',m_prec))
+//                        .arg(QString::number(data.s[0][1],'f',m_prec))
+//                        .arg(QString::number(data.s[0][2],'f',m_prec))
+//                        .arg(QString::number(data.s[1][0],'f',m_prec))
+//                        .arg(QString::number(data.s[1][1],'f',m_prec))
+//                        .arg(QString::number(data.s[1][2],'f',m_prec))
+//                        .arg(QString::number(data.s[2][0],'f',m_prec))
+//                        .arg(QString::number(data.s[2][1],'f',m_prec))
+//                        .arg(QString::number(data.s[2][2],'f',m_prec)));
+    output.append("Rot (Quat)\n");
+    output.append(QString("%1\t%2\t%3\n%4\n")
+                        .arg(QString::number(data.q[0],'f',m_prec))
+                        .arg(QString::number(data.q[1],'f',m_prec))
+                        .arg(QString::number(data.q[2],'f',m_prec))
+                        .arg(QString::number(data.q[3],'f',m_prec)));
+    output.append("Quality: ");
+    output.append(QString("%1\n")
+                        .arg(QString::number(data.quality,'f',1)));
     output.append(QString("Time: %1").arg(ts.toString("hh:mm:ss.zzz\n")));
 
     return output;

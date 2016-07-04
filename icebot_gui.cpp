@@ -9,8 +9,8 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
 
     qDebug() << "Setting up GUI connections.";
 
-    connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD)),
-            ui->dataLogWidget->m_worker, SLOT(logEMdata(QTime,int,DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD)));
+    connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)),
+            ui->dataLogWidget->m_worker, SLOT(logEMdata(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)));
 
     connect(ui->labjackWidget->m_worker, SIGNAL(logData(QTime,double)),
             ui->dataLogWidget->m_worker, SLOT(logLabJackData(QTime,double)));
@@ -41,15 +41,18 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
     connect(ui->labjackWidget->m_worker, SIGNAL(logError(int,int,QTime,int,QString)),
             ui->dataLogWidget->m_worker, SLOT(logError(int,int,QTime,int,QString)));
 
-    qDebug() << "GUI ready.";
-
     // get current date time
     m_epoch = QDateTime::currentDateTime();
+
+    qDebug() << "Setting epoch.";
 
     // set date time of widgets
     ui->emWidget->m_worker->setEpoch(m_epoch);
     ui->frmGrabWidget->m_worker->setEpoch(m_epoch);
     ui->eposWidget->m_worker->setEpoch(m_epoch);
+    ui->labjackWidget->m_worker->setEpoch(m_epoch);
+
+    qDebug() << "GUI ready.";
 
 }
 

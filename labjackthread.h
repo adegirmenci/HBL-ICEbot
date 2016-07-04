@@ -53,7 +53,7 @@ public slots:
     void startAcquisition(); // start timer
     void stopAcquisition(); // stop timer
     void disconnectLabJack(); // disconnect
-    void setEpoch(const QTime &epoch);
+    void setEpoch(const QDateTime &epoch);
 
 private slots:
     void ReadStream();
@@ -71,7 +71,7 @@ private:
     // During initializeLabJack(), check 'isEpochSet' flag
     // If Epoch is set externally from MainWindow, the flag will be true
     // Otherwise, Epoch will be set internally
-    QTime m_epoch;
+    QDateTime m_epoch;
     bool m_isEpochSet;
 
     // Flag to indicate if LabJack is ready

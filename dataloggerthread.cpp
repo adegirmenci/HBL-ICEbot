@@ -27,11 +27,33 @@ DataLoggerThread::DataLoggerThread(QObject *parent) : QObject(parent)
 
 DataLoggerThread::~DataLoggerThread()
 {
+    closeLogFiles();
+
     qDebug() << "Ending DataLoggerThread - ID: " << QThread::currentThreadId() << ".";
 
     delete m_mutex;
 
     emit finished();
+}
+
+// ------------------------------
+//     SLOTS IMPLEMENTATION
+// ------------------------------
+void DataLoggerThread::setEpoch(const QDateTime &epoch)
+{
+    QMutexLocker locker(m_mutex);
+
+    if(!m_keepLogging)
+    {
+        m_epoch = epoch;
+        m_isEpochSet = true;
+
+        // TODO: Implement generic logEventWithMessage slot
+        //emit logEventWithMessage(SRC_DATALOGGER, LOG_INFO, QTime::currentTime(), DATALOG_EPOCH_SET,
+        //                         m_epoch.toString("dd/MM/yyyy - hh:mm:ss.zzz"));
+    }
+    else
+        emit logEvent(SRC_DATALOGGER, LOG_INFO, QTime::currentTime(), DATALOG_EPOCH_SET_FAILED);
 }
 
 void DataLoggerThread::setRootDirectory(QString dir)
@@ -157,11 +179,11 @@ void DataLoggerThread::initializeDataLogger(std::vector<int> enableMask, std::ve
 
 void DataLoggerThread::logEMdata(QTime timeStamp,
                                  int sensorID,
-                                 DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD data)
+                                 DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data)
 {
     // Data Format
-    // | Sensor ID | Time Stamp | x | y | z | r11 | r12 | .... | r33 |
-    // |    int    |   double   |      ...      double      ...      |
+    // | Sensor ID | Time Stamp | x | y | z | q1 | q2 | q3 | q4 | quality |
+    // |    int    |   double   |        ...      double      ...         |
 
     QMutexLocker locker(m_mutex);
 
@@ -172,15 +194,20 @@ void DataLoggerThread::logEMdata(QTime timeStamp,
                                         << data.x
                                         << data.y
                                         << data.z
-                                        << data.s[0][0]
-                                        << data.s[0][1]
-                                        << data.s[0][2]
-                                        << data.s[1][0]
-                                        << data.s[1][1]
-                                        << data.s[1][2]
-                                        << data.s[2][0]
-                                        << data.s[2][1]
-                                        << data.s[2][2];
+                                        << data.q[0]
+                                        << data.q[1]
+                                        << data.q[2]
+                                        << data.q[3]
+                                        << data.quality;
+//                                        << data.s[0][0]
+//                                        << data.s[0][1]
+//                                        << data.s[0][2]
+//                                        << data.s[1][0]
+//                                        << data.s[1][1]
+//                                        << data.s[1][2]
+//                                        << data.s[2][0]
+//                                        << data.s[2][1]
+//                                        << data.s[2][2];
     }
     else
         qDebug() << "File is closed.";
@@ -462,7 +489,8 @@ void DataLoggerThread::closeLogFile(const unsigned short fileID)
 {
     QMutexLocker locker(m_mutex);
 
-    if(m_files[fileID]->isOpen())
+    // pointer not null and file is open
+    if(m_files[fileID] && m_files[fileID]->isOpen())
     {
         if( DATALOG_EM_ID != fileID )
         {

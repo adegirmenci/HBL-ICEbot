@@ -238,7 +238,7 @@ void LabJackThread::disconnectLabJack()
     emit statusChanged(LABJACK_DISCONNECTED);
 }
 
-void LabJackThread::setEpoch(const QTime &epoch)
+void LabJackThread::setEpoch(const QDateTime &epoch)
 {
     QMutexLocker locker(m_mutex);
 
@@ -248,7 +248,7 @@ void LabJackThread::setEpoch(const QTime &epoch)
         m_isEpochSet = true;
 
         emit logEventWithMessage(SRC_LABJACK, LOG_INFO, QTime::currentTime(), LABJACK_EPOCH_SET,
-                                 m_epoch.toString("HH.mm.ss.zzz"));
+                                 m_epoch.toString("dd/MM/yyyy - hh:mm:ss.zzz"));
     }
     else
         emit logEvent(SRC_LABJACK, LOG_INFO, QTime::currentTime(), LABJACK_EPOCH_SET_FAILED);
