@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += 3dcore 3drender 3dinput 3dextras core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
@@ -26,7 +26,11 @@ SOURCES += main.cpp\
     frmgrabwidget.cpp \
     labjackthread.cpp \
     labjackwidget.cpp \
-    qcustomplot.cpp
+    qcustomplot.cpp \
+    extendedqt3dwindow.cpp \
+    scenemodifier.cpp \
+    scenevizwidget.cpp \
+    triadentity.cpp
 
 HEADERS  += icebot_gui.h \
     omni.h \
@@ -42,7 +46,11 @@ HEADERS  += icebot_gui.h \
     labjackthread.h \
     labjackwidget.h \
     icebot_definitions.h \
-    qcustomplot.h
+    qcustomplot.h \
+    extendedqt3dwindow.h \
+    scenemodifier.h \
+    scenevizwidget.h \
+    triadentity.h
 
 FORMS    += icebot_gui.ui \
     omni.ui \
@@ -50,18 +58,26 @@ FORMS    += icebot_gui.ui \
     dataloggerwidget.ui \
     epos2widget.ui \
     frmgrabwidget.ui \
-    labjackwidget.ui
+    labjackwidget.ui \
+    scenevizwidget.ui
 
-win32: LIBS += -L$$PWD/../../../../../OpenHaptics/Developer/3.4.0/lib/Win32/Release/ -lhd
+win32 {
+    INCLUDEPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/include
+    DEPENDPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/include
 
-INCLUDEPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/include
-DEPENDPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/include
+    INCLUDEPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/utilities/include
+    DEPENDPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/utilities/include
 
-win32: LIBS += -L$$PWD/../../../../../OpenHaptics/Developer/3.4.0/utilities/lib/Win32/Release/ -lhdu
+    CONFIG(debug,debug|release) {
+        LIBS += -L$$PWD/../../../../../OpenHaptics/Developer/3.4.0/lib/Win32/Debug/ -lhd
+        LIBS += -L$$PWD/../../../../../OpenHaptics/Developer/3.4.0/utilities/lib/Win32/Debug/ -lhdu
+    }
 
-INCLUDEPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/utilities/include
-DEPENDPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/utilities/include
-
+    CONFIG(release,debug|release) {
+        LIBS += -L$$PWD/../../../../../OpenHaptics/Developer/3.4.0/lib/Win32/Release/ -lhd
+        LIBS += -L$$PWD/../../../../../OpenHaptics/Developer/3.4.0/utilities/lib/Win32/Release/ -lhdu
+    }
+}
 
 win32: LIBS += -L$$PWD/LabJackLibs/ -lLabJackUD
 

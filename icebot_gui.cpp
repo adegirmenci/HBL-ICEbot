@@ -41,6 +41,9 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
     connect(ui->labjackWidget->m_worker, SIGNAL(logError(int,int,QTime,int,QString)),
             ui->dataLogWidget->m_worker, SLOT(logError(int,int,QTime,int,QString)));
 
+    connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)),
+            ui->sceneVizWidget->m_modifier, SLOT(receiveEMreading(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)));
+
     // get current date time
     m_epoch = QDateTime::currentDateTime();
 

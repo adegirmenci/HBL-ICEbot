@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>5</number>
     </property>
     <widget class="QWidget" name="emTab">
      <attribute name="title">
@@ -101,6 +101,21 @@
       </property>
      </widget>
     </widget>
+    <widget class="QWidget" name="sceneVizTab">
+     <attribute name="title">
+      <string>3D Visualizer</string>
+     </attribute>
+     <widget class="SceneVizWidget" name="sceneVizWidget" native="true">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>500</width>
+        <height>420</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -109,7 +124,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -171,6 +186,12 @@
    <class>EPOS2Widget</class>
    <extends>QWidget</extends>
    <header>epos2widget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SceneVizWidget</class>
+   <extends>QWidget</extends>
+   <header>scenevizwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
