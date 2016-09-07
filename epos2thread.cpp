@@ -364,7 +364,7 @@ void EPOS2Thread::setEpoch(const QDateTime &datetime)
         m_isEpochSet = true;
 
         emit logEventWithMessage(SRC_EPOS, LOG_INFO, QTime::currentTime(), EPOS_EPOCH_SET,
-                                 m_epoch.toString("dd/MM/yyyy - hh:mm:ss.zzz"));
+                                 m_epoch.toString("yyyy/MM/dd - hh:mm:ss.zzz"));
     }
     else
         emit logEvent(SRC_EPOS, LOG_INFO, QTime::currentTime(), EPOS_EPOCH_SET_FAILED);
@@ -588,5 +588,5 @@ inline const QString getCurrTimeStr()
 
 inline const QString getCurrDateTimeStr()
 {
-    return QDateTime::currentDateTime().toString("dd/MM/yyyy - hh:mm:ss.zzz");
+    return QDateTime::currentDateTime().toString("yyyy/MM/dd - hh:mm:ss.zzz");
 }

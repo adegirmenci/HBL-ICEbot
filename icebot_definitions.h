@@ -6,8 +6,9 @@
 //	Author: Alperen Degirmenci
 //
 //	Date: 11/29/2015
+//	Last Update: 09/07/2016
 //
-//	COPYRIGHT:		COPYRIGHT HARVARD BIOROBOTICS LABORATORY - 2015
+//	COPYRIGHT:		COPYRIGHT HARVARD BIOROBOTICS LABORATORY - 2015, 2016
 //
 //*****************************************************************************//
 //
@@ -314,6 +315,32 @@ enum DATALOG_EVENT_IDS
     DATALOG_LOGGING_STARTED,
     DATALOG_LOGGING_STOPPED,
     DATALOG_CLOSED
+};
+
+// ************************
+// ***** FRAME SERVER *****
+// ************************
+
+enum FRMSRVR_EVENT_IDS
+{
+    FRMSRVR_STARTED = 0,
+    FRMSRVR_START_FAILED,
+    FRMSRVR_CLOSED,
+    FRMSRVR_CLOSE_FAILED,
+    FRMSRVR_FRAME_RECEIVED
+};
+
+// ************************
+// ***** FRAME CLIENT *****
+// ************************
+
+enum FRMCLNT_EVENT_IDS
+{
+    FRMCLNT_CONNECTED = 0,
+    FRMCLNT_CONNECTION_FAILED,
+    FRMCLNT_DISCONNECTED,
+    FRMCLNT_DISCONNECTION_FAILED,
+    FRMCLNT_FRAME_SENT
 };
 
 #endif // ICEBOT_DEFINITIONS

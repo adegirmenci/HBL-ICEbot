@@ -521,10 +521,10 @@ void DataLoggerThread::closeLogFiles()
 
 inline const QString getCurrDateTimeFileStr()
 {
-    return QDateTime::currentDateTime().toString("ddMMyyyy_hhmmsszzz");
+    return QDateTime::currentDateTime().toString("yyyyMMdd_hhmmsszzz");
 }
 
 inline const QString getCurrDateTimeStr()
 {
-    return QDateTime::currentDateTime().toString("dd/MM/yyyy - hh:mm:ss.zzz");
+    return QDateTime::currentDateTime().toString("yyyy/MM/dd - hh:mm:ss.zzz");
 }

@@ -196,8 +196,8 @@ void FrmGrabThread::grabFrame()
         m_numSaveImageRequests--;
     }
 
-    if(m_showLiveFeed)
-        emit imageAcquired(frame);
+    //if(m_showLiveFeed)
+    emit imageAcquired(frame);
 }
 
 void FrmGrabThread::addSaveRequest(unsigned short numFrames)
@@ -216,7 +216,7 @@ void FrmGrabThread::setEpoch(const QDateTime &datetime)
         m_isEpochSet = true;
 
         emit logEventWithMessage(SRC_FRMGRAB, LOG_INFO, QTime::currentTime(), FRMGRAB_EPOCH_SET,
-                                 m_epoch.toString("dd/MM/yyyy - hh:mm:ss.zzz"));
+                                 m_epoch.toString("yyyy/MM/dd - hh:mm:ss.zzz"));
     }
     else
         emit logEvent(SRC_FRMGRAB, LOG_INFO, QTime::currentTime(), FRMGRAB_EPOCH_SET_FAILED);

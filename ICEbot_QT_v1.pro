@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += 3dcore 3drender 3dinput 3dextras core gui
+QT       += 3dcore 3drender 3dinput 3dextras core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
@@ -30,7 +30,9 @@ SOURCES += main.cpp\
     extendedqt3dwindow.cpp \
     scenemodifier.cpp \
     scenevizwidget.cpp \
-    triadentity.cpp
+    triadentity.cpp \
+    frameclientthread.cpp \
+    frameclientwidget.cpp
 
 HEADERS  += icebot_gui.h \
     omni.h \
@@ -50,7 +52,9 @@ HEADERS  += icebot_gui.h \
     extendedqt3dwindow.h \
     scenemodifier.h \
     scenevizwidget.h \
-    triadentity.h
+    triadentity.h \
+    frameclientthread.h \
+    frameclientwidget.h
 
 FORMS    += icebot_gui.ui \
     omni.ui \
@@ -59,7 +63,8 @@ FORMS    += icebot_gui.ui \
     epos2widget.ui \
     frmgrabwidget.ui \
     labjackwidget.ui \
-    scenevizwidget.ui
+    scenevizwidget.ui \
+    frameclientwidget.ui
 
 win32 {
     INCLUDEPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/include

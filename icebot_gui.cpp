@@ -44,6 +44,12 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
     connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)),
             ui->sceneVizWidget->m_modifier, SLOT(receiveEMreading(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)));
 
+    // inter-process communication
+    connect(ui->frmGrabWidget->m_worker, SIGNAL(imageAcquired(std::shared_ptr<Frame>)),
+            ui->frameClientWidget->m_worker, SLOT(receiveFrame(std::shared_ptr<Frame>)));
+    connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)),
+            ui->frameClientWidget->m_worker, SLOT(receiveEMreading(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)));
+
     // get current date time
     m_epoch = QDateTime::currentDateTime();
 
@@ -54,6 +60,7 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
     ui->frmGrabWidget->m_worker->setEpoch(m_epoch);
     ui->eposWidget->m_worker->setEpoch(m_epoch);
     ui->labjackWidget->m_worker->setEpoch(m_epoch);
+    ui->frameClientWidget->m_worker->setEpoch(m_epoch);
 
     qDebug() << "GUI ready.";
 

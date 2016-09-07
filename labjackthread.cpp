@@ -248,7 +248,7 @@ void LabJackThread::setEpoch(const QDateTime &epoch)
         m_isEpochSet = true;
 
         emit logEventWithMessage(SRC_LABJACK, LOG_INFO, QTime::currentTime(), LABJACK_EPOCH_SET,
-                                 m_epoch.toString("dd/MM/yyyy - hh:mm:ss.zzz"));
+                                 m_epoch.toString("yyyy/MM/dd - hh:mm:ss.zzz"));
     }
     else
         emit logEvent(SRC_LABJACK, LOG_INFO, QTime::currentTime(), LABJACK_EPOCH_SET_FAILED);
