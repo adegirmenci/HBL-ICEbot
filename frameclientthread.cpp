@@ -77,7 +77,7 @@ void FrameClientThread::sendFrame()
     m_currExtdFrame.EMv_ = v;
     m_currExtdFrame.image_ = saveFrame(m_currFrame); // write to disk
     m_currExtdFrame.index_ = m_currFrame->index_;
-    m_currExtdFrame.mask_ = "Acuson";
+    m_currExtdFrame.mask_ = tr("C:\\Users\\Alperen\\Documents\\QT Projects\\RT3DReconst_GUI\\Acuson_Epiphan.bin");
     m_currExtdFrame.timestamp_ = m_currFrame->timestamp_;
 
     QByteArray block;
@@ -155,7 +155,7 @@ QString FrameClientThread::saveFrame(std::shared_ptr<Frame> frm)
     // file name of frame
     QString m_imgFname = imgTime.toString("ddMMyyyy_hhmmsszzz");
     // populate m_imgFname with index
-    m_imgFname.append( QString("_%1.jpg").arg(frm->index_) );
+    m_imgFname.append( QString("_%1.jp2").arg(frm->index_) );
 
     QString m_DirImgFname = QDir::currentPath();
     m_DirImgFname.append("/");

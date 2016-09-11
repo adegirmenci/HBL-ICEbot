@@ -65,7 +65,7 @@ void FrmGrabThread::frmGrabInitialize(int width, int height, double fps)
         m_cap.set(CV_CAP_PROP_FRAME_WIDTH, m_imgSize.width);
         m_cap.set(CV_CAP_PROP_FPS, m_videoFPS);
 
-        qDebug() << "Width: " << m_imgSize.width << "Height: " << m_imgSize.height << "FPS: " << m_videoFPS;
+        qDebug() << "Width:" << m_imgSize.width << "Height:" << m_imgSize.height << "FPS:" << m_videoFPS;
 
         emit statusChanged(FRMGRAB_INITIALIZED);
     }
