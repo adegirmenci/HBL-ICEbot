@@ -66,6 +66,8 @@ FORMS    += icebot_gui.ui \
     scenevizwidget.ui \
     frameclientwidget.ui
 
+RC_FILE = ICEbotGUI.rc
+
 win32 {
     INCLUDEPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/include
     DEPENDPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/include

@@ -65,44 +65,49 @@ void FrameClientThread::sendFrame()
     if(!m_isReady)
         initializeFrameClient();
 
-    // construct frame
-    QQuaternion q(m_currBird.data.q[0],
-                  m_currBird.data.q[1],
-                  m_currBird.data.q[2],
-                  m_currBird.data.q[3]);
-    QVector3D v(m_currBird.data.x,
-                m_currBird.data.y,
-                m_currBird.data.z);
-    m_currExtdFrame.EMq_ = q;
-    m_currExtdFrame.EMv_ = v;
-    m_currExtdFrame.image_ = saveFrame(m_currFrame); // write to disk
-    m_currExtdFrame.index_ = m_currFrame->index_;
-    m_currExtdFrame.mask_ = tr("C:\\Users\\Alperen\\Documents\\QT Projects\\RT3DReconst_GUI\\Acuson_Epiphan.bin");
-    m_currExtdFrame.timestamp_ = m_currFrame->timestamp_;
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_5_7);
-    out << (quint16)0;
-    out << m_currExtdFrame;
-    out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
-
-    m_TcpSocket->connectToHost(m_serverAddress, m_serverPort, QIODevice::WriteOnly);
-
-    if (m_TcpSocket->waitForConnected(100))
+    if(m_keepStreaming)
     {
-          qDebug("Connected!");
+        // construct frame
+        QQuaternion q(m_currBird.data.q[0],
+                      m_currBird.data.q[1],
+                      m_currBird.data.q[2],
+                      m_currBird.data.q[3]);
+        QVector3D v(m_currBird.data.x,
+                    m_currBird.data.y,
+                    m_currBird.data.z);
+        m_currExtdFrame.EMq_ = q;
+        m_currExtdFrame.EMv_ = v;
+        m_currExtdFrame.image_ = saveFrame(m_currFrame); // write to disk
+        m_currExtdFrame.index_ = m_currFrame->index_;
+        m_currExtdFrame.mask_ = tr("C:\\Users\\Alperen\\Documents\\QT Projects\\RT3DReconst_GUI\\Acuson_Epiphan.bin");
+        m_currExtdFrame.timestamp_ = m_currFrame->timestamp_;
 
-        m_TcpSocket->write(block);
-        m_TcpSocket->flush();
-        m_TcpSocket->disconnectFromHost();
-        if( (m_TcpSocket->state() != QAbstractSocket::UnconnectedState) &&
-            (!m_TcpSocket->waitForDisconnected(100)) ) {
-            emit statusChanged(FRMCLNT_DISCONNECTION_FAILED); }
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out.setVersion(QDataStream::Qt_5_7);
+        out << (quint16)0;
+        out << m_currExtdFrame;
+        out.device()->seek(0);
+        out << (quint16)(block.size() - sizeof(quint16));
+
+        m_TcpSocket->connectToHost(m_serverAddress, m_serverPort, QIODevice::WriteOnly);
+
+        if (m_TcpSocket->waitForConnected(100))
+        {
+              qDebug("Connected!");
+
+            m_TcpSocket->write(block);
+            m_TcpSocket->flush();
+            m_TcpSocket->disconnectFromHost();
+            if( (m_TcpSocket->state() != QAbstractSocket::UnconnectedState) &&
+                (!m_TcpSocket->waitForDisconnected(100)) ) {
+                emit statusChanged(FRMCLNT_DISCONNECTION_FAILED); }
+        }
+        else
+            emit statusChanged(FRMCLNT_CONNECTION_FAILED);
     }
     else
-        emit statusChanged(FRMCLNT_CONNECTION_FAILED);
+        emit statusChanged(FRMCLNT_FIRST_FRAME_NOT_RECEIVED);
 }
 
 void FrameClientThread::receiveFrame(std::shared_ptr<Frame> frame)
@@ -133,6 +138,9 @@ void FrameClientThread::receiveEMreading(QTime timeStamp, int sensorID, DOUBLE_P
             m_currBird.timeStamp = timeStamp;
         }
     }
+
+    if(m_currFrame)
+        m_keepStreaming = true;
 }
 
 void FrameClientThread::connectedToHost()
@@ -155,14 +163,31 @@ QString FrameClientThread::saveFrame(std::shared_ptr<Frame> frm)
     // file name of frame
     QString m_imgFname = imgTime.toString("ddMMyyyy_hhmmsszzz");
     // populate m_imgFname with index
-    m_imgFname.append( QString("_%1.jp2").arg(frm->index_) );
+    m_imgFname.append( QString("_%1").arg(frm->index_) );
 
     QString m_DirImgFname = QDir::currentPath();
     m_DirImgFname.append("/");
     m_DirImgFname.append(m_imgFname);
     // save frame
     //state = frame->image_.save(m_imgFname, "JPG", 100);
-    cv::imwrite(m_DirImgFname.toStdString().c_str(), frm->image_ ); // write frame
+    cv::imwrite((m_DirImgFname + tr(".jp2")).toStdString().c_str(), frm->image_ ); // write frame
+
+    // save EM data to file
+    QFile txtfile(m_DirImgFname + tr(".txt"));
+    if (txtfile.open(QFile::WriteOnly)) {
+        QTextStream txtout(&txtfile);
+        txtout << tr("%1\t%2\t%3\n")
+                  .arg(m_currExtdFrame.EMv_.x())
+                  .arg(m_currExtdFrame.EMv_.y())
+                  .arg(m_currExtdFrame.EMv_.z());
+        txtout << tr("%1\t%2\t%3\t%4\n")
+                  .arg(m_currExtdFrame.EMq_.x())
+                  .arg(m_currExtdFrame.EMq_.y())
+                  .arg(m_currExtdFrame.EMq_.z())
+                  .arg(m_currExtdFrame.EMq_.scalar());
+        txtout << "Line 1: QVector3D, Line2: QQuaternion";
+    }
+    txtfile.close();
 
     return m_DirImgFname;
 }
@@ -218,11 +243,11 @@ void FrameClientThread::setEpoch(const QDateTime &datetime)
         m_epoch = datetime;
         m_isEpochSet = true;
 
-//        emit logEventWithMessage(SRC_FRMGRAB, LOG_INFO, QTime::currentTime(), FRMCLNT_EPOCH_SET,
+//        emit logEventWithMessage(SRC_FRMCLNT, LOG_INFO, QTime::currentTime(), FRMCLNT_EPOCH_SET,
 //                                 m_epoch.toString("yyyy/MM/dd - hh:mm:ss.zzz"));
     }
 //    else
-//        emit logEvent(SRC_FRMGRAB, LOG_INFO, QTime::currentTime(), FRMCLNT_EPOCH_SET_FAILED);
+//        emit logEvent(SRC_FRMCLNT, LOG_INFO, QTime::currentTime(), FRMCLNT_EPOCH_SET_FAILED);
 }
 
 QDataStream & operator << (QDataStream &o, const FrameExtd& f)

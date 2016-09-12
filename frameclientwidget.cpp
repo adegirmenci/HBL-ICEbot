@@ -60,6 +60,9 @@ void FrameClientWidget::workerStatusChanged(int status)
     case FRMCLNT_EPOCH_SET_FAILED:
         ui->statusTextEdit->appendPlainText("Epoch set failed.");
         break;
+    case FRMCLNT_FIRST_FRAME_NOT_RECEIVED:
+        ui->statusTextEdit->appendPlainText("First frame not yet received.");
+        break;
     default:
         ui->statusTextEdit->appendPlainText("Unknown worker state.");
     }
