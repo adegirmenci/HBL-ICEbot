@@ -5,6 +5,7 @@
 
 #include <Qt3DCore/qentity.h>
 #include <Qt3DCore/qtransform.h>
+#include <QMatrix4x4>
 
 #include <QtCore/QVector>
 #include <QtCore/QHash>
@@ -41,6 +42,9 @@ private:
     QHash<QString, int> m_entityHash; // look up entities by name
 
     Qt3DCore::QEntity *m_rootEntity;
+
+    QMatrix4x4 m_calibMat;
+    Qt3DCore::QTransform m_Box_CT; // Emitter to US crystal transforms
 };
 
 

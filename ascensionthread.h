@@ -40,7 +40,7 @@ public:
 };
 // ------------------------------
 
-Q_DECLARE_METATYPE(DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD)
+Q_DECLARE_METATYPE(DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)
 
 // ##################################
 // # Ascension Thread Class Members #
