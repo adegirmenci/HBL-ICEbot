@@ -2,6 +2,7 @@
 #define SCENEMODIFIER_H
 
 #include <QtCore/QObject>
+#include <iostream>
 
 #include <Qt3DCore/qentity.h>
 #include <Qt3DCore/qtransform.h>
@@ -36,6 +37,9 @@ public slots:
     void receiveEMreading(QTime timeStamp,
                           int sensorID,
                           DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data);
+    void resetBase();
+    void changeTFormOption(int opt);
+    void setUSangle(int ang);
 
 private:
     QVector<Qt3DCore::QEntity *> m_entityList;
@@ -44,7 +48,13 @@ private:
     Qt3DCore::QEntity *m_rootEntity;
 
     QMatrix4x4 m_calibMat;
-    Qt3DCore::QTransform m_Box_CT; // Emitter to US crystal transforms
+    Qt3DCore::QTransform m_Box_US; // Emitter to US crystal transforms
+    QMatrix4x4 m_T_Box_EM;
+    QMatrix4x4 m_T_EM_CT;
+    Qt3DCore::QTransform m_CT_US;
+    QMatrix4x4 m_baseEMpose; // for relative stuff
+    int m_tformOption;
+    float m_usAngle;
 };
 
 

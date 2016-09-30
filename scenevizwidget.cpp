@@ -34,8 +34,8 @@ SceneVizWidget::SceneVizWidget(QWidget *parent) :
     m_cameraEntity = m_view->camera();
 
     m_cameraEntity->lens()->setPerspectiveProjection(45.0f, 16.0f/9.0f, 0.1f, 1000.0f);
-    m_cameraEntity->setPosition(QVector3D(0, 0, 20.0f));
-    m_cameraEntity->setUpVector(QVector3D(0, 1, 0));
+    m_cameraEntity->setPosition(QVector3D(0, 20.0f, 0));
+    m_cameraEntity->setUpVector(QVector3D(0, 0, 1)); // Z is up
     m_cameraEntity->setViewCenter(QVector3D(0, 0, 0));
 
     // For camera controls
@@ -134,4 +134,29 @@ void SceneVizWidget::on_pushButton_clicked()
 {
     QVector3D pos = m_modifier->getTriadPosition(EM_SENSOR_BB);
     m_cameraEntity->setViewCenter(pos);
+}
+
+void SceneVizWidget::on_resetBaseButton_clicked()
+{
+    m_modifier->resetBase();
+}
+
+void SceneVizWidget::on_noTformRadio_clicked()
+{
+    m_modifier->changeTFormOption(0);
+}
+
+void SceneVizWidget::on_tform1Radio_clicked()
+{
+    m_modifier->changeTFormOption(1);
+}
+
+void SceneVizWidget::on_tform2Radio_clicked()
+{
+    m_modifier->changeTFormOption(2);
+}
+
+void SceneVizWidget::on_usAngleSpinBox_valueChanged(int arg1)
+{
+    m_modifier->setUSangle(arg1);
 }

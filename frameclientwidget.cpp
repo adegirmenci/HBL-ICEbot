@@ -7,7 +7,7 @@ FrameClientWidget::FrameClientWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    //m_keepClientRunning = false;
+    m_keepTransmitting = false;
 
     m_worker = new FrameClientThread;
     m_worker->moveToThread(&m_thread);
@@ -18,10 +18,18 @@ FrameClientWidget::FrameClientWidget(QWidget *parent) :
     connect(m_worker, SIGNAL(statusChanged(int)), this, SLOT(workerStatusChanged(int)));
 
     connect(this, SIGNAL(sendFrame()), m_worker, SLOT(sendFrame()));
+
+    m_transmitTimer = new QTimer(this);
+    connect(m_transmitTimer, SIGNAL(timeout()),
+            this, SLOT(on_sendFrameButton_clicked()));
 }
 
 FrameClientWidget::~FrameClientWidget()
 {
+    m_keepTransmitting = false;
+    if(m_transmitTimer)
+        m_transmitTimer->stop();
+
     m_thread.quit();
     m_thread.wait();
     qDebug() << "FrameClientWidget thread quit.";
@@ -71,4 +79,20 @@ void FrameClientWidget::workerStatusChanged(int status)
 void FrameClientWidget::on_sendFrameButton_clicked()
 {
     emit sendFrame();
+}
+
+void FrameClientWidget::on_toggleAutoButton_clicked()
+{
+    if(m_keepTransmitting)
+    {
+        m_keepTransmitting = false;
+        ui->toggleAutoButton->setText("Start Automatic Collection");
+        m_transmitTimer->stop();
+    }
+    else
+    {
+        m_keepTransmitting = true;
+        ui->toggleAutoButton->setText("Stop Automatic Collection");
+        m_transmitTimer->start(250);
+    }
 }

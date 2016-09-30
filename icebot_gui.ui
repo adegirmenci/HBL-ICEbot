@@ -17,15 +17,30 @@
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>20</y>
-      <width>541</width>
+      <width>581</width>
       <height>480</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>6</number>
+     <number>0</number>
     </property>
+    <widget class="QWidget" name="controlTab">
+     <attribute name="title">
+      <string>Controller</string>
+     </attribute>
+     <widget class="ControllerWidget" name="widget" native="true">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>500</width>
+        <height>420</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
     <widget class="QWidget" name="emTab">
      <attribute name="title">
       <string>EM</string>
@@ -213,6 +228,12 @@
    <class>FrameClientWidget</class>
    <extends>QWidget</extends>
    <header>frameclientwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ControllerWidget</class>
+   <extends>QWidget</extends>
+   <header>ControllerWidget/controllerwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

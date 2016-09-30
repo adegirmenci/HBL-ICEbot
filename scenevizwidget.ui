@@ -199,6 +199,55 @@
    <property name="title">
     <string>Models</string>
    </property>
+   <widget class="QRadioButton" name="noTformRadio">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>20</y>
+      <width>84</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>No Tform</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="tform1Radio">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>40</y>
+      <width>84</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Tform Opt1</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="tform2Radio">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>60</y>
+      <width>84</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Tform Opt2</string>
+    </property>
+   </widget>
+   <widget class="QSpinBox" name="usAngleSpinBox">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>20</y>
+      <width>43</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
   <widget class="QPushButton" name="pushButton">
    <property name="geometry">
@@ -211,6 +260,19 @@
    </property>
    <property name="text">
     <string>Recenter</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="resetBaseButton">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>60</y>
+     <width>80</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Reset Base</string>
    </property>
   </widget>
  </widget>

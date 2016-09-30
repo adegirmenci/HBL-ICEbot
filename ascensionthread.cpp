@@ -450,6 +450,21 @@ QString AscensionThread::formatOutput(QTime &timeStamp, int sensorID, DOUBLE_POS
                         .arg(QString::number(data.q[1],'f',m_prec))
                         .arg(QString::number(data.q[2],'f',m_prec))
                         .arg(QString::number(data.q[3],'f',m_prec)));
+
+    QQuaternion qu = QQuaternion(data.q[0], data.q[1], data.q[2], data.q[3]);
+    output.append("Rot Matrix\n");
+    QMatrix3x3 mat = qu.toRotationMatrix();
+    output.append(QString("%1\t%2\t%3\n%4\t%5\t%6\n%7\t%8\t%9\n")
+                        .arg(QString::number((double)mat(0,0),'f',m_prec))
+                        .arg(QString::number((double)mat(0,1),'f',m_prec))
+                        .arg(QString::number((double)mat(0,2),'f',m_prec))
+                        .arg(QString::number((double)mat(1,0),'f',m_prec))
+                        .arg(QString::number((double)mat(1,1),'f',m_prec))
+                        .arg(QString::number((double)mat(1,2),'f',m_prec))
+                        .arg(QString::number((double)mat(2,0),'f',m_prec))
+                        .arg(QString::number((double)mat(2,1),'f',m_prec))
+                        .arg(QString::number((double)mat(2,2),'f',m_prec)));
+
     output.append("Quality: ");
     output.append(QString("%1\n")
                         .arg(QString::number(data.quality,'f',1)));

@@ -2,6 +2,7 @@
 #define FRAMECLIENTWIDGET_H
 
 #include <QWidget>
+#include <QTimer>
 
 #include "frameclientthread.h"
 
@@ -27,10 +28,13 @@ private slots:
 
     void on_sendFrameButton_clicked();
 
+    void on_toggleAutoButton_clicked();
+
 private:
     Ui::FrameClientWidget *ui;
 
-    //bool m_keepClientRunning;
+    bool m_keepTransmitting;
+    QTimer *m_transmitTimer;
 
     QThread m_thread; // FrameClientThread will live in here
 };

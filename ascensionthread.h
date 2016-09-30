@@ -10,6 +10,8 @@
 #include <QDateTime>
 #include <QTimer>
 #include <QDebug>
+#include <QQuaternion>
+#include <QMatrix3x3>
 
 #include <vector>
 

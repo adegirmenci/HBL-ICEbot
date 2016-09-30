@@ -63,6 +63,16 @@ private slots:
 
     void on_pushButton_clicked();
 
+    void on_resetBaseButton_clicked();
+
+    void on_noTformRadio_clicked();
+
+    void on_tform1Radio_clicked();
+
+    void on_tform2Radio_clicked();
+
+    void on_usAngleSpinBox_valueChanged(int arg1);
+
 private:
     Ui::SceneVizWidget *ui;
 

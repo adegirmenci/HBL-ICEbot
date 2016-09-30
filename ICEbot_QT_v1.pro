@@ -32,7 +32,10 @@ SOURCES += main.cpp\
     scenevizwidget.cpp \
     triadentity.cpp \
     frameclientthread.cpp \
-    frameclientwidget.cpp
+    frameclientwidget.cpp \
+    ControllerWidget/controllerthread.cpp \
+    ControllerWidget/controllerwidget.cpp \
+    ControllerWidget/kinematics_4dof.cpp
 
 HEADERS  += icebot_gui.h \
     omni.h \
@@ -54,7 +57,10 @@ HEADERS  += icebot_gui.h \
     scenevizwidget.h \
     triadentity.h \
     frameclientthread.h \
-    frameclientwidget.h
+    frameclientwidget.h \
+    ControllerWidget/controllerthread.h \
+    ControllerWidget/controllerwidget.h \
+    ControllerWidget/kinematics_4dof.h
 
 FORMS    += icebot_gui.ui \
     omni.ui \
@@ -64,9 +70,16 @@ FORMS    += icebot_gui.ui \
     frmgrabwidget.ui \
     labjackwidget.ui \
     scenevizwidget.ui \
-    frameclientwidget.ui
+    frameclientwidget.ui \
+    ControllerWidget/controllerwidget.ui
 
 RC_FILE = ICEbotGUI.rc
+
+# Eigen
+INCLUDEPATH += "D:\\Eigen"
+
+# Boost
+INCLUDEPATH += "D:\\boost_1_61_0"
 
 win32 {
     INCLUDEPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/include
@@ -135,7 +148,7 @@ win32: LIBS += -L$$PWD/3DGAPI/ -lATC3DG
 INCLUDEPATH += $$PWD/3DGAPI
 DEPENDPATH += $$PWD/3DGAPI
 
-# Eigen
-INCLUDEPATH += "D:\\Eigen\\Eigen"
-INCLUDEPATH += "D:\\Eigen"
-DEPENDPATH += "D:\\Eigen\\Eigen"
+## Eigen
+#INCLUDEPATH += "D:\\Eigen\\Eigen"
+#INCLUDEPATH += "D:\\Eigen"
+#DEPENDPATH += "D:\\Eigen\\Eigen"
