@@ -27,10 +27,10 @@ SOURCES += main.cpp\
     labjackthread.cpp \
     labjackwidget.cpp \
     qcustomplot.cpp \
-    extendedqt3dwindow.cpp \
-    scenemodifier.cpp \
-    scenevizwidget.cpp \
-    triadentity.cpp \
+    SceneVizWidget/extendedqt3dwindow.cpp \
+    SceneVizWidget/scenemodifier.cpp \
+    SceneVizWidget/scenevizwidget.cpp \
+    SceneVizWidget/triadentity.cpp \
     frameclientthread.cpp \
     frameclientwidget.cpp \
     ControllerWidget/controllerthread.cpp \
@@ -52,10 +52,10 @@ HEADERS  += icebot_gui.h \
     labjackwidget.h \
     icebot_definitions.h \
     qcustomplot.h \
-    extendedqt3dwindow.h \
-    scenemodifier.h \
-    scenevizwidget.h \
-    triadentity.h \
+    SceneVizWidget/extendedqt3dwindow.h \
+    SceneVizWidget/scenemodifier.h \
+    SceneVizWidget/scenevizwidget.h \
+    SceneVizWidget/triadentity.h \
     frameclientthread.h \
     frameclientwidget.h \
     ControllerWidget/controllerthread.h \
@@ -69,7 +69,7 @@ FORMS    += icebot_gui.ui \
     epos2widget.ui \
     frmgrabwidget.ui \
     labjackwidget.ui \
-    scenevizwidget.ui \
+    SceneVizWidget/scenevizwidget.ui \
     frameclientwidget.ui \
     ControllerWidget/controllerwidget.ui
 

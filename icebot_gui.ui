@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>6</number>
     </property>
     <widget class="QWidget" name="controlTab">
      <attribute name="title">
@@ -221,7 +221,7 @@
   <customwidget>
    <class>SceneVizWidget</class>
    <extends>QWidget</extends>
-   <header>scenevizwidget.h</header>
+   <header>SceneVizWidget/scenevizwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

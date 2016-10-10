@@ -6,10 +6,10 @@ TriadEntity::TriadEntity(Qt3DCore::QEntity *parent) : Qt3DCore::QEntity(parent)
     m_arrowMesh = new Qt3DRender::QMesh();
     //arrowMesh = QSharedPointer<Qt3DRender::QMesh>(new Qt3DRender::QMesh());
     m_arrowMesh->setMeshName("Arrow");
-    QFileInfo check_file( QStringLiteral("C:\\Users\\Alperen\\Documents\\QT Projects\\GLViewWidget\\Arrow.obj") );
+    QFileInfo check_file( QStringLiteral("C:\\Users\\Alperen\\Documents\\QT Projects\\ICEbot_QT_v1\\SceneVizWidget\\Arrow.obj") );
     if( check_file.exists() && check_file.isFile() )
     {
-        m_arrowMesh->setSource(QUrl::fromLocalFile(QStringLiteral("C:\\Users\\Alperen\\Documents\\QT Projects\\GLViewWidget\\Arrow.obj")));
+        m_arrowMesh->setSource(QUrl::fromLocalFile(QStringLiteral("C:\\Users\\Alperen\\Documents\\QT Projects\\ICEbot_QT_v1\\SceneVizWidget\\Arrow.obj")));
         qDebug() << "Loaded arrow mesh.";
     }
     else
