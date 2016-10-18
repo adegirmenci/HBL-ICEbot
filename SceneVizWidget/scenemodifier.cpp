@@ -9,6 +9,8 @@ SceneModifier::SceneModifier(Qt3DCore::QEntity *rootEntity)
     m_entityList.append(new TriadEntity(m_rootEntity));
     m_entityList.append(new TriadEntity(m_rootEntity));
     m_entityList.append(new TriadEntity(m_rootEntity));
+    //m_entityList.append(new usEntity(m_rootEntity));
+    m_entityList.append(new usEntity(m_entityList[0]));
 
     static_cast<TriadEntity*>(m_entityList[0])->translate(QVector3D(0.0f, 0.0f, 0.0f));
     // EM_SENSOR_BB
@@ -17,10 +19,15 @@ SceneModifier::SceneModifier(Qt3DCore::QEntity *rootEntity)
     m_entityList[2]->setEnabled(false);
     m_entityList[3]->setEnabled(false);
     m_entityList[4]->setEnabled(true); // EM Box
+    m_entityList[5]->setEnabled(true); // US plane
 
     Qt3DCore::QTransform tf;
     tf.setTranslation(QVector3D(0,0,0));
     static_cast<TriadEntity*>(m_entityList[4])->setTransformation(tf);
+    static_cast<usEntity*>(m_entityList[5])->setTransformation(tf);
+
+
+    //static_cast<usEntity*>(m_entityList[5])->setProperty();
 
     // dummy
     m_baseEMpose = tf.matrix();
@@ -55,7 +62,7 @@ SceneModifier::SceneModifier(Qt3DCore::QEntity *rootEntity)
 
 SceneModifier::~SceneModifier()
 {
-
+    //m_entityList.clear();
 }
 
 QVector3D SceneModifier::getTriadPosition(EM_SENSOR_IDS sensorID)

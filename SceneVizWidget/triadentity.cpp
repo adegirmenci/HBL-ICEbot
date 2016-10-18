@@ -30,12 +30,9 @@ TriadEntity::TriadEntity(Qt3DCore::QEntity *parent) : Qt3DCore::QEntity(parent)
     {
         m_arrowEntityList.replace(i,new Qt3DCore::QEntity(this));
         m_arrowEntityList[i]->addComponent(m_arrowMesh);
-        //arrowEntityList[i]->addComponent(arrowMesh.data());
 
         Qt3DCore::QTransform *arrowTransforms;
-        Qt3DExtras::QPhongMaterial *arrowMaterial;
-
-        arrowTransforms = new Qt3DCore::QTransform();
+        arrowTransforms = new Qt3DCore::QTransform(this);
 
         arrowTransforms->setTranslation(QVector3D(0.0f, 0.0f, 0.0f));
         switch(i){
@@ -52,19 +49,33 @@ TriadEntity::TriadEntity(Qt3DCore::QEntity *parent) : Qt3DCore::QEntity(parent)
 
         arrowTransforms->setScale3D(QVector3D(3,2,2));
 
-        arrowMaterial = new Qt3DExtras::QPhongMaterial();
+        Qt3DExtras::QGoochMaterial *arrowMaterial = new Qt3DExtras::QGoochMaterial(this);
+        arrowMaterial->setAlpha(0.5f);
+        arrowMaterial->setBeta(0.5f);
         switch(i){
         case 0:
-            arrowMaterial->setDiffuse(QColor(255,0,0));
+            arrowMaterial->setDiffuse(QColor(200,50,50));
+            //arrowMaterial->setDiffuse(QColor(200,50,50));
+            arrowMaterial->setWarm(QColor(155,0,0));
+            arrowMaterial->setCool(QColor(90,20,20));
+            //arrowMaterial->setSpecular(QColor(200,50,50));
             break;
         case 1:
-            arrowMaterial->setDiffuse(QColor(0,255,0));
+            arrowMaterial->setDiffuse(QColor(50,200,50));
+            //arrowMaterial->setDiffuse(QColor(50,200,50));
+            arrowMaterial->setWarm(QColor(0,127,0));
+            arrowMaterial->setCool(QColor(20,90,20));
+            //arrowMaterial->setSpecular(QColor(50,200,50));
             break;
         case 2:
-            arrowMaterial->setDiffuse(QColor(0,0,255));
+            arrowMaterial->setDiffuse(QColor(50,50,200));
+            //arrowMaterial->setDiffuse(QColor(50,50,200));
+            arrowMaterial->setWarm(QColor(0,0,127));
+            arrowMaterial->setCool(QColor(20,20,90));
+            //arrowMaterial->setSpecular(QColor(50,50,200));
             break;
         }
-        arrowMaterial->setSpecular(Qt::white);
+        arrowMaterial->setShininess(1.0f);
 
         m_arrowEntityList[i]->addComponent(arrowMaterial);
         m_arrowEntityList[i]->addComponent(arrowTransforms);

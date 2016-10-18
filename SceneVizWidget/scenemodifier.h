@@ -20,6 +20,7 @@
 #include "../AscensionWidget/3DGAPI/ATC3DG.h"
 
 #include "triadentity.h"
+#include "usentity.h"
 
 class SceneModifier : public QObject
 {

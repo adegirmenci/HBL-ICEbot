@@ -89,10 +89,31 @@ void ControllerThread::receiveEMdata(QTime timeStamp, int sensorID, DOUBLE_POSIT
     // TODO: emit signal to log receiveEMdata event
     //emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_EM_RECEIVED);
 
-    // process CT point
-    Eigen::Transform<double,3,Eigen::Affine> curTipPos;
-    Transform_From_EMreading(data, curTipPos);
-    m_BB_CT_curTipPos = m_BB_Box*curTipPos*m_STm_BT*m_BT_CT; // convert to CT in terms of BBfixed
+    switch(sensorID)
+    {
+    case EM_SENSOR_BB:
+        Transform_From_EMreading(data, m_basTipPos_mobile);
+        m_Box_BBmobile = m_basTipPos_mobile * m_BB_SBm.inverse();
+        m_BBfixed_BBmobile = m_BB_Box * m_Box_BBmobile;
+        m_BBmobile_CT = m_Box_BBmobile.inverse()*m_curTipPos*m_STm_BT*m_BT_CT;
+        break;
+    case EM_SENSOR_BT:
+        // process CT point
+        Transform_From_EMreading(data, m_curTipPos);
+        m_BB_CT_curTipPos = m_BB_Box*m_curTipPos*m_STm_BT*m_BT_CT; // convert to CT in terms of BBfixed
+        break;
+    case EM_SENSOR_INST:
+        Transform_From_EMreading(data, m_targetPos);
+        m_targetPos = m_targetPos * m_ISm_INSTR;
+        m_BB_targetPos = m_BB_Box * m_targetPos;
+        break;
+    case EM_SENSOR_CHEST:
+        Transform_From_EMreading(data, m_currChest);
+        break;
+    default:
+        qDebug() << "SensorID not recognized!";
+        break;
+    }
 }
 
 // ----------------

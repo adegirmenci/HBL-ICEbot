@@ -100,7 +100,20 @@ private:
     std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> m_latestReading;
 
     // transforms
-    Eigen::Transform<double,3,Eigen::Affine> m_BB_Box, m_STm_BT, m_BT_CT, m_BB_CT_curTipPos;
+    Eigen::Transform<double,3,Eigen::Affine> m_BB_Box,
+                                             m_STm_BT,
+                                             m_BT_CT,
+                                             m_BB_CT_curTipPos,
+                                             m_BB_SBm,
+                                             m_BBfixed_BBmobile,
+                                             m_BBmobile_CT,
+                                             m_curTipPos,
+                                             m_ISm_INSTR,
+                                             m_basTipPos_mobile,
+                                             m_Box_BBmobile,
+                                             m_targetPos,
+                                             m_BB_targetPos,
+                                             m_currChest;
 
     // keep track of number of control cycles
     // an atomic variable alleviates the need to use mutexes during mutation

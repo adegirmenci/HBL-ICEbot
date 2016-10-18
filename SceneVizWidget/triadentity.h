@@ -19,6 +19,7 @@
 #include <QSharedPointer>
 
 #include <Qt3DExtras/QPhongMaterial>
+#include <Qt3DExtras/QGoochMaterial>
 
 //typedef QVector<QComponent*> QComponentVector;
 

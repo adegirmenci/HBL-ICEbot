@@ -227,8 +227,8 @@ void AscensionThread::getSample() // called by timer
     // scan the sensors and request a record
     for(m_sensorID = 0; m_sensorID < m_numSensorsAttached; m_sensorID++)
     {
-
         m_errorCode = GetAsynchronousRecord(m_sensorID, &record[m_sensorID], sizeof(record[m_sensorID]));
+        //m_errorCode = GetSynchronousRecord(m_sensorID, &record[m_sensorID], sizeof(record[m_sensorID]));
         if(m_errorCode != BIRD_ERROR_SUCCESS)
         {
             errorHandler_(m_errorCode);
@@ -258,6 +258,8 @@ void AscensionThread::getSample() // called by timer
         else
             qDebug() << "Invalid data received.";
     }
+
+    // TODO: emit m_latestReading for use with the controller
 }
 
 void AscensionThread::stopAcquisition() // stop timer
@@ -389,7 +391,12 @@ int AscensionThread::getNumSensors()
 void AscensionThread::getLatestReading(const int sensorID, DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD &dataContainer)
 {
     QMutexLocker locker(m_mutex);
-    dataContainer = m_latestReading[sensorID];
+    if(sensorID < 0)
+        qDebug() << "sensorID can not be negative!";
+    else if(sensorID < m_numSensorsAttached)
+        dataContainer = m_latestReading[sensorID];
+    else
+        qDebug() << "sensorID exceeds number of sensors!";
 }
 
 void AscensionThread::getLatestReadingsAll(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> &dataContainer)

@@ -94,8 +94,8 @@ SceneVizWidget::~SceneVizWidget()
 
 void SceneVizWidget::acceptScroll(QSharedPointer<QWheelEvent> event)
 {
-    double ang = static_cast<double>(event->angleDelta().y())/240. + 1.;
-    m_cameraEntity->setPosition(m_cameraEntity->position()*ang);
+    double ang = static_cast<double>(event->angleDelta().y())/240.;
+    m_cameraEntity->setPosition(m_cameraEntity->position()*(1-ang) + m_cameraEntity->viewCenter()*ang);
     // TODO: add zoom with reference to the pointer location
 }
 
@@ -110,13 +110,13 @@ void SceneVizWidget::on_toggleRenderWindowButton_clicked()
     }
     else
     {
+        ui->dockWidget->show();
         if(ui->dockWidget->isFloating())
         {
             ui->dockWidget->resize(ui->dockFrame->size());
             ui->dockWidget->move(1,1);
             ui->dockWidget->setFloating(false);
         }
-        ui->dockWidget->show();
         //view->show();
         ui->toggleRenderWindowButton->setText("Hide Window");
 

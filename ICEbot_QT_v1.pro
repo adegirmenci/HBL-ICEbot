@@ -35,7 +35,8 @@ SOURCES += main.cpp\
     frameclientwidget.cpp \
     ControllerWidget/controllerthread.cpp \
     ControllerWidget/controllerwidget.cpp \
-    ControllerWidget/kinematics_4dof.cpp
+    ControllerWidget/kinematics_4dof.cpp \
+    SceneVizWidget/usentity.cpp
 
 HEADERS  += icebot_gui.h \
     omni.h \
@@ -60,7 +61,8 @@ HEADERS  += icebot_gui.h \
     frameclientwidget.h \
     ControllerWidget/controllerthread.h \
     ControllerWidget/controllerwidget.h \
-    ControllerWidget/kinematics_4dof.h
+    ControllerWidget/kinematics_4dof.h \
+    SceneVizWidget/usentity.h
 
 FORMS    += icebot_gui.ui \
     omni.ui \
@@ -137,11 +139,11 @@ win32 {
 #INCLUDEPATH += $$PWD/epiphan/include
 #INCLUDEPATH += $$PWD/epiphan/frmgrab/include
 
-win32: LIBS += -L"C:\\epiphan_sdk_32800009\\epiphan\\frmgrab\\lib\\win\\Win32" \
-             -lfrmgrab
+#win32: LIBS += -L"C:\\epiphan_sdk_32800009\\epiphan\\frmgrab\\lib\\win\\Win32" \
+#             -lfrmgrab
 
-INCLUDEPATH += "C:\\epiphan_sdk_32800009\\epiphan\\include"
-INCLUDEPATH += "C:\\epiphan_sdk_32800009\\epiphan\\\frmgrab\\include"
+#INCLUDEPATH += "C:\\epiphan_sdk_32800009\\epiphan\\include"
+#INCLUDEPATH += "C:\\epiphan_sdk_32800009\\epiphan\\\frmgrab\\include"
 
 win32: LIBS += -L$$PWD/3DGAPI/ -lATC3DG
 
