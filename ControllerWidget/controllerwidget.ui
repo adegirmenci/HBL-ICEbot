@@ -52,6 +52,74 @@
     <string>Test</string>
    </property>
   </widget>
+  <widget class="QWidget" name="gridLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>300</x>
+     <y>20</y>
+     <width>160</width>
+     <height>131</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="3" column="1">
+     <widget class="QDoubleSpinBox" name="delPsiSpinbox"/>
+    </item>
+    <item row="0" column="0">
+     <widget class="QLabel" name="xLabel">
+      <property name="text">
+       <string>X</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="yLabel">
+      <property name="text">
+       <string>Y</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="zLabel">
+      <property name="text">
+       <string>Z</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QDoubleSpinBox" name="xSpinbox"/>
+    </item>
+    <item row="2" column="1">
+     <widget class="QDoubleSpinBox" name="zSpinbox"/>
+    </item>
+    <item row="1" column="1">
+     <widget class="QDoubleSpinBox" name="ySpinbox"/>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="delPsiLabel">
+      <property name="text">
+       <string>Δψ</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QPlainTextEdit" name="statusTextEdit">
+   <property name="geometry">
+    <rect>
+     <x>70</x>
+     <y>190</y>
+     <width>361</width>
+     <height>211</height>
+    </rect>
+   </property>
+   <property name="readOnly">
+    <bool>true</bool>
+   </property>
+   <property name="backgroundVisible">
+    <bool>false</bool>
+   </property>
+  </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

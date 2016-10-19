@@ -14,6 +14,9 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
     m_thread.start();
 
     connect(this, SIGNAL(tellWorkerToPrintThreadID()),m_worker,SLOT(printThreadID()));
+
+    connect(m_worker, SIGNAL(sendMsgToWidget(QString)),
+            ui->statusTextEdit, SLOT(insertPlainText(QString)));
 }
 
 ControllerWidget::~ControllerWidget()

@@ -30,7 +30,7 @@
      <attribute name="title">
       <string>Controller</string>
      </attribute>
-     <widget class="ControllerWidget" name="widget" native="true">
+     <widget class="ControllerWidget" name="controlWidget" native="true">
       <property name="geometry">
        <rect>
         <x>20</x>

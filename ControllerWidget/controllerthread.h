@@ -9,6 +9,7 @@
 #include <QTime>
 #include <QTimer>
 #include <QElapsedTimer>
+#include <QFile>
 #include <QDebug>
 #include <QSharedPointer>
 #include <QAtomicInt>
@@ -16,8 +17,6 @@
 
 #include <vector>
 #include <memory>
-
-//#include <chrono>
 
 // included in kinematics_4dof.h
 //#include <Eigen/Dense>
@@ -44,7 +43,7 @@ public:
 signals:
     void statusChanged(int event);
     void logData(QTime timeStamp,
-                 int frameIdx,
+                 int loopIdx,
                  QString &data);
     void logEvent(int source, // LOG_SOURCE
                   int logType, // LOG_TYPES
@@ -55,6 +54,7 @@ signals:
                   QTime timeStamp,
                   int eventID, // FRMGRAB_EVENT_IDS
                   QString &message);
+    void sendMsgToWidget(QString msg);
     void logError(int source, // LOG_SOURCE
                   int logType, // LOG_TYPES
                   QTime timeStamp,
@@ -68,6 +68,7 @@ public slots:
     void receiveEMdata(QTime timeStamp,
                       int sensorID,
                       DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data);
+    void receiveLatestEMreading(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> readings);
 
 private:
     // Instead of using "m_mutex.lock()"
@@ -97,6 +98,7 @@ private:
     const int m_prec = 4; // precision for print operations
 
     // latest reading
+    std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> m_prevReading;
     std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> m_latestReading;
 
     // transforms
@@ -122,6 +124,9 @@ private:
     Kinematics_4DOF m_cathKin;
 
     std::shared_ptr< std::vector<double> > cycle_recalculate(std::vector<double> &inputs);
+
+    Eigen::Transform<double,3,Eigen::Affine> readTransformFromTxtFile(const QString &path);
+    void loadConstants();
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

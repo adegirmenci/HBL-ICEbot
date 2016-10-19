@@ -9,20 +9,25 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
 
     qDebug() << "Setting up GUI connections.";
 
+    // EM Data to DataLogger
     connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)),
             ui->dataLogWidget->m_worker, SLOT(logEMdata(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)));
 
+    // LabJack Data to DataLogger
     connect(ui->labjackWidget->m_worker, SIGNAL(logData(QTime,double)),
             ui->dataLogWidget->m_worker, SLOT(logLabJackData(QTime,double)));
 
+    // FrameGrabber Data to DataLogger
     connect(ui->frmGrabWidget->m_worker, SIGNAL(pleaseSaveImage(std::shared_ptr<Frame>)),
             ui->dataLogWidget->m_worker, SLOT(logFrmGrabImage(std::shared_ptr<Frame>)));
 
+    // EPOS Data to DataLogger
     connect(ui->eposWidget->m_worker, SIGNAL(logData(QTime,int,int,long)),
             ui->dataLogWidget->m_worker, SLOT(logEPOSdata(QTime,int,int,long)));
     connect(ui->eposWidget->m_worker, SIGNAL(logData(QTime,int,std::vector<long>)),
             ui->dataLogWidget->m_worker, SLOT(logEPOSdata(QTime,int,std::vector<long>)));
 
+    // Events to DataLogger
     connect(ui->emWidget->m_worker, SIGNAL(logEvent(int,int,QTime,int)),
             ui->dataLogWidget->m_worker, SLOT(logEvent(int,int,QTime,int)));
     connect(ui->eposWidget->m_worker, SIGNAL(logEvent(int,int,QTime,int)),
@@ -32,6 +37,7 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
     connect(ui->labjackWidget->m_worker, SIGNAL(logEvent(int,int,QTime,int)),
             ui->dataLogWidget->m_worker, SLOT(logEvent(int,int,QTime,int)));
 
+    // Errors to DataLogger
     connect(ui->emWidget->m_worker, SIGNAL(logError(int,int,QTime,int,QString)),
             ui->dataLogWidget->m_worker, SLOT(logError(int,int,QTime,int,QString)));
     connect(ui->eposWidget->m_worker, SIGNAL(logError(int,int,QTime,int,QString)),
@@ -41,8 +47,15 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
     connect(ui->labjackWidget->m_worker, SIGNAL(logError(int,int,QTime,int,QString)),
             ui->dataLogWidget->m_worker, SLOT(logError(int,int,QTime,int,QString)));
 
+    // EM to SceneVizWidget
     connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)),
             ui->sceneVizWidget->m_modifier, SLOT(receiveEMreading(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)));
+
+    // EM to Controller
+    //connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)),
+    //        ui->controlWidget->m_worker, SLOT(receiveEMdata(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)));
+    connect(ui->emWidget->m_worker, SIGNAL(sendLatestReading(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD>)),
+            ui->controlWidget->m_worker, SLOT(receiveLatestEMreading(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD>)));
 
     // inter-process communication
     connect(ui->frmGrabWidget->m_worker, SIGNAL(imageAcquired(std::shared_ptr<Frame>)),

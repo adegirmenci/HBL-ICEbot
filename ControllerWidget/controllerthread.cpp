@@ -13,6 +13,8 @@ ControllerThread::ControllerThread(QObject *parent) :
 
     m_cathKin = Kinematics_4DOF(0.05, 0.00135, 0.90*0.0254);
 
+    loadConstants();
+
     m_mutex = new QMutex(QMutex::Recursive);
 }
 
@@ -86,6 +88,9 @@ void ControllerThread::receiveEMdata(QTime timeStamp, int sensorID, DOUBLE_POSIT
 
     m_latestReading[sensorID] = data;
 
+    QElapsedTimer elTimer;
+    elTimer.start();
+
     // TODO: emit signal to log receiveEMdata event
     //emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_EM_RECEIVED);
 
@@ -114,6 +119,64 @@ void ControllerThread::receiveEMdata(QTime timeStamp, int sensorID, DOUBLE_POSIT
         qDebug() << "SensorID not recognized!";
         break;
     }
+
+    qint64 elNsec = elTimer.nsecsElapsed();
+
+    qDebug() << "Nsec elapsed:" << elNsec;
+}
+
+void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> readings)
+{
+    QMutexLocker locker(m_mutex);
+
+//    QElapsedTimer elTimer;
+//    elTimer.start();
+
+    Q_ASSERT(4 == readings.size());
+
+    m_prevReading = m_latestReading;
+    m_latestReading = readings;
+
+    // EM_SENSOR_BB:
+    Transform_From_EMreading(readings[EM_SENSOR_BB], m_basTipPos_mobile);
+    m_Box_BBmobile = m_basTipPos_mobile * m_BB_SBm.inverse();
+    m_BBfixed_BBmobile = m_BB_Box * m_Box_BBmobile;
+    m_BBmobile_CT = m_Box_BBmobile.inverse()*m_curTipPos*m_STm_BT*m_BT_CT;
+    QString msg = QString("%1\t%2\t%3\t%4\n%5\t%6\t%7\t%8\n%9\t%10\t%11\t%12\n%13\t%14\t%15\t%16\n")
+                .arg(m_BBmobile_CT(0,0))
+                .arg(m_BBmobile_CT(0,1))
+                .arg(m_BBmobile_CT(0,2))
+                .arg(m_BBmobile_CT(0,3))
+                .arg(m_BBmobile_CT(1,0))
+                .arg(m_BBmobile_CT(1,1))
+                .arg(m_BBmobile_CT(1,2))
+                .arg(m_BBmobile_CT(1,3))
+                .arg(m_BBmobile_CT(2,0))
+                .arg(m_BBmobile_CT(2,1))
+                .arg(m_BBmobile_CT(2,2))
+                .arg(m_BBmobile_CT(2,3))
+                .arg(m_BBmobile_CT(3,0))
+                .arg(m_BBmobile_CT(3,1))
+                .arg(m_BBmobile_CT(3,2))
+                .arg(m_BBmobile_CT(3,3));
+    emit sendMsgToWidget(msg);
+    //emit logEventWithMessage(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), 0, msg);
+
+    //EM_SENSOR_BT:
+    // process CT point
+    Transform_From_EMreading(readings[EM_SENSOR_BT], m_curTipPos);
+    m_BB_CT_curTipPos = m_BB_Box*m_curTipPos*m_STm_BT*m_BT_CT; // convert to CT in terms of BBfixed
+
+    // EM_SENSOR_INST:
+    Transform_From_EMreading(readings[EM_SENSOR_INST], m_targetPos);
+    m_targetPos = m_targetPos * m_ISm_INSTR;
+    m_BB_targetPos = m_BB_Box * m_targetPos;
+
+    // EM_SENSOR_CHEST:
+    Transform_From_EMreading(readings[EM_SENSOR_CHEST], m_currChest);
+
+//    qint64 elNsec = elTimer.nsecsElapsed();
+//    qDebug() << "Nsec elapsed:" << elNsec;
 }
 
 // ----------------
@@ -128,16 +191,16 @@ void ControllerThread::receiveEMdata(QTime timeStamp, int sensorID, DOUBLE_POSIT
 // ----------------
 static void Transform_From_EMreading(DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD &input, Eigen::Transform<double,3,Eigen::Affine> &output)
 {
-    QElapsedTimer elTimer;
-    elTimer.start();
+//    QElapsedTimer elTimer;
+//    elTimer.start();
 
     Eigen::Translation3d trans(input.x, input.y, input.z);
     Eigen::Quaterniond quat(input.q[0], input.q[1], input.q[2], input.q[3]);
     output = trans * quat;
 
-    qint64 elNsec = elTimer.nsecsElapsed();
+//    qint64 elNsec = elTimer.nsecsElapsed();
 
-    qDebug() << "Nsec elapsed:" << elNsec;
+//    qDebug() << "Nsec elapsed:" << elNsec;
 }
 
 std::shared_ptr< std::vector<double> > ControllerThread::cycle_recalculate(std::vector<double> &inputs)
@@ -155,6 +218,8 @@ std::shared_ptr< std::vector<double> > ControllerThread::cycle_recalculate(std::
 
 //    QElapsedTimer elTimer;
 //    elTimer.start();
+
+    // TODO: add error checking to ensure that the vector size is correct
 
     std::vector<double>::iterator iter = inputs.begin();
 
@@ -308,6 +373,49 @@ std::shared_ptr< std::vector<double> > ControllerThread::cycle_recalculate(std::
 //    qDebug() << "Nsec elapsed:" << elNsec;
 
     return outputs;
+}
+
+Eigen::Transform<double,3,Eigen::Affine> ControllerThread::readTransformFromTxtFile(const QString &path)
+{
+    Eigen::Transform<double,3,Eigen::Affine> tform;
+
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        qDebug() << "File doesn't exist:" << path << " !!!";
+        return tform;
+    }
+
+    QTextStream in(&file);
+    for(size_t i = 0; i < 3; i++)
+    {
+        for(size_t j = 0; j < 4; j++)
+        {
+            if(!in.atEnd())
+            {
+                in >> tform(i,j);
+            }
+            else
+            {
+                qDebug() << "File ended prematurely at element (" << i << "," << j << "):" << path << " !!!";
+                return tform;
+            }
+        }
+    }
+
+    qDebug() << "Loaded:" << path;
+    std::cout << tform.matrix() << std::endl;
+
+    return tform;
+}
+
+void ControllerThread::loadConstants()
+{
+    m_BB_Box = readTransformFromTxtFile(QStringLiteral("C:\\Users\\Alperen\\Documents\\QT Projects\\ICEbot_QT_v1\\Constants\\C_T_BB_Box.txt"));
+    m_STm_BT = readTransformFromTxtFile(QStringLiteral("C:\\Users\\Alperen\\Documents\\QT Projects\\ICEbot_QT_v1\\Constants\\C_T_STm_BT.txt"));
+    m_BT_CT = readTransformFromTxtFile(QStringLiteral("C:\\Users\\Alperen\\Documents\\QT Projects\\ICEbot_QT_v1\\Constants\\C_T_BT_CT.txt"));
+    m_BB_SBm = readTransformFromTxtFile(QStringLiteral("C:\\Users\\Alperen\\Documents\\QT Projects\\ICEbot_QT_v1\\Constants\\C_T_BB_SBm.txt"));
+    m_ISm_INSTR = readTransformFromTxtFile(QStringLiteral("C:\\Users\\Alperen\\Documents\\QT Projects\\ICEbot_QT_v1\\Constants\\C_T_ISm_INSTR.txt"));
 }
 
 

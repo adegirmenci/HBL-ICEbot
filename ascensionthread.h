@@ -43,6 +43,7 @@ public:
 // ------------------------------
 
 Q_DECLARE_METATYPE(DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)
+Q_DECLARE_METATYPE(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD>)
 
 // ##################################
 // # Ascension Thread Class Members #
@@ -66,6 +67,7 @@ signals:
     void logData(QTime timeStamp,
                  int sensorID,
                  DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data);
+    void sendLatestReading(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> latestReading);
     void logEvent(int source, // LOG_SOURCE
                   int logType, // LOG_TYPES
                   QTime timeStamp,

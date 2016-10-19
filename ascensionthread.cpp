@@ -15,6 +15,7 @@ AscensionThread::AscensionThread(QObject *parent) :
     m_latestReading.resize(4);
 
     qRegisterMetaType<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD>("DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD");
+    qRegisterMetaType< std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> >("std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD>");
 }
 
 AscensionThread::~AscensionThread()
@@ -260,6 +261,7 @@ void AscensionThread::getSample() // called by timer
     }
 
     // TODO: emit m_latestReading for use with the controller
+    emit sendLatestReading(m_latestReading);
 }
 
 void AscensionThread::stopAcquisition() // stop timer
