@@ -14,9 +14,9 @@
 #include <vector>
 #include <memory>
 
-#include "../AscensionWidget/icebot_definitions.h"
+#include "../icebot_definitions.h"
 
-#include "LabJackUD.h"
+#include "LabJackLibs/LabJackUD.h"
 
 class LabJackThread : public QObject
 {

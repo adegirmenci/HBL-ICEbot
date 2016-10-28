@@ -28,9 +28,9 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include "../AscensionWidget/icebot_definitions.h"
+#include "../icebot_definitions.h"
 #include "../AscensionWidget/3DGAPI/ATC3DG.h"
-#include "frmgrabthread.h"
+#include "../FrmGrabWidget/frmgrabthread.h"
 
 
 struct FrameExtd{

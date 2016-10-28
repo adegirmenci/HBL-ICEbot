@@ -15,7 +15,7 @@
 
 #include <vector>
 
-#include "../AscensionWidget/icebot_definitions.h"
+#include "../icebot_definitions.h"
 
 #include "3DGAPI/ATC3DG.h"
 

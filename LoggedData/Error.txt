@@ -1,0 +1,11 @@
+File opened at: 2016/10/28 - 11:53:27.421
+11:53:30.181 ERROR EM 1 Error Code -2147483634: System         : No BIRDs were found anywhere                 
+11:53:45.367 ERROR EPOS 1 Error Code 570425345: Error receiving CAN Frame
+11:53:45.367 ERROR EPOS 1 Error Code 570425345: Error receiving CAN Frame
+11:53:45.969 ERROR EPOS 1 Error Code 570425345: Error receiving CAN Frame
+11:53:45.969 ERROR EPOS 1 Error Code 570425345: Error receiving CAN Frame
+11:53:46.570 ERROR EPOS 1 Error Code 570425345: Error receiving CAN Frame
+11:53:46.570 ERROR EPOS 1 Error Code 570425345: Error receiving CAN Frame
+11:53:47.072 ERROR EPOS 1 Error Code 570425345: Error receiving CAN Frame
+11:53:47.072 ERROR EPOS 1 Error Code 570425345: Error receiving CAN Frame
+File closed at: 2016/10/28 - 11:54:16.681

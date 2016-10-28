@@ -11,69 +11,69 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 TARGET = ICEbot_QT_v1
 TEMPLATE = app
 
-DEFINES += EIGEN_QT_SUPPORT
+#DEFINES += EIGEN_QT_SUPPORT
 
 SOURCES += main.cpp\
         icebot_gui.cpp \
-    omni.cpp \
-    omnithread.cpp \
-    ascensionthread.cpp \
-    ascensionwidget.cpp \
-    dataloggerthread.cpp \
-    dataloggerwidget.cpp \
-    epos2thread.cpp \
-    epos2widget.cpp \
-    frmgrabthread.cpp \
-    frmgrabwidget.cpp \
-    labjackthread.cpp \
-    labjackwidget.cpp \
+    OmniWidget/omni.cpp \
+    OmniWidget/omnithread.cpp \
+    AscensionWidget/ascensionthread.cpp \
+    AscensionWidget/ascensionwidget.cpp \
+    DataLoggerWidget/dataloggerthread.cpp \
+    DataLoggerWidget/dataloggerwidget.cpp \
+    EPOS2Widget/epos2thread.cpp \
+    EPOS2Widget/epos2widget.cpp \
+    FrmGrabWidget/frmgrabthread.cpp \
+    FrmGrabWidget/frmgrabwidget.cpp \
+    LabJackWidget/labjackthread.cpp \
+    LabJackWidget/labjackwidget.cpp \
     qcustomplot.cpp \
     SceneVizWidget/extendedqt3dwindow.cpp \
     SceneVizWidget/scenemodifier.cpp \
     SceneVizWidget/scenevizwidget.cpp \
     SceneVizWidget/triadentity.cpp \
-    frameclientthread.cpp \
-    frameclientwidget.cpp \
+    FrameClientWidget/frameclientthread.cpp \
+    FrameClientWidget/frameclientwidget.cpp \
     ControllerWidget/controllerthread.cpp \
     ControllerWidget/controllerwidget.cpp \
     ControllerWidget/kinematics_4dof.cpp \
     SceneVizWidget/usentity.cpp
 
 HEADERS  += icebot_gui.h \
-    omni.h \
-    omnithread.h \
-    ascensionthread.h \
-    ascensionwidget.h \
-    dataloggerthread.h \
-    dataloggerwidget.h \
-    epos2thread.h \
-    epos2widget.h \
-    frmgrabthread.h \
-    frmgrabwidget.h \
-    labjackthread.h \
-    labjackwidget.h \
+    OmniWidget/omni.h \
+    OmniWidget/omnithread.h \
+    AscensionWidget/ascensionthread.h \
+    AscensionWidget/ascensionwidget.h \
+    DataLoggerWidget/dataloggerthread.h \
+    DataLoggerWidget/dataloggerwidget.h \
+    EPOS2Widget/epos2thread.h \
+    EPOS2Widget/epos2widget.h \
+    FrmGrabWidget/frmgrabthread.h \
+    FrmGrabWidget/frmgrabwidget.h \
+    LabJackWidget/labjackthread.h \
+    LabJackWidget/labjackwidget.h \
     icebot_definitions.h \
     qcustomplot.h \
     SceneVizWidget/extendedqt3dwindow.h \
     SceneVizWidget/scenemodifier.h \
     SceneVizWidget/scenevizwidget.h \
     SceneVizWidget/triadentity.h \
-    frameclientthread.h \
-    frameclientwidget.h \
+    FrameClientWidget/frameclientthread.h \
+    FrameClientWidget/frameclientwidget.h \
     ControllerWidget/controllerthread.h \
     ControllerWidget/controllerwidget.h \
     ControllerWidget/kinematics_4dof.h \
     SceneVizWidget/usentity.h
 
 FORMS    += icebot_gui.ui \
-    omni.ui \
-    ascensionwidget.ui \
-    dataloggerwidget.ui \
-    epos2widget.ui \
-    frmgrabwidget.ui \
-    labjackwidget.ui \
+    OmniWidget/omni.ui \
+    AscensionWidget/ascensionwidget.ui \
+    DataLoggerWidget/dataloggerwidget.ui \
+    EPOS2Widget/epos2widget.ui \
+    FrmGrabWidget/frmgrabwidget.ui \
+    LabJackWidget/labjackwidget.ui \
     SceneVizWidget/scenevizwidget.ui \
-    frameclientwidget.ui \
+    FrameClientWidget/frameclientwidget.ui \
     ControllerWidget/controllerwidget.ui
 
 RC_FILE = ICEbotGUI.rc
@@ -102,16 +102,16 @@ win32 {
     }
 }
 
-win32: LIBS += -L$$PWD/LabJackLibs/ -lLabJackUD
+win32: LIBS += -L$$PWD/LabJackWidget/LabJackLibs/ -lLabJackUD
 
-INCLUDEPATH += $$PWD/LabJackLibs
-DEPENDPATH += $$PWD/LabJackLibs
+INCLUDEPATH += $$PWD/LabJackWidget/LabJackLibs
+DEPENDPATH += $$PWD/LabJackWidget/LabJackLibs
 
 
-win32: LIBS += -L$$PWD/MaxonLibs/ -lEposCmd
+win32: LIBS += -L$$PWD/EPOS2Widget/MaxonLibs/ -lEposCmd
 
-INCLUDEPATH += $$PWD/MaxonLibs
-DEPENDPATH += $$PWD/MaxonLibs
+INCLUDEPATH += $$PWD/EPOS2Widget/MaxonLibs
+DEPENDPATH += $$PWD/EPOS2Widget/MaxonLibs
 
 win32 {
     INCLUDEPATH += "C:\\opencv\\build\\include" \
@@ -146,10 +146,10 @@ win32 {
 #INCLUDEPATH += "C:\\epiphan_sdk_32800009\\epiphan\\include"
 #INCLUDEPATH += "C:\\epiphan_sdk_32800009\\epiphan\\\frmgrab\\include"
 
-win32: LIBS += -L$$PWD/3DGAPI/ -lATC3DG
+win32: LIBS += -L$$PWD/AscensionWidget/3DGAPI/ -lATC3DG
 
-INCLUDEPATH += $$PWD/3DGAPI
-DEPENDPATH += $$PWD/3DGAPI
+INCLUDEPATH += $$PWD/AscensionWidget/3DGAPI
+DEPENDPATH += $$PWD/AscensionWidget/3DGAPI
 
 ## Eigen
 #INCLUDEPATH += "D:\\Eigen\\Eigen"

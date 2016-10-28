@@ -14,7 +14,7 @@
 #include <vector>
 #include <memory>
 
-#include "../AscensionWidget/icebot_definitions.h"
+#include "../icebot_definitions.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>

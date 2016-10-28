@@ -22,8 +22,6 @@ ControllerThread::~ControllerThread()
 {
     std::cout << m_cathKin.forwardKinematics(1,0.1,0.1,0).matrix() << std::endl;
 
-    //auto t1 = std::chrono::high_resolution_clock::now();
-
     std::cout << m_cathKin.JacobianNumeric(1,0.1,0.1,0).matrix() << std::endl;
 
     std::cout << m_cathKin.inverseKinematics3D(.005,.005,0.012,0.1) << std::endl;
@@ -31,14 +29,7 @@ ControllerThread::~ControllerThread()
     Eigen::Transform<double, 3, Eigen::Affine> T_in(Eigen::Matrix<double, 4, 4>::Identity());
     std::cout << T_in.matrix() << std::endl;
     Eigen::Vector4d configIn(0.0010, 0.0001, 0, 0);
-    std::cout << m_cathKin.control_icra2016(T_in,configIn, 0.0) << std::endl;
-
-    //this->thread()->msleep(1);
-    //auto t2 = std::chrono::high_resolution_clock::now();
-    //std::cout << t1.time_since_epoch().count() << std::endl;
-    //std::cout << t2.time_since_epoch().count() << std::endl;
-    //auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>( t2 - t1 ).count();
-    //std::cout << "Took: " << duration << " ns" << std::endl;
+    std::cout << m_cathKin.control_icra2016(T_in, configIn, 0.0) << std::endl;
 
     // stop controller
 

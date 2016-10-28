@@ -191,31 +191,31 @@
   <customwidget>
    <class>AscensionWidget</class>
    <extends>QWidget</extends>
-   <header>ascensionwidget.h</header>
+   <header>AscensionWidget/ascensionwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>DataLoggerWidget</class>
    <extends>QWidget</extends>
-   <header>dataloggerwidget.h</header>
+   <header>DataLoggerWidget/dataloggerwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>LabJackWidget</class>
    <extends>QWidget</extends>
-   <header>labjackwidget.h</header>
+   <header>LabJackWidget/labjackwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>FrmGrabWidget</class>
    <extends>QWidget</extends>
-   <header>frmgrabwidget.h</header>
+   <header>FrmGrabWidget/frmgrabwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>EPOS2Widget</class>
    <extends>QWidget</extends>
-   <header>epos2widget.h</header>
+   <header>EPOS2Widget/epos2widget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -227,7 +227,7 @@
   <customwidget>
    <class>FrameClientWidget</class>
    <extends>QWidget</extends>
-   <header>frameclientwidget.h</header>
+   <header>FrameClientWidget/frameclientwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

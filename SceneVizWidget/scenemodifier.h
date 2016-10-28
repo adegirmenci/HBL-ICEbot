@@ -16,7 +16,7 @@
 
 #include <QTime>
 
-#include "../AscensionWidget/icebot_definitions.h"
+#include "../icebot_definitions.h"
 #include "../AscensionWidget/3DGAPI/ATC3DG.h"
 
 #include "triadentity.h"

@@ -15,7 +15,7 @@
 #include <vector>
 #include <memory>
 
-#include "../AscensionWidget/icebot_definitions.h"
+#include "../icebot_definitions.h"
 
 #include "MaxonLibs/Definitions.h"
 #include <stdio.h>
