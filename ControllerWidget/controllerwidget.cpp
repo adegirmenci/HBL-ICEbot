@@ -34,3 +34,27 @@ void ControllerWidget::on_testButton_clicked()
 
     emit tellWorkerToPrintThreadID();
 }
+
+void ControllerWidget::on_taskSpaceGroupBox_toggled(bool arg1)
+{
+    if(arg1 && ui->configSpaceGroupBox->isChecked())
+        ui->configSpaceGroupBox->setChecked(false);
+    if(arg1 && ui->jointSpaceGroupBox->isChecked())
+        ui->jointSpaceGroupBox->setChecked(false);
+}
+
+void ControllerWidget::on_configSpaceGroupBox_toggled(bool arg1)
+{
+    if(arg1 && ui->taskSpaceGroupBox->isChecked())
+        ui->taskSpaceGroupBox->setChecked(false);
+    if(arg1 && ui->jointSpaceGroupBox->isChecked())
+        ui->jointSpaceGroupBox->setChecked(false);
+}
+
+void ControllerWidget::on_jointSpaceGroupBox_toggled(bool arg1)
+{
+    if(arg1 && ui->configSpaceGroupBox->isChecked())
+        ui->configSpaceGroupBox->setChecked(false);
+    if(arg1 && ui->taskSpaceGroupBox->isChecked())
+        ui->taskSpaceGroupBox->setChecked(false);
+}

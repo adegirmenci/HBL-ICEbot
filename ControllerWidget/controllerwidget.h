@@ -26,6 +26,12 @@ signals:
 private slots:
     void on_testButton_clicked();
 
+    void on_taskSpaceGroupBox_toggled(bool arg1);
+
+    void on_configSpaceGroupBox_toggled(bool arg1);
+
+    void on_jointSpaceGroupBox_toggled(bool arg1);
+
 private:
     Ui::ControllerWidget *ui;
 
