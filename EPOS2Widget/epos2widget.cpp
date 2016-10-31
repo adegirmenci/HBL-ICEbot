@@ -18,13 +18,18 @@ EPOS2Widget::EPOS2Widget(QWidget *parent) :
 //    connect(ui->stopButton, SIGNAL(clicked(bool)), m_worker, SLOT(stopAcquisition()));
     connect(ui->disconnectButton, SIGNAL(clicked(bool)), m_worker, SLOT(disconnectEPOS()));
 
-    connect(m_worker, SIGNAL(statusChanged(int)), this, SLOT(workerStatusChanged(int)));
-    connect(m_worker, SIGNAL(motorStatusChanged(int,int)), this, SLOT(workerMotorStatusChanged(int,int)));
-    connect(m_worker, SIGNAL(motorStatusChanged(std::vector<int>)), this, SLOT(workerMotorStatusChanged(std::vector<int>)));
-    connect(m_worker, SIGNAL(motorQcChanged(int,long)), this, SLOT(workerMotorQcChanged(int,long)));
-    connect(m_worker, SIGNAL(motorQcChanged(std::vector<long>)), this, SLOT(workerMotorQcChanged(std::vector<long>)));
+    connect(m_worker, SIGNAL(statusChanged(int)),
+            this, SLOT(workerStatusChanged(int)));
+    connect(m_worker, SIGNAL(motorStatusChanged(int,int)),
+            this, SLOT(workerMotorStatusChanged(int,int)));
+    connect(m_worker, SIGNAL(motorStatusChanged(std::vector<int>)),
+            this, SLOT(workerMotorStatusChanged(std::vector<int>)));
+    connect(m_worker, SIGNAL(motorQcChanged(int,long)),
+            this, SLOT(workerMotorQcChanged(int,long)));
+    connect(m_worker, SIGNAL(motorQcChanged(std::vector<long>)),
+            this, SLOT(workerMotorQcChanged(std::vector<long>)));
     connect(m_worker, SIGNAL(sendDataToGUI(int,QString)),
-                             this, SLOT(receiveDataFromWorker(int,QString)));
+            this, SLOT(receiveDataFromWorker(int,QString)));
 
     connect(this, SIGNAL(setServoTargetPos(int,long,bool)), m_worker, SLOT(setServoTargetPos(int,long,bool)));
     connect(this, SIGNAL(servoToPos()), m_worker, SLOT(servoToPosition()));

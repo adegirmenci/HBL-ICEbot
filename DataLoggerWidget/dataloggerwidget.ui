@@ -38,6 +38,28 @@
      </widget>
     </item>
     <item>
+     <widget class="QLineEdit" name="subdirLineEdit">
+      <property name="maximumSize">
+       <size>
+        <width>120</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="maxLength">
+       <number>26</number>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+      <property name="placeholderText">
+       <string>/ timestamped subdir</string>
+      </property>
+     </widget>
+    </item>
+    <item>
      <widget class="QPushButton" name="dataDirPushButton">
       <property name="text">
        <string>Select Directory</string>
@@ -52,7 +74,7 @@
      <x>10</x>
      <y>50</y>
      <width>361</width>
-     <height>211</height>
+     <height>213</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -523,6 +545,9 @@
     </property>
     <property name="text">
      <string>Status.</string>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QPushButton" name="closeFilesButton">

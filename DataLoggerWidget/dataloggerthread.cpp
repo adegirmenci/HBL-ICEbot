@@ -56,11 +56,27 @@ void DataLoggerThread::setEpoch(const QDateTime &epoch)
         emit logEvent(SRC_DATALOGGER, LOG_INFO, QTime::currentTime(), DATALOG_EPOCH_SET_FAILED);
 }
 
-void DataLoggerThread::setRootDirectory(QString dir)
+void DataLoggerThread::setRootDirectory(QString rootDir)
 {
     QMutexLocker locker(m_mutex);
 
-    m_rootDirectory = dir;
+    // check if the directory exists, if not, create it
+    QDir dir;
+    if( ! dir.exists(rootDir) )
+    {
+        if( dir.mkpath(rootDir) )
+        {
+            qDebug() << "Folder created: " << rootDir;
+        }
+        else
+        {
+            qDebug() << "Folder creation failed: " << rootDir;
+
+            emit statusChanged(DATALOG_FOLDER_ERROR);
+        }
+    }
+
+    m_rootDirectory = rootDir;
 }
 
 void DataLoggerThread::initializeDataLogger(std::vector<int> enableMask, std::vector<QString> fileNames)
@@ -77,53 +93,32 @@ void DataLoggerThread::initializeDataLogger(std::vector<int> enableMask, std::ve
             {
                 bool status = true;
 
-//                // check if the directory exists, if not, create it
-//                QDir dir;
-//                if( ! dir.exists(fileNames[i]) )
-//                {
-//                    if( dir.mkpath(fileNames[i]) )
-//                    {
-//                        status = true;
-//                        qDebug() << "Folder created: " << fileNames[i];
-//                    }
-//                    else
-//                    {
-//                        status = false;
-//                        qDebug() << "Folder creation failed: " << fileNames[i];
+                m_files[i].reset(new QFile());
+                m_files[i]->setFileName(fileNames[i]); // set filename of QFile
 
-//                        emit fileStatusChanged(i, DATALOG_FILE_ERROR);
-//                    }
-//                }
-
-                if(status) // no issues with folder creation
+                if(m_files[i]->open(QIODevice::WriteOnly | QIODevice::Append)) // opened successfuly
                 {
-                    m_files[i].reset(new QFile());
-                    m_files[i]->setFileName(fileNames[i]); // set filename of QFile
-
-                    if(m_files[i]->open(QIODevice::WriteOnly | QIODevice::Append)) // opened successfuly
+                    if( DATALOG_EM_ID == i)
                     {
-                        if( DATALOG_EM_ID == i)
-                        {
-                            m_DataStreams[i].reset(new QDataStream());
-                            m_DataStreams[i]->setDevice(&(*m_files.at(i)));
-                            (*m_DataStreams[i]) << QDateTime::currentMSecsSinceEpoch();
-                        }
-                        else
-                        {
-                            m_TextStreams[i].reset(new QTextStream());
-                            m_TextStreams[i]->setDevice(&(*m_files.at(i)));
-                            (*m_TextStreams[i]) << "File opened at: " << getCurrDateTimeStr() << '\n';
-                        }
-
-                        emit fileStatusChanged(i, DATALOG_FILE_OPENED);
+                        m_DataStreams[i].reset(new QDataStream());
+                        m_DataStreams[i]->setDevice(&(*m_files[i]));
+                        (*m_DataStreams[i]) << QDateTime::currentMSecsSinceEpoch();
                     }
-                    else // can't open
+                    else
                     {
-                        qDebug() << "File could not be opened: " << m_files[i]->fileName();
-
-                        status = false;
-                        emit fileStatusChanged(i, DATALOG_FILE_ERROR);
+                        m_TextStreams[i].reset(new QTextStream());
+                        m_TextStreams[i]->setDevice(&(*m_files[i]));
+                        (*m_TextStreams[i]) << "File opened at: " << getCurrDateTimeStr() << '\n';
                     }
+
+                    emit fileStatusChanged(i, DATALOG_FILE_OPENED);
+                }
+                else // can't open
+                {
+                    qDebug() << "File could not be opened: " << m_files[i]->fileName();
+
+                    status = false;
+                    emit fileStatusChanged(i, DATALOG_FILE_ERROR);
                 }
             }
             else // user doesn't want
@@ -172,6 +167,8 @@ void DataLoggerThread::initializeDataLogger(std::vector<int> enableMask, std::ve
 //    if(m_files[DATALOG_EM_ID]->isOpen())
 //    {
 //        (*m_TextStreams[DATALOG_EM_ID]) << output;
+//
+//     // emit fileStatusChanged(DATALOG_EM_ID, DATALOG_FILE_DATA_LOGGED);
 //    }
 //    else
 //        qDebug() << "File is closed.";
@@ -208,6 +205,7 @@ void DataLoggerThread::logEMdata(QTime timeStamp,
 //                                        << data.s[2][0]
 //                                        << data.s[2][1]
 //                                        << data.s[2][2];
+        // emit fileStatusChanged(DATALOG_EM_ID, DATALOG_FILE_DATA_LOGGED);
     }
     else
         qDebug() << "File is closed.";
@@ -236,6 +234,8 @@ void DataLoggerThread::logFrmGrabImage(std::shared_ptr<Frame> frm)
     {
         (*m_TextStreams[DATALOG_FrmGrab_ID]) << m_imgFname << "\t"
                      << QString::number(frm->timestamp_, 'f', 1) << '\n';
+
+        // emit fileStatusChanged(DATALOG_FrmGrab_ID, DATALOG_FILE_DATA_LOGGED);
     }
     else
         qDebug() << "FrmGrab text file closed.";
@@ -253,6 +253,8 @@ void DataLoggerThread::logLabJackData(QTime timeStamp, double data)
     {
 //        (*m_TextStreams[DATALOG_ECG_ID]) << timeStamp.toString("HH:mm:ss.zzz") << "\t" << QString::number(data, 'f', 6) << '\n';
         (*m_TextStreams[DATALOG_ECG_ID]) << output << '\n';
+
+        // emit fileStatusChanged(DATALOG_ECG_ID, DATALOG_FILE_DATA_LOGGED);
     }
     else
         ;//qDebug() << "File is closed.";
@@ -279,6 +281,8 @@ void DataLoggerThread::logEPOSdata(QTime timeStamp, int dataType, const int motI
     if(m_isReady && m_files[DATALOG_EPOS_ID]->isOpen())
     {
         (*m_TextStreams[DATALOG_EPOS_ID]) << output;
+
+        // emit fileStatusChanged(DATALOG_EPOS_ID, DATALOG_FILE_DATA_LOGGED);
     }
     else
         ;//qDebug() << "File is closed.";
@@ -309,6 +313,8 @@ void DataLoggerThread::logEPOSdata(QTime timeStamp, int dataType, std::vector<lo
     if(m_isReady && m_files[DATALOG_EPOS_ID]->isOpen())
     {
         (*m_TextStreams[DATALOG_EPOS_ID]) << output << '\n';
+
+        // emit fileStatusChanged(DATALOG_EPOS_ID, DATALOG_FILE_DATA_LOGGED);
     }
     else
         ;//qDebug() << "File is closed.";
@@ -378,6 +384,8 @@ void DataLoggerThread::logEvent(int source, int logType, QTime timeStamp, int ev
     if(m_isReady && m_files[DATALOG_Log_ID]->isOpen())
     {
         (*m_TextStreams[DATALOG_Log_ID]) << output;
+
+        emit fileStatusChanged(DATALOG_Log_ID, DATALOG_FILE_DATA_LOGGED);
     }
     else
         qDebug() << "Event logger: File is closed!";
@@ -451,6 +459,8 @@ void DataLoggerThread::logError(int source, int logType,
     if(m_isReady && m_files[DATALOG_Error_ID]->isOpen())
     {
         (*m_TextStreams[DATALOG_Error_ID]) << output << '\n';
+
+        emit fileStatusChanged(DATALOG_Error_ID, DATALOG_FILE_DATA_LOGGED);
     }
     else
         qDebug() << "Error logger: File is closed!";

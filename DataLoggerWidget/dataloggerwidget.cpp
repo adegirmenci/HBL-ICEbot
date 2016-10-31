@@ -71,7 +71,7 @@ void DataLoggerWidget::workerStatusChanged(int status)
     case DATALOG_INITIALIZE_BEGIN:
         ui->widgetStatusLineEdit->setText("Initializing");
         ui->initFilesButton->setEnabled(false);
-        ui->dataDirLineEdit->setEnabled(false);
+        ui->dataDirLineEdit->setReadOnly(true);
         ui->dataDirPushButton->setEnabled(false);
         ui->startLoggingButton->setEnabled(true);
         ui->stopLoggingButton->setEnabled(false);
@@ -79,14 +79,14 @@ void DataLoggerWidget::workerStatusChanged(int status)
         ui->logNoteButton->setEnabled(false);
         for(size_t i = 0; i < m_checkBoxList.size(); i++)
         {
-            m_fileNameList[i]->setEnabled(false);
+            m_fileNameList[i]->setReadOnly(true);
             m_checkBoxList[i]->setEnabled(false);
         }
         break;
     case DATALOG_INITIALIZE_FAILED:
         ui->widgetStatusLineEdit->setText("Failed!");
         ui->initFilesButton->setEnabled(true);
-        ui->dataDirLineEdit->setEnabled(true);
+        ui->dataDirLineEdit->setReadOnly(false);
         ui->dataDirPushButton->setEnabled(true);
         ui->startLoggingButton->setEnabled(false);
         ui->stopLoggingButton->setEnabled(false);
@@ -94,14 +94,14 @@ void DataLoggerWidget::workerStatusChanged(int status)
         ui->logNoteButton->setEnabled(false);
         for(size_t i = 0; i < m_checkBoxList.size(); i++)
         {
-            m_fileNameList[i]->setEnabled(true);
+            m_fileNameList[i]->setReadOnly(false);
             m_checkBoxList[i]->setEnabled(true);
         }
         break;
     case DATALOG_INITIALIZED:
         ui->widgetStatusLineEdit->setText("Initialized");
         ui->initFilesButton->setEnabled(false);
-        ui->dataDirLineEdit->setEnabled(false);
+        ui->dataDirLineEdit->setReadOnly(true);
         ui->dataDirPushButton->setEnabled(false);
         ui->startLoggingButton->setEnabled(true);
         ui->stopLoggingButton->setEnabled(false);
@@ -109,14 +109,14 @@ void DataLoggerWidget::workerStatusChanged(int status)
         ui->logNoteButton->setEnabled(true);
         for(size_t i = 0; i < m_checkBoxList.size(); i++)
         {
-            m_fileNameList[i]->setEnabled(false);
+            m_fileNameList[i]->setReadOnly(true);
             m_checkBoxList[i]->setEnabled(false);
         }
         break;
     case DATALOG_LOGGING_STARTED:
         ui->widgetStatusLineEdit->setText("Logging");
         ui->initFilesButton->setEnabled(false);
-        ui->dataDirLineEdit->setEnabled(false);
+        ui->dataDirLineEdit->setReadOnly(true);
         ui->dataDirPushButton->setEnabled(false);
         ui->startLoggingButton->setEnabled(false);
         ui->stopLoggingButton->setEnabled(true);
@@ -126,7 +126,7 @@ void DataLoggerWidget::workerStatusChanged(int status)
     case DATALOG_LOGGING_STOPPED:
         ui->widgetStatusLineEdit->setText("Stopped");
         ui->initFilesButton->setEnabled(false);
-        ui->dataDirLineEdit->setEnabled(false);
+        ui->dataDirLineEdit->setReadOnly(true);
         ui->dataDirPushButton->setEnabled(false);
         ui->startLoggingButton->setEnabled(true);
         ui->stopLoggingButton->setEnabled(false);
@@ -136,7 +136,7 @@ void DataLoggerWidget::workerStatusChanged(int status)
     case DATALOG_CLOSED:
         ui->widgetStatusLineEdit->setText("Closed");
         ui->initFilesButton->setEnabled(true);
-        ui->dataDirLineEdit->setEnabled(true);
+        ui->dataDirLineEdit->setReadOnly(false);
         ui->dataDirPushButton->setEnabled(true);
         ui->startLoggingButton->setEnabled(false);
         ui->stopLoggingButton->setEnabled(false);
@@ -144,7 +144,7 @@ void DataLoggerWidget::workerStatusChanged(int status)
         ui->logNoteButton->setEnabled(false);
         for(size_t i = 0; i < m_checkBoxList.size(); i++)
         {
-            m_fileNameList[i]->setEnabled(true);
+            m_fileNameList[i]->setReadOnly(false);
             m_checkBoxList[i]->setEnabled(true);
         }
         break;
@@ -182,7 +182,7 @@ void DataLoggerWidget::workerFileStatusChanged(const unsigned short fileID, int 
 void DataLoggerWidget::on_dataDirPushButton_clicked()
 {
     QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
-                                                    "../DataLoggerWidget/LoggedData",
+                                                    "../ICEbot_QT_v1/LoggedData",
                                                     QFileDialog::ShowDirsOnly
                                                     | QFileDialog::DontResolveSymlinks);
 
@@ -196,24 +196,39 @@ void DataLoggerWidget::on_initFilesButton_clicked()
     std::vector<int> enableMask;
     std::vector<QString> fileNames;
 
+    QString rootDir = ui->dataDirLineEdit->text();
+    QString datetime = QDateTime::currentDateTime().toString("yyyyMMdd_hhmmsszzz");
+    rootDir.append("/");
+    rootDir.append(datetime);
+
+    ui->subdirLineEdit->setText(tr("/")+datetime);
+
+    emit setRootDir(rootDir);
+
     for(int i = 0; i < DATALOG_NUM_FILES; i++)
     {
         enableMask.push_back(m_checkBoxList[i]->isChecked());
 
-        QString fname = ui->dataDirLineEdit->text();
+        QString fname = rootDir;
         fname.append("/");
+        fname.append(datetime);
+        fname.append("_");
         fname.append(m_fileNameList[i]->text());
         fileNames.push_back(fname);
     }
 
-    emit setRootDir(ui->dataDirLineEdit->text());
-
     emit initializeDataLogger(enableMask, fileNames);
-
 }
 
 void DataLoggerWidget::on_closeFilesButton_clicked()
 {
+    for(size_t i = 0; i < DATALOG_NUM_FILES; i++)
+        qDebug() << m_writeCount[i] << "records written to" << m_fileNameList[i]->text();
+
+    // reset counts
+    m_writeCount.clear();
+    m_writeCount.resize(DATALOG_NUM_FILES, 0);
+
     emit closeLogFiles();
 }
 

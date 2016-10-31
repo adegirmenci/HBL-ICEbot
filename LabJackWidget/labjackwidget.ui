@@ -6,18 +6,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>490</width>
-    <height>418</height>
+    <width>560</width>
+    <height>430</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>LabJackWidget</string>
   </property>
-  <widget class="QGroupBox" name="groupBox">
+  <widget class="QGroupBox" name="dataStreamingGroupBox">
    <property name="geometry">
     <rect>
-     <x>290</x>
-     <y>10</y>
+     <x>210</x>
+     <y>0</y>
      <width>191</width>
      <height>111</height>
     </rect>
@@ -31,7 +31,7 @@
       <x>10</x>
       <y>20</y>
       <width>174</width>
-      <height>61</height>
+      <height>81</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -76,8 +76,8 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>10</y>
-     <width>281</width>
+     <y>0</y>
+     <width>191</width>
      <height>111</height>
     </rect>
    </property>
@@ -89,11 +89,28 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>261</width>
+      <width>171</width>
       <height>82</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="statusLineEdit">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>Disconnected</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="statusLabel">
+       <property name="text">
+        <string>Status</string>
+       </property>
+      </widget>
+     </item>
      <item row="0" column="1">
       <widget class="QSpinBox" name="samplesPsecSpinBox">
        <property name="maximumSize">
@@ -116,24 +133,21 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="statusLabel">
+     <item row="0" column="0">
+      <widget class="QLabel" name="samplesPsecLabel">
        <property name="text">
-        <string>Status</string>
+        <string>Samples/sec</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QPushButton" name="connectButton">
+       <property name="text">
+        <string>Connect</string>
        </property>
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="statusLineEdit">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="text">
-        <string>Disconnected</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="2">
       <widget class="QPushButton" name="disconnectButton">
        <property name="enabled">
         <bool>false</bool>
@@ -143,32 +157,406 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="2">
-      <widget class="QPushButton" name="connectButton">
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="channelSettingsGroupBox">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>120</y>
+     <width>191</width>
+     <height>291</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Channel Settings</string>
+   </property>
+   <widget class="QWidget" name="gridLayoutWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>171</width>
+      <height>267</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <property name="horizontalSpacing">
+      <number>8</number>
+     </property>
+     <item row="2" column="0">
+      <widget class="QCheckBox" name="enableAIN1checkBox">
        <property name="text">
-        <string>Connect</string>
+        <string>AIN1</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QCheckBox" name="enableAIN2checkBox">
+       <property name="text">
+        <string>AIN2</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QCheckBox" name="enableAIN0checkBox">
+       <property name="text">
+        <string>AIN0</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QCheckBox" name="enableAIN4checkBox">
+       <property name="text">
+        <string>AIN4</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QCheckBox" name="enableAIN3checkBox">
+       <property name="text">
+        <string>AIN3</string>
        </property>
       </widget>
      </item>
      <item row="0" column="0">
-      <widget class="QLabel" name="samplesPsecLabel">
+      <widget class="QLabel" name="enableAINLabel">
        <property name="text">
-        <string>Samples/sec</string>
+        <string>Enable</string>
        </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="AINSourceLabel">
+       <property name="text">
+        <string>Source</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0">
+      <widget class="QCheckBox" name="enableAIN5checkBox">
+       <property name="text">
+        <string>AIN5</string>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0">
+      <widget class="QCheckBox" name="enableAIN6checkBox">
+       <property name="text">
+        <string>AIN6</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0">
+      <widget class="QCheckBox" name="enableAIN7checkBox">
+       <property name="text">
+        <string>AIN7</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="0">
+      <widget class="QCheckBox" name="enableAIN8checkBox">
+       <property name="text">
+        <string>AIN8</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="AIN0comboBox">
+       <item>
+        <property name="text">
+         <string>ECG</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>YawPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>PitchPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>RollPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>TransPot</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QComboBox" name="AIN1comboBox">
+       <item>
+        <property name="text">
+         <string>ECG</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>YawPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>PitchPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>RollPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>TransPot</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QComboBox" name="AIN2comboBox">
+       <item>
+        <property name="text">
+         <string>ECG</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>YawPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>PitchPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>RollPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>TransPot</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="AIN3comboBox">
+       <item>
+        <property name="text">
+         <string>ECG</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>YawPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>PitchPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>RollPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>TransPot</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QComboBox" name="AIN4comboBox">
+       <item>
+        <property name="text">
+         <string>ECG</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>YawPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>PitchPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>RollPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>TransPot</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <widget class="QComboBox" name="AIN5comboBox">
+       <item>
+        <property name="text">
+         <string>ECG</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>YawPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>PitchPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>RollPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>TransPot</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="7" column="1">
+      <widget class="QComboBox" name="AIN6comboBox">
+       <item>
+        <property name="text">
+         <string>ECG</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>YawPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>PitchPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>RollPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>TransPot</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="8" column="1">
+      <widget class="QComboBox" name="AIN7comboBox">
+       <item>
+        <property name="text">
+         <string>ECG</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>YawPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>PitchPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>RollPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>TransPot</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="9" column="1">
+      <widget class="QComboBox" name="AIN8comboBox">
+       <item>
+        <property name="text">
+         <string>ECG</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>YawPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>PitchPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>RollPot</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>TransPot</string>
+        </property>
+       </item>
       </widget>
      </item>
     </layout>
    </widget>
   </widget>
-  <widget class="QCustomPlot" name="plotWidget" native="true">
+  <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
-     <x>80</x>
-     <y>140</y>
+     <x>210</x>
+     <y>120</y>
      <width>341</width>
-     <height>241</height>
+     <height>291</height>
     </rect>
    </property>
+   <property name="title">
+    <string>Plot</string>
+   </property>
+   <widget class="QCustomPlot" name="plotWidget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>30</y>
+      <width>321</width>
+      <height>251</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

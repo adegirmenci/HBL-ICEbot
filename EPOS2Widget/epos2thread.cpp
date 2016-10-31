@@ -104,10 +104,19 @@ void EPOS2Thread::startServoing()
     QMutexLocker locker(m_mutex);
 
     m_timer = new QTimer(this);
-    m_timer->start(1);
+    m_timer->start(0);
     connect(m_timer,SIGNAL(timeout()),this,SLOT(servoToPosition()));
 
     m_keepServoing = true;
+
+//    QElapsedTimer elTimer;
+//    elTimer.start();
+
+//    QTime::currentTime();
+
+//    qint64 elNsec = elTimer.nsecsElapsed();
+//    qDebug() << "Nsec elapsed:" << elNsec;
+
 
     emit logEvent(SRC_EPOS, LOG_INFO, QTime::currentTime(), EPOS_SERVO_LOOP_STARTED);
     emit statusChanged(EPOS_SERVO_LOOP_STARTED);
@@ -146,6 +155,8 @@ void EPOS2Thread::setServoTargetPos(std::vector<long> targetPos, bool moveAbsOrR
 
 long EPOS2Thread::checkMotorLimits(const int axisID, const long targetPos)
 {
+    QMutexLocker locker(m_mutex);
+
     if(targetPos < m_motors[axisID]->m_minQC)      // too small
         return m_motors[axisID]->m_minQC;
     else if(targetPos > m_motors[axisID]->m_maxQC) // too large

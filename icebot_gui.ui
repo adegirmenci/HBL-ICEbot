@@ -24,13 +24,13 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>5</number>
     </property>
-    <widget class="QWidget" name="controlTab">
+    <widget class="QWidget" name="dataLoggerTab">
      <attribute name="title">
-      <string>Controller</string>
+      <string>DataLogger</string>
      </attribute>
-     <widget class="ControllerWidget" name="controlWidget" native="true">
+     <widget class="DataLoggerWidget" name="dataLogWidget" native="true">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -93,19 +93,19 @@
      <widget class="LabJackWidget" name="labjackWidget" native="true">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>20</y>
-        <width>500</width>
-        <height>420</height>
+        <x>10</x>
+        <y>10</y>
+        <width>561</width>
+        <height>431</height>
        </rect>
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="dataLoggerTab">
+    <widget class="QWidget" name="sceneVizTab">
      <attribute name="title">
-      <string>DataLogger</string>
+      <string>3DVisualizer</string>
      </attribute>
-     <widget class="DataLoggerWidget" name="dataLogWidget" native="true">
+     <widget class="SceneVizWidget" name="sceneVizWidget" native="true">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -116,11 +116,11 @@
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="sceneVizTab">
+    <widget class="QWidget" name="controlTab">
      <attribute name="title">
-      <string>3DVisualizer</string>
+      <string>Controller</string>
      </attribute>
-     <widget class="SceneVizWidget" name="sceneVizWidget" native="true">
+     <widget class="ControllerWidget" name="controlWidget" native="true">
       <property name="geometry">
        <rect>
         <x>20</x>

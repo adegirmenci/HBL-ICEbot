@@ -41,7 +41,7 @@ signals:
 public slots:
     // Widget slots
     void setEpoch(const QDateTime &epoch);
-    void setRootDirectory(QString dir);
+    void setRootDirectory(QString rootDir);
     void initializeDataLogger(std::vector<int> enableMask, std::vector<QString> fileNames);
     void startLogging();
     void stopLogging();

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += 3dcore 3drender 3dinput 3dextras core gui network
+QT += 3dcore 3drender 3dinput 3dextras core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
