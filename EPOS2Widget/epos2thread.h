@@ -146,7 +146,8 @@ private:
 
     // -----
 
-    long checkMotorLimits(const int axisID, const long targetPos);
+    int checkMotorLimits(const int axisID, const long targetPos);
+    long clampToMotorLimits(const int axisID, const long targetPos);
     bool checkMotorID(const int motID);
 
 };

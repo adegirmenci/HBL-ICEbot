@@ -22,14 +22,14 @@ public:
 
 signals:
     void connectLabJack(); // open connection
-    void initializeLabJack(const unsigned int samplesPerSec); // initialize settings
+    void initializeLabJack(const uint samplesPerSec, const QVector<ushort> channelIdx, const QVector<QString> channelNames); // initialize settings
     void startAcquisition(); // start timer
     void stopAcquisition(); // stop timer
     void disconnectLabJack(); // disconnect
 
 private slots:
     void workerStatusChanged(int status);
-    void addDataToPlot(QTime timeStamp, double data);
+    void addDataToPlot(QTime timeStamp, std::vector<double> data);
 
     void on_connectButton_clicked();
 

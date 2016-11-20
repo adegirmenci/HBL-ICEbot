@@ -242,10 +242,14 @@ void DataLoggerThread::logFrmGrabImage(std::shared_ptr<Frame> frm)
 
 }
 
-void DataLoggerThread::logLabJackData(QTime timeStamp, double data)
+void DataLoggerThread::logLabJackData(QTime timeStamp, std::vector<double> data)
 {
-    QString output = QString("%1\t").arg(timeStamp.msecsSinceStartOfDay());
-    output.append(QString::number(data, 'f', 6));
+    QString output = QString("%1").arg(timeStamp.msecsSinceStartOfDay());
+    for(const double &d : data)
+    {
+        output.append("\t");
+        output.append(QString::number(d, 'f', 6));
+    }
 
     QMutexLocker locker(m_mutex);
 

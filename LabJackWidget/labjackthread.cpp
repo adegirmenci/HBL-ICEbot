@@ -2,6 +2,11 @@
 
 LabJackThread::LabJackThread(QObject *parent) : QObject(parent)
 {
+    qRegisterMetaType< QVector<ushort> >("QVector<ushort>");
+    qRegisterMetaType< QVector<QString> >("QVector<QString>");
+    qRegisterMetaType< std::vector<double> >("std::vector<double>");
+
+
     m_isEpochSet = false;
     m_isReady = false;
     m_keepAcquiring = false;
@@ -18,6 +23,8 @@ LabJackThread::LabJackThread(QObject *parent) : QObject(parent)
     m_dblValue = 0;
     m_dblCommBacklog = 0;
     m_dblUDBacklog = 0;
+    m_numChannels = 1;
+    m_channelNames.push_back(tr("ECG"));
     m_scanRate = 1000; //scan rate = sample rate / #channels
     m_delayms = 1000; // 1 seconds per 1000 samples
     m_numScans = 2*m_scanRate*m_delayms/1000;  //Max number of scans per read.  2x the expected # of scans (2*scanRate*delayms/1000).
@@ -76,7 +83,7 @@ void LabJackThread::connectLabJack()
 
 }
 
-void LabJackThread::initializeLabJack(const unsigned int samplesPerSec)
+void LabJackThread::initializeLabJack(const uint samplesPerSec, const QVector<ushort> channelIdx, const QVector<QString> channelNames)
 {
     QMutexLocker locker(m_mutex);
 
@@ -85,8 +92,13 @@ void LabJackThread::initializeLabJack(const unsigned int samplesPerSec)
     m_scanRate = samplesPerSec;
     qDebug() << "LabJack samples per sec: " << m_scanRate;
 
+    m_numChannels = channelIdx.size();
+    if(m_numChannels < 1)
+        qDebug() << "LabJack should have at least one channel enabled!";
+    m_channelNames = channelNames;
+
     m_numScans = 2*m_scanRate*m_delayms/1000;  //Max number of scans per read.  2x the expected # of scans (2*scanRate*delayms/1000).
-    m_adblData = (double *)calloc( m_numScans, sizeof(double)); //Max buffer size (#channels*numScansRequested)
+    m_adblData = (double *)calloc( m_numChannels*m_numScans, sizeof(double)); //Max buffer size (#channels*numScansRequested)
     m_padblData = (long)&m_adblData[0];
 
     bool success = true;
@@ -99,7 +111,6 @@ void LabJackThread::initializeLabJack(const unsigned int samplesPerSec)
     ErrorHandler(m_lngErrorcode, __LINE__, 0);
 
     // Configure the analog input range on channel 0 for bipolar + -10 volts.
-    //m_lngErrorcode = AddRequest(m_lngHandle, LJ_ioPUT_AIN_RANGE, 0, LJ_rgBIP5V, 0, 0);
     m_lngErrorcode = AddRequest(m_lngHandle, LJ_ioPUT_AIN_RANGE, 0, LJ_rgBIP10V, 0, 0);
     ErrorHandler(m_lngErrorcode, __LINE__, 0);
 
@@ -272,8 +283,9 @@ void LabJackThread::ReadStream()
 //        m_numScansRequested = m_numScans;
 //        m_lngErrorcode = eGet(m_lngHandle, LJ_ioGET_STREAM_DATA, LJ_chALL_CHANNELS,
 //                              &m_numScansRequested, m_padblData);
-        double newData = 9999.0;
-        m_lngErrorcode = eGet (m_lngHandle, LJ_ioGET_AIN, 0, &newData, 0); // single read
+        std::vector<double> newData;
+        newData.resize(m_numChannels, 99.0);
+        m_lngErrorcode = eGet (m_lngHandle, LJ_ioGET_AIN, 0, &newData[0], 0); // single read
         ErrorHandler(m_lngErrorcode, __LINE__, 0);
 
 //        emit logData(QTime::currentTime(), m_adblData[0]);

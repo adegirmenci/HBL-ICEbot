@@ -132,17 +132,39 @@ void EPOS2Thread::setServoTargetPos(const int axisID, long targetPos, bool moveA
     if(checkMotorID(axisID))
     {
         if(moveAbsOrRel)
-            targetPos = checkMotorLimits(axisID, targetPos);
+            targetPos = clampToMotorLimits(axisID, targetPos); // abs
         else
-            targetPos = checkMotorLimits(axisID, m_motors[axisID]->m_lTargetPosition + targetPos);
+            targetPos = clampToMotorLimits(axisID, m_motors[axisID]->m_lTargetPosition + targetPos); // rel
 
         m_motors[axisID]->m_lTargetPosition = targetPos;
+
+        // compensate for roll
+        if(ROLL_AXIS_ID == axisID)
+        {
+            long relativeRoll;
+            if(moveAbsOrRel)
+                relativeRoll = targetPos - m_motors[axisID]->m_lTargetPosition;
+            else
+                relativeRoll = targetPos;
+
+            m_motors[PITCH_AXIS_ID]->m_lTargetPosition += relativeRoll; //pitch
+            m_motors[YAW_AXIS_ID]->m_lTargetPosition   -= relativeRoll; //yaw
+
+            //update limits
+            m_motors[PITCH_AXIS_ID]->m_minQC += relativeRoll;
+            m_motors[PITCH_AXIS_ID]->m_maxQC += relativeRoll;
+            m_motors[YAW_AXIS_ID]->m_minQC -= relativeRoll;
+            m_motors[YAW_AXIS_ID]->m_maxQC -= relativeRoll;
+        }
     }
 }
 
 void EPOS2Thread::setServoTargetPos(std::vector<long> targetPos, bool moveAbsOrRel)
 {
     QMutexLocker locker(m_mutex);
+
+    if(targetPos.size() != EPOS_NUM_MOTORS)
+        qDebug() << "Wrong vector size in setServoTargetPos.";
 
     for(int i = 0; i < EPOS_NUM_MOTORS; i++)
     {
@@ -153,7 +175,19 @@ void EPOS2Thread::setServoTargetPos(std::vector<long> targetPos, bool moveAbsOrR
     }
 }
 
-long EPOS2Thread::checkMotorLimits(const int axisID, const long targetPos)
+int EPOS2Thread::checkMotorLimits(const int axisID, const long targetPos)
+{
+    QMutexLocker locker(m_mutex);
+
+    if(targetPos < m_motors[axisID]->m_minQC)      // too small
+        return -1;
+    else if(targetPos > m_motors[axisID]->m_maxQC) // too large
+        return 1;
+    else                                           // just right
+        return 0;
+}
+
+long EPOS2Thread::clampToMotorLimits(const int axisID, const long targetPos)
 {
     QMutexLocker locker(m_mutex);
 
@@ -164,6 +198,7 @@ long EPOS2Thread::checkMotorLimits(const int axisID, const long targetPos)
     else                                           // just right
         return targetPos;
 }
+
 
 // Calls to the motors will ALWAYS be executed SEQUENTIALLY over a single USB line, because data can only travel sequentially
 // over a serial port.

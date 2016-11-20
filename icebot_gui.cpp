@@ -14,8 +14,8 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
             ui->dataLogWidget->m_worker, SLOT(logEMdata(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)));
 
     // LabJack Data to DataLogger
-    connect(ui->labjackWidget->m_worker, SIGNAL(logData(QTime,double)),
-            ui->dataLogWidget->m_worker, SLOT(logLabJackData(QTime,double)));
+    connect(ui->labjackWidget->m_worker, SIGNAL(logData(QTime,std::vector<double>)),
+            ui->dataLogWidget->m_worker, SLOT(logLabJackData(QTime,std::vector<double>)));
 
     // FrameGrabber Data to DataLogger
     connect(ui->frmGrabWidget->m_worker, SIGNAL(pleaseSaveImage(std::shared_ptr<Frame>)),

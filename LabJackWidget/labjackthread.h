@@ -18,6 +18,10 @@
 
 #include "LabJackLibs/LabJackUD.h"
 
+Q_DECLARE_METATYPE( QVector<ushort> )
+Q_DECLARE_METATYPE( QVector<QString> )
+Q_DECLARE_METATYPE( std::vector<double> )
+
 class LabJackThread : public QObject
 {
     Q_OBJECT
@@ -29,7 +33,7 @@ signals:
     void statusChanged(int status);
     //void EM_Ready(bool status); // tells the widget that the EM tracker is ready
     void logData(QTime timeStamp,
-                 double data);
+                 std::vector<double> data);
     void logEvent(int source, // LOG_SOURCE
                   int logType, // LOG_TYPES
                   QTime timeStamp,
@@ -49,7 +53,7 @@ signals:
 
 public slots:
     void connectLabJack(); // open connection
-    void initializeLabJack(const unsigned int samplesPerSec); // initialize settings
+    void initializeLabJack(const uint samplesPerSec, const QVector<ushort> channelIdx, const QVector<QString> channelNames); // initialize settings
     void startAcquisition(); // start timer
     void stopAcquisition(); // stop timer
     void disconnectLabJack(); // disconnect
@@ -92,6 +96,8 @@ private:
     double m_dblValue, m_dblCommBacklog, m_dblUDBacklog;
     double m_scanRate; //scan rate = sample rate / #channels
     int m_delayms;
+    unsigned int m_numChannels;
+    QVector<QString> m_channelNames;
     double m_numScans; //Max number of scans per read.  2x the expected # of scans (2*scanRate*delayms/1000).
     double m_numScansRequested;
     double *m_adblData;

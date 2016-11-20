@@ -53,7 +53,7 @@ public slots:
                  int sensorID,
                  DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data);
     void logFrmGrabImage(std::shared_ptr<Frame> frm);
-    void logLabJackData(QTime timeStamp, double data);
+    void logLabJackData(QTime timeStamp, std::vector<double> data);
     void logEPOSdata(QTime timeStamp,
                      int dataType, // EPOS_DATA_IDS
                      const int motID,

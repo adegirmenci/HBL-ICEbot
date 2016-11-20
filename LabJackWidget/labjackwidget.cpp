@@ -15,7 +15,8 @@ LabJackWidget::LabJackWidget(QWidget *parent) :
 
     // connect widget signals to worker slots
     connect(this, SIGNAL(connectLabJack()), m_worker, SLOT(connectLabJack()));
-    connect(this, SIGNAL(initializeLabJack(uint)), m_worker, SLOT(initializeLabJack(uint)));
+    connect(this, SIGNAL(initializeLabJack(uint, QVector<ushort>, QVector<QString>)),
+            m_worker, SLOT(initializeLabJack(uint, QVector<ushort>, QVector<QString>)));
     connect(this, SIGNAL(disconnectLabJack()), m_worker, SLOT(disconnectLabJack()));
     connect(this, SIGNAL(startAcquisition()), m_worker, SLOT(startAcquisition()));
     connect(this, SIGNAL(stopAcquisition()), m_worker, SLOT(stopAcquisition()));
@@ -48,7 +49,7 @@ LabJackWidget::LabJackWidget(QWidget *parent) :
     connect(ui->plotWidget->yAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotWidget->yAxis2, SLOT(setRange(QCPRange)));
 
     // setup a timer that repeatedly calls MainWindow::realtimeDataSlot:
-    connect(m_worker, SIGNAL(logData(QTime,double)), this, SLOT(addDataToPlot(QTime,double)));
+    connect(m_worker, SIGNAL(logData(QTime,std::vector<double>)), this, SLOT(addDataToPlot(QTime,std::vector<double>)));
 }
 
 LabJackWidget::~LabJackWidget()
@@ -60,14 +61,15 @@ LabJackWidget::~LabJackWidget()
     delete ui;
 }
 
-void LabJackWidget::addDataToPlot(QTime timeStamp, double data)
+void LabJackWidget::addDataToPlot(QTime timeStamp, std::vector<double> data)
 {
+    //TODO : automatically add more lines depending on the size of 'data'
     double key = timeStamp.msecsSinceStartOfDay()/1000.0;
     static double lastPointKey = 0;
     if( (key - lastPointKey) > 0.01) // at most add point every 10 ms
     {
       // add data to lines:
-      ui->plotWidget->graph(0)->addData(key, data);
+      ui->plotWidget->graph(0)->addData(key, data[0]);
       // remove data of lines that's outside visible range:
       ui->plotWidget->graph(0)->removeDataBefore(key-8);
       // rescale value (vertical) axis to fit the current data:
@@ -199,7 +201,13 @@ void LabJackWidget::on_initializeLJbutton_clicked()
 {
     int samplesPsec = ui->samplesPsecSpinBox->value();
 
-    emit initializeLabJack(samplesPsec);
+    QVector<ushort> channelIdx;
+    QVector<QString> channelNames;
+
+    channelIdx.push_back(0);
+    channelNames.push_back("ECG");
+
+    emit initializeLabJack(samplesPsec,channelIdx,channelNames);
 }
 
 void LabJackWidget::on_startRecordButton_clicked()

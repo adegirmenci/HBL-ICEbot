@@ -171,10 +171,10 @@ static const int EPOS_DECEL = 8000;
 
 static const long EPOS_TRANS_MIN = -320000;
 static const long EPOS_TRANS_MAX = 320000;
-static const long EPOS_PITCH_MIN = -73000;
-static const long EPOS_PITCH_MAX = 73000;
-static const long EPOS_YAW_MIN = -73000;
-static const long EPOS_YAW_MAX = 73000;
+static const long EPOS_PITCH_MIN = -45000;
+static const long EPOS_PITCH_MAX = 45000;
+static const long EPOS_YAW_MIN = -45000;
+static const long EPOS_YAW_MAX = 45000;
 static const long EPOS_ROLL_MIN = -1381000;
 static const long EPOS_ROLL_MAX = 1381000;
 
@@ -183,6 +183,11 @@ static const int EPOS_MOTOR_LIMITS[EPOS_NUM_MOTORS][2] =
                                              {EPOS_PITCH_MIN, EPOS_PITCH_MAX},
                                              {EPOS_YAW_MIN, EPOS_YAW_MAX},
                                              {EPOS_ROLL_MIN, EPOS_ROLL_MAX}   };
+
+static const long EPOS_TRANS_RAD2QC = -8503937;
+static const long EPOS_PITCH_RAD2QC = 45837;
+static const long EPOS_YAW_RAD2QC = -45837;
+static const long EPOS_ROLL_RAD2QC = -45837;
 
 // ***********************
 // ******  LabJack  ******
