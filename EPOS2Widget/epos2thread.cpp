@@ -136,16 +136,11 @@ void EPOS2Thread::setServoTargetPos(const int axisID, long targetPos, bool moveA
         else
             targetPos = clampToMotorLimits(axisID, m_motors[axisID]->m_lTargetPosition + targetPos); // rel
 
-        m_motors[axisID]->m_lTargetPosition = targetPos;
-
         // compensate for roll
         if(ROLL_AXIS_ID == axisID)
         {
-            long relativeRoll;
-            if(moveAbsOrRel)
-                relativeRoll = targetPos - m_motors[axisID]->m_lTargetPosition;
-            else
-                relativeRoll = targetPos;
+            // #relativeRoll = #currentIncrement - #oldPosition
+            long relativeRoll = targetPos - m_motors[ROLL_AXIS_ID]->m_lTargetPosition;
 
             m_motors[PITCH_AXIS_ID]->m_lTargetPosition += relativeRoll; //pitch
             m_motors[YAW_AXIS_ID]->m_lTargetPosition   -= relativeRoll; //yaw
@@ -156,6 +151,9 @@ void EPOS2Thread::setServoTargetPos(const int axisID, long targetPos, bool moveA
             m_motors[YAW_AXIS_ID]->m_minQC -= relativeRoll;
             m_motors[YAW_AXIS_ID]->m_maxQC -= relativeRoll;
         }
+
+        // finally, update the roll target
+        m_motors[axisID]->m_lTargetPosition = targetPos;
     }
 }
 
@@ -321,15 +319,50 @@ void EPOS2Thread::haltMotor(const int axisID)
     }
 }
 
+
+void EPOS2Thread::homeAxis(const int axisID)
+{
+    QMutexLocker locker(m_mutex);
+
+    if(checkMotorID(axisID))
+    {
+        // set a lower speed
+        if(m_motors[axisID]->m_enabled)
+        {
+            WORD nodeID = m_motors[axisID]->m_nodeID;
+            if(!VCS_SetPositionProfile(m_KeyHandle,nodeID,
+                                       1400,2000,2000,&m_ulErrorCode))
+            {
+                ShowErrorInformation(m_ulErrorCode);
+            }
+
+            m_motors[axisID]->m_minQC = EPOS_MOTOR_LIMITS[axisID][0]; // reset lower limit
+            m_motors[axisID]->m_maxQC = EPOS_MOTOR_LIMITS[axisID][1]; // reset upper limit
+
+            setServoTargetPos(axisID, 0, true); // set target position to 0
+
+            // TODO: this should be a blocking call, otherwise speed gets reset during motion
+            servoToPosition(axisID); // servo motor
+
+            // reset speed
+            if(!VCS_SetPositionProfile(m_KeyHandle,nodeID,
+                                       EPOS_VELOCITY,EPOS_ACCEL,EPOS_DECEL,&m_ulErrorCode))
+            {
+                ShowErrorInformation(m_ulErrorCode);
+            }
+        }
+    }
+}
+
 void EPOS2Thread::homeAllAxes()
 {
     QMutexLocker locker(m_mutex);
 
-    // set a lower speed
     for(int i = 0; i < EPOS_NUM_MOTORS; i++)
     {
         if(m_motors[i]->m_enabled)
         {
+            // set a lower speed
             WORD nodeID = m_motors[i]->m_nodeID;
             if(!VCS_SetPositionProfile(m_KeyHandle,nodeID,
                                        1400,2000,2000,&m_ulErrorCode))
@@ -337,10 +370,18 @@ void EPOS2Thread::homeAllAxes()
                 ShowErrorInformation(m_ulErrorCode);
             }
 
-            setServoTargetPos(i, 0, true); // set target position to 0
+            m_motors[i]->m_minQC = EPOS_MOTOR_LIMITS[i][0]; // reset lower limit
+            m_motors[i]->m_maxQC = EPOS_MOTOR_LIMITS[i][1]; // reset upper limit
+
+            // don't use setServoPos here, since that will compensate for roll
+            // self comment: setServoPos(vector) would probably work though?
+            m_motors[i]->m_lTargetPosition = 0;
+
+            // TODO: a better strategy is probably to get the catheter straight first, then home
         }
     }
 
+    // TODO: this should be a blocking call, otherwise speed gets reset during motion
     servoToPosition(); // servo motors
 
     // reset speed

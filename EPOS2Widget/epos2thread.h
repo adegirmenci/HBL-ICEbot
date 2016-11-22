@@ -98,6 +98,7 @@ public slots:
     const int getMotorStatus(const int axisID);
     bool initializeMotor(const int motID);
     bool disableMotor(const int motID);
+    void homeAxis(const int axisID);
     void homeAllAxes();
 
 private:

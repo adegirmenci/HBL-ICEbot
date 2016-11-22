@@ -31,6 +31,7 @@ signals:
     void disableMotor(const int axisID);
     void startServoLoop();
     void stopServoLoop();
+    void homeAxis(const int axisID);
     void homeAllAxes();
 
 private slots:

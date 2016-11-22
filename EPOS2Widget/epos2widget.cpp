@@ -39,6 +39,7 @@ EPOS2Widget::EPOS2Widget(QWidget *parent) :
     connect(this, SIGNAL(disableMotor(int)), m_worker, SLOT(disableMotor(int)));
     connect(this, SIGNAL(startServoLoop()), m_worker, SLOT(startServoing()));
     connect(this, SIGNAL(stopServoLoop()), m_worker, SLOT(stopServoing()));
+    connect(this, SIGNAL(homeAxis(int)), m_worker, SLOT(homeAxis(int)));
     connect(this, SIGNAL(homeAllAxes()), m_worker, SLOT(homeAllAxes()));
 
     // status labels
@@ -219,7 +220,7 @@ void EPOS2Widget::on_moveAbsButton_clicked()
 
     emit setServoTargetPos(axisID, targetPos, true);
     if(!m_worker->isInServoLoop())
-        emit servoToPos(axisID);
+        emit servoToPos();
 }
 
 void EPOS2Widget::on_moveRelButton_clicked()
@@ -229,22 +230,23 @@ void EPOS2Widget::on_moveRelButton_clicked()
 
     emit setServoTargetPos(axisID, targetPos, false);
     if(!m_worker->isInServoLoop())
-        emit servoToPos(axisID);
+        emit servoToPos();
 }
 
 void EPOS2Widget::on_homingButton_clicked()
 {
 
     int axisID = ui->nodeIDcomboBox->currentIndex();
-    long targetPos = 0;
+    //long targetPos = 0;
     qDebug() << "Homing axis " << axisID;
 
     //if(!m_worker->isInServoLoop())
     emit stopServoLoop(); // stop servo loop
 
-    emit setServoTargetPos(axisID, targetPos, true); // set target position
+    //emit setServoTargetPos(axisID, 0, true); // set target position
+    emit homeAxis(axisID);
 
-    emit servoToPos(axisID); // servo to position
+    emit servoToPos(); // servo to position
 }
 
 void EPOS2Widget::on_haltButton_clicked()
