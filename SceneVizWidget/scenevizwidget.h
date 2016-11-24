@@ -73,6 +73,12 @@ private slots:
 
     void on_usAngleSpinBox_valueChanged(int arg1);
 
+    void on_tipCheckBox_toggled(bool checked);
+
+    void on_instrCheckBox_toggled(bool checked);
+
+    void on_chestCheckBox_toggled(bool checked);
+
 private:
     Ui::SceneVizWidget *ui;
 

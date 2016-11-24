@@ -84,7 +84,7 @@
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <widget class="QWidget" name="gridLayoutWidget_2">
     <property name="geometry">
@@ -92,7 +92,7 @@
       <x>10</x>
       <y>20</y>
       <width>121</width>
-      <height>111</height>
+      <height>112</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_3">
@@ -284,7 +284,7 @@
    </widget>
    <widget class="QPushButton" name="updateConfigSpaceButton">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="geometry">
      <rect>
@@ -329,7 +329,7 @@
       <x>10</x>
       <y>20</y>
       <width>121</width>
-      <height>111</height>
+      <height>112</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
@@ -549,15 +549,15 @@
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <widget class="QWidget" name="gridLayoutWidget_3">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>121</width>
-      <height>111</height>
+      <width>131</width>
+      <height>112</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_4">
@@ -749,7 +749,7 @@
    </widget>
    <widget class="QPushButton" name="updateJointSpaceButton">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="geometry">
      <rect>

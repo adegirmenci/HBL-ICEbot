@@ -130,6 +130,21 @@ void SceneVizWidget::on_baseCheckBox_toggled(bool checked)
     m_modifier->enableObject(checked, EM_SENSOR_BB);
 }
 
+void SceneVizWidget::on_tipCheckBox_toggled(bool checked)
+{
+    m_modifier->enableObject(checked, EM_SENSOR_BT);
+}
+
+void SceneVizWidget::on_instrCheckBox_toggled(bool checked)
+{
+    m_modifier->enableObject(checked, EM_SENSOR_INST);
+}
+
+void SceneVizWidget::on_chestCheckBox_toggled(bool checked)
+{
+    m_modifier->enableObject(checked, EM_SENSOR_CHEST);
+}
+
 void SceneVizWidget::on_pushButton_clicked()
 {
     QVector3D pos = m_modifier->getTriadPosition(EM_SENSOR_BB);
@@ -160,3 +175,4 @@ void SceneVizWidget::on_usAngleSpinBox_valueChanged(int arg1)
 {
     m_modifier->setUSangle(arg1);
 }
+

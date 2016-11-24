@@ -69,6 +69,9 @@ public slots:
                       int sensorID,
                       DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data);
     void receiveLatestEMreading(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> readings);
+    void updateJointSpaceCommand(double pitch, double yaw, double roll, double trans);
+    void updateConfigSpaceCommand(double alpha, double theta, double gamma, double d);
+    void updateTaskSpaceCommand(double x, double y, double z, double delPsi);
 
 private:
     // Instead of using "m_mutex.lock()"

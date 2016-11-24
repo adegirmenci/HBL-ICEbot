@@ -63,7 +63,7 @@
       <x>10</x>
       <y>20</y>
       <width>81</width>
-      <height>41</height>
+      <height>43</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -83,11 +83,16 @@
         <bool>false</bool>
        </property>
        <property name="currentText">
-        <string>1</string>
+        <string>0</string>
        </property>
        <property name="currentIndex">
         <number>0</number>
        </property>
+       <item>
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
        <item>
         <property name="text">
          <string>1</string>

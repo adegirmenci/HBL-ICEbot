@@ -31,7 +31,8 @@ public:
 
     void configToJointSpace(const double gamma,
                             const double theta,
-                            const double alpha, const double d,
+                            const double alpha,
+                            const double d,
                             Eigen::Vector4d &outputs);
 
     void configToJointSpace(const Eigen::Vector4d &inputs,

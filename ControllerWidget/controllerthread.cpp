@@ -72,8 +72,8 @@ void ControllerThread::printThreadID()
 void ControllerThread::receiveEMdata(QTime timeStamp, int sensorID, DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data)
 {
     // Data Format
-    // | Sensor ID | Time Stamp | x | y | z | r11 | r12 | .... | r33 |
-    // |    int    |   double   |      ...      double      ...      |
+    // | Sensor ID | Time Stamp | x | y | z | q1 | q2 | q3 | q4 |
+    // |    int    |   double   |    ...    double     ...      |
 
     QMutexLocker locker(m_mutex);
 
@@ -167,7 +167,22 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_QUATER
     Transform_From_EMreading(readings[EM_SENSOR_CHEST], m_currChest);
 
 //    qint64 elNsec = elTimer.nsecsElapsed();
-//    qDebug() << "Nsec elapsed:" << elNsec;
+    //    qDebug() << "Nsec elapsed:" << elNsec;
+}
+
+void ControllerThread::updateJointSpaceCommand(double pitch, double yaw, double roll, double trans)
+{
+
+}
+
+void ControllerThread::updateConfigSpaceCommand(double alpha, double theta, double gamma, double d)
+{
+
+}
+
+void ControllerThread::updateTaskSpaceCommand(double x, double y, double z, double delPsi)
+{
+
 }
 
 // ----------------

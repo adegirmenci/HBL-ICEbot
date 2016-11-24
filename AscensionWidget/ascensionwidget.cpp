@@ -13,10 +13,10 @@ AscensionWidget::AscensionWidget(QWidget *parent) :
     connect(&m_thread, &QThread::finished, m_worker, &QObject::deleteLater);
     m_thread.start();
 
-    connect(ui->initButton, SIGNAL(clicked(bool)), m_worker, SLOT(initializeEM()));
-    connect(ui->acquireButton, SIGNAL(clicked(bool)), m_worker, SLOT(startAcquisition()));
-    connect(ui->stopButton, SIGNAL(clicked(bool)), m_worker, SLOT(stopAcquisition()));
-    connect(ui->disconnectButton, SIGNAL(clicked(bool)), m_worker, SLOT(disconnectEM()));
+    connect(ui->initButton, SIGNAL(clicked()), m_worker, SLOT(initializeEM()));
+    connect(ui->acquireButton, SIGNAL(clicked()), m_worker, SLOT(startAcquisition()));
+    connect(ui->stopButton, SIGNAL(clicked()), m_worker, SLOT(stopAcquisition()));
+    connect(ui->disconnectButton, SIGNAL(clicked()), m_worker, SLOT(disconnectEM()));
 
     connect(m_worker, SIGNAL(statusChanged(int)), this, SLOT(workerStatusChanged(int)));
     connect(m_worker, SIGNAL(sendDataToGUI(int,QString)),
@@ -55,6 +55,7 @@ void AscensionWidget::workerStatusChanged(int status)
                                             .arg(m_worker->getNumSensors()));
         ui->outputTextEdit->appendPlainText(QString("Measurement Rate: %1Hz")
                                             .arg(m_worker->getSampleRate()));
+        ui->numBirdsComboBox->setCurrentIndex(m_worker->getNumSensors());
         break;
     case EM_DISCONNECT_FAILED:
         ui->statusLineEdit->setText("Disconnection failed.");
