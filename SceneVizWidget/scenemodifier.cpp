@@ -98,7 +98,7 @@ void SceneModifier::receiveEMreading(QTime timeStamp, int sensorID, DOUBLE_POSIT
     static_cast<TriadEntity*>(m_entityList[sensorID])->setTransformation(tf);
 
 //    static_cast<TriadEntity*>(m_entityList[sensorID])->rotate(QQuaternion(data.q[0],data.q[1],data.q[2],data.q[3]));
-    //    static_cast<TriadEntity*>(m_entityList[sensorID])->translate(QVector3D(data.x,data.y,data.z));
+//    static_cast<TriadEntity*>(m_entityList[sensorID])->translate(QVector3D(data.x,data.y,data.z));
 }
 
 void SceneModifier::resetBase()

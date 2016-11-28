@@ -72,6 +72,12 @@ public slots:
     void updateJointSpaceCommand(double pitch, double yaw, double roll, double trans);
     void updateConfigSpaceCommand(double alpha, double theta, double gamma, double d);
     void updateTaskSpaceCommand(double x, double y, double z, double delPsi);
+    void startControlCycle(); // start timer
+    void stopControlCycle(); // stop timer
+    const bool isControlling() { return m_keepControlling; }
+
+private slots:
+    void controlCycle(); // on a timer
 
 private:
     // Instead of using "m_mutex.lock()"

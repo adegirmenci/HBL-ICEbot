@@ -25,8 +25,12 @@ signals:
     void updateJointSpaceCommand(double pitch, double yaw, double roll, double trans);
     void updateConfigSpaceCommand(double alpha, double theta, double gamma, double d);
     void updateTaskSpaceCommand(double x, double y, double z, double delPsi);
+    void startControlCycle(); // start control loop in worker
+    void stopControlCycle(); // stop control loop in worker
 
 private slots:
+    void workerStatusChanged(int status);
+
     void on_testButton_clicked();
 
     void on_taskSpaceGroupBox_toggled(bool arg1);
@@ -40,6 +44,8 @@ private slots:
     void on_updateConfigSpaceButton_clicked();
 
     void on_updateTaskSpaceButton_clicked();
+
+    void on_controllerToggleButton_clicked();
 
 private:
     Ui::ControllerWidget *ui;

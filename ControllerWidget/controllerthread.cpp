@@ -16,6 +16,10 @@ ControllerThread::ControllerThread(QObject *parent) :
     loadConstants();
 
     m_mutex = new QMutex(QMutex::Recursive);
+
+    m_isReady = true;
+
+    emit statusChanged(CONTROLLER_INITIALIZED);
 }
 
 ControllerThread::~ControllerThread()
@@ -31,13 +35,14 @@ ControllerThread::~ControllerThread()
     Eigen::Vector4d configIn(0.0010, 0.0001, 0, 0);
     std::cout << m_cathKin.control_icra2016(T_in, configIn, 0.0) << std::endl;
 
+    qDebug() << "Ending ControllerThread - ID: " << QThread::currentThreadId() << ".";
+
     // stop controller
+    stopControlCycle();
 
     m_mutex->lock();
     m_abort = true;
     m_mutex->unlock();
-
-    qDebug() << "Ending ControllerThread - ID: " << QThread::currentThreadId() << ".";
 
     delete m_mutex;
 
@@ -172,17 +177,114 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_QUATER
 
 void ControllerThread::updateJointSpaceCommand(double pitch, double yaw, double roll, double trans)
 {
+    // qDebug() << "New Joint Target Received";
 
+    // check limits
+
+    // update motor QCs
 }
 
 void ControllerThread::updateConfigSpaceCommand(double alpha, double theta, double gamma, double d)
 {
+    // qDebug() << "New Config Target Received";
 
+    // run through kinematics
+
+    // check limits
+
+    // update motor QCs
 }
 
 void ControllerThread::updateTaskSpaceCommand(double x, double y, double z, double delPsi)
 {
+    // qDebug() << "New Task Target Received";
 
+    // run through kinematics
+
+    // check limits
+
+    // update motor QCs
+}
+
+void ControllerThread::startControlCycle()
+{
+    QMutexLocker locker(m_mutex);
+
+    if(m_isReady && !m_keepControlling) // ready to control
+    {
+        //Start the cycle
+        m_keepControlling = true;
+
+        m_timer = new QTimer(this);
+        connect(m_timer, SIGNAL(timeout()), this, SLOT(controlCycle()));
+
+        m_timer->start(1); // every 1ms
+
+        if(m_timer->isActive())
+        {
+            qDebug() << "Timer started.";
+            emit statusChanged(CONTROLLER_LOOP_STARTED);
+            emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_LOOP_STARTED);
+        }
+        else
+        {
+            qDebug() << "Timer is not active.";
+            emit statusChanged(CONTROLLER_LOOP_STOPPED);
+            emit logError(SRC_CONTROLLER, LOG_ERROR, QTime::currentTime(), CONTROLLER_INITIALIZE_FAILED, QString("Timer is not active."));
+        }
+    }
+    else
+    {
+        if(m_keepControlling)
+            qDebug() << "Controller is already running.";
+        else
+        {
+            qDebug() << "Controller is not ready.";
+            emit statusChanged(CONTROLLER_INITIALIZE_FAILED);
+            emit logError(SRC_CONTROLLER, LOG_ERROR, QTime::currentTime(), CONTROLLER_INITIALIZE_FAILED, QString("LabJack is not ready."));
+        }
+    }
+}
+
+void ControllerThread::stopControlCycle()
+{
+    QMutexLocker locker(m_mutex);
+
+    if(m_keepControlling)
+    {
+        m_keepControlling = false;
+
+        m_timer->stop();
+
+        disconnect(m_timer, SIGNAL(timeout()), 0, 0);
+
+        delete m_timer;
+
+        emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_LOOP_STOPPED);
+        emit statusChanged(CONTROLLER_LOOP_STOPPED);
+
+        qDebug() << "Timer stopped.";
+    }
+    else
+    {
+        qDebug() << "Timer already stopped.";
+    }
+}
+
+void ControllerThread::controlCycle()
+{
+    QMutexLocker locker(m_mutex);
+
+    if(m_isReady)
+    {
+        //
+
+        // emit logData(QTime::currentTime(), newData);
+
+        qDebug() << QTime::currentTime() << "Cycle:" << m_numCycles;
+    }
+
+    m_numCycles++;
 }
 
 // ----------------

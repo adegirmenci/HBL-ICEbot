@@ -13,10 +13,13 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
     connect(&m_thread, &QThread::finished, m_worker, &QObject::deleteLater);
     m_thread.start();
 
-    connect(this, SIGNAL(tellWorkerToPrintThreadID()),m_worker,SLOT(printThreadID()));
+    connect(this, SIGNAL(tellWorkerToPrintThreadID()), m_worker, SLOT(printThreadID()));
 
     connect(m_worker, SIGNAL(sendMsgToWidget(QString)),
             ui->statusTextEdit, SLOT(insertPlainText(QString)));
+
+    connect(m_worker, SIGNAL(statusChanged(int)),
+            this, SLOT(workerStatusChanged(int)));
 
     // updates
     connect(this, SIGNAL(updateJointSpaceCommand(double,double,double,double)),
@@ -25,6 +28,10 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
             m_worker, SLOT(updateConfigSpaceCommand(double,double,double,double)));
     connect(this, SIGNAL(updateTaskSpaceCommand(double,double,double,double)),
             m_worker, SLOT(updateTaskSpaceCommand(double,double,double,double)));
+
+    // control cycle signals
+    connect(this, SIGNAL(startControlCycle()), m_worker, SLOT(startControlCycle()));
+    connect(this, SIGNAL(stopControlCycle()), m_worker, SLOT(stopControlCycle()));
 
     ui->jointSpaceGroupBox->setChecked(false);
     ui->configSpaceGroupBox->setChecked(false);
@@ -37,6 +44,42 @@ ControllerWidget::~ControllerWidget()
     qDebug() << "Controller thread quit.";
 
     delete ui;
+}
+
+void ControllerWidget::workerStatusChanged(int status)
+{
+    switch(status)
+    {
+    case CONTROLLER_INITIALIZED:
+        ui->controllerToggleButton->setEnabled(true);
+        ui->statusLineEdit->setText("Initialized.");
+        break;
+    case CONTROLLER_LOOP_STARTED:
+        ui->controllerToggleButton->setText( QStringLiteral("Stop Controller") );
+        ui->controllerToggleButton->setEnabled(true);
+        ui->statusLineEdit->setText("Running.");
+        break;
+    case CONTROLLER_LOOP_STOPPED:
+        ui->controllerToggleButton->setText( QStringLiteral("Start Controller") );
+        ui->controllerToggleButton->setEnabled(true);
+        ui->statusLineEdit->setText("Stopped.");
+        break;
+    case CONTROLLER_EPOCH_SET:
+        ui->statusTextEdit->appendPlainText("Epoch set.");
+        break;
+    case CONTROLLER_EPOCH_SET_FAILED:
+        ui->statusTextEdit->appendPlainText("Epoch set failed!");
+        break;
+    case CONTROLLER_RESET:
+        ui->statusTextEdit->appendPlainText("Controller reset.");
+        break;
+    case CONTROLLER_RESET_FAILED:
+        ui->statusTextEdit->appendPlainText("Controller reset failed!");
+        break;
+    default:
+        ui->statusTextEdit->appendPlainText("Unknown state!");
+        break;
+    }
 }
 
 void ControllerWidget::on_testButton_clicked()
@@ -77,9 +120,9 @@ void ControllerWidget::on_updateJointSpaceButton_clicked()
     double roll  = ui->rollSpinbox->value();
     double trans = ui->transSpinbox->value();
 
-    ui->statusTextEdit->appendPlainText(QString("Joint Space Command: %1 %2 %3 %4").arg(pitch).arg(yaw).arg(roll).arg(trans));
+    ui->statusTextEdit->appendPlainText(QString("[%5] Joint Space Command: %1 %2 %3 %4").arg(pitch).arg(yaw).arg(roll).arg(trans).arg(QTime::currentTime().toString("HH:mm:ss")));
 
-    // TODO : update target in controller thread
+    emit updateJointSpaceCommand(pitch, yaw, roll, trans);
 }
 
 void ControllerWidget::on_updateConfigSpaceButton_clicked()
@@ -89,9 +132,9 @@ void ControllerWidget::on_updateConfigSpaceButton_clicked()
     double gamma = ui->gammaSpinbox->value();
     double d     = ui->dSpinbox->value();
 
-    ui->statusTextEdit->appendPlainText(QString("Config Space Command: %1 %2 %3 %4").arg(alpha).arg(theta).arg(gamma).arg(d));
+    ui->statusTextEdit->appendPlainText(QString("[%5] Config Space Command: %1 %2 %3 %4").arg(alpha).arg(theta).arg(gamma).arg(d).arg(QTime::currentTime().toString("HH:mm:ss")));
 
-    // TODO : update target in controller thread
+    emit updateConfigSpaceCommand(alpha, theta, gamma, d);
 }
 
 void ControllerWidget::on_updateTaskSpaceButton_clicked()
@@ -101,7 +144,21 @@ void ControllerWidget::on_updateTaskSpaceButton_clicked()
     double z      = ui->zSpinbox->value();
     double delPsi = ui->delPsiSpinbox->value();
 
-    ui->statusTextEdit->appendPlainText(QString("Task Space Command: %1 %2 %3 %4").arg(x).arg(y).arg(z).arg(delPsi));
+    ui->statusTextEdit->appendPlainText(QString("[%5] Task Space Command: %1 %2 %3 %4").arg(x).arg(y).arg(z).arg(delPsi).arg(QTime::currentTime().toString("HH:mm:ss")));
 
-    // TODO : update target in controller thread
+    emit updateTaskSpaceCommand(x, y, z, delPsi);
+}
+
+void ControllerWidget::on_controllerToggleButton_clicked()
+{
+    ui->controllerToggleButton->setEnabled(false); // disable button
+
+    if(m_worker->isControlling())
+    {
+        emit stopControlCycle();
+    }
+    else
+    {
+        emit startControlCycle();
+    }
 }

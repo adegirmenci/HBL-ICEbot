@@ -453,6 +453,7 @@ QString AscensionThread::formatOutput(QTime &timeStamp, int sensorID, DOUBLE_POS
 //                        .arg(QString::number(data.s[2][0],'f',m_prec))
 //                        .arg(QString::number(data.s[2][1],'f',m_prec))
 //                        .arg(QString::number(data.s[2][2],'f',m_prec)));
+    // TODO: comment out the quaternion
     output.append("Rot (Quat)\n");
     output.append(QString("%1\t%2\t%3\n%4\n")
                         .arg(QString::number(data.q[0],'f',m_prec))

@@ -11,7 +11,10 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 TARGET = ICEbot_QT_v1
 TEMPLATE = app
 
+CONFIG += c++11
+
 #DEFINES += EIGEN_QT_SUPPORT
+#DEFINES *= QT_USE_QSTRINGBUILDER
 
 SOURCES += main.cpp\
         icebot_gui.cpp \
