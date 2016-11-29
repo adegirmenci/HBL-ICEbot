@@ -218,38 +218,52 @@ void AscensionThread::getSample() // called by timer
     // format without first setting it.
 
     // 4 sensors
-    DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD record[4];
+    DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD record[8*4], *pRecord = record;
     //DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD *pRecord = record
     //DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD record, *pRecord = &record;
 
     QMutexLocker locker(m_mutex);
 
     QTime tstamp = QTime::currentTime(); // get time
-    // scan the sensors and request a record
-    for(m_sensorID = 0; m_sensorID < m_numSensorsAttached; m_sensorID++)
-    {
-        m_errorCode = GetAsynchronousRecord(m_sensorID, &record[m_sensorID], sizeof(record[m_sensorID]));
-        //m_errorCode = GetSynchronousRecord(m_sensorID, &record[m_sensorID], sizeof(record[m_sensorID]));
-        if(m_errorCode != BIRD_ERROR_SUCCESS)
-        {
-            errorHandler_(m_errorCode);
-            emit statusChanged(EM_ACQUIRE_FAILED);
-            //locker.unlock();
-            stopAcquisition();
-            return;
-        }
 
-        // Weirdly, the vector part is reported with a flipped sign. Scalar part is fine.
-        // You can check this in MATLAB
-        // Use the Cubes.exe provided by Ascension to get the azimuth, elevation, and roll.
-        // These are the Z,Y,X rotation angles.
-        // You can use the Robotics Toolbox by P. Corke and run convert from quat to rpy
-        // rad2deg(quat2rpy(q0,q1,q2,q3)) -> this gives you the X,Y,Z rotation angles (notice the flipped order!)
-        // Flipping the sign of q1,q2,q3 will fix the mismatch
-        record[m_sensorID].q[1] *= -1.0;
-        record[m_sensorID].q[2] *= -1.0;
-        record[m_sensorID].q[3] *= -1.0;
+    // request all sensor readings at once
+    m_errorCode = GetSynchronousRecord(ALL_SENSORS, pRecord, sizeof(record[0]) * m_numSensorsAttached);
+    if(m_errorCode != BIRD_ERROR_SUCCESS)
+    {
+        errorHandler_(m_errorCode);
+        emit statusChanged(EM_ACQUIRE_FAILED);
+        //locker.unlock();
+        stopAcquisition();
+        return;
     }
+
+    // async version, not prefered, therefore commented out
+    /*
+    //    // scan the sensors and request a record - this is async, not preferred
+    //    for(m_sensorID = 0; m_sensorID < m_numSensorsAttached; m_sensorID++)
+    //    {
+    //        m_errorCode = GetAsynchronousRecord(m_sensorID, &record[m_sensorID], sizeof(record[m_sensorID]));
+    //        //m_errorCode = GetSynchronousRecord(m_sensorID, &record[m_sensorID], sizeof(record[m_sensorID]));
+    //        if(m_errorCode != BIRD_ERROR_SUCCESS)
+    //        {
+    //            errorHandler_(m_errorCode);
+    //            emit statusChanged(EM_ACQUIRE_FAILED);
+    //            //locker.unlock();
+    //            stopAcquisition();
+    //            return;
+    //        }
+    //        // Weirdly, the vector part is reported with a flipped sign. Scalar part is fine.
+    //        // You can check this in MATLAB
+    //        // Use the Cubes.exe provided by Ascension to get the azimuth, elevation, and roll.
+    //        // These are the Z,Y,X rotation angles.
+    //        // You can use the Robotics Toolbox by P. Corke and run convert from quat to rpy
+    //        // rad2deg(quat2rpy(q0,q1,q2,q3)) -> this gives you the X,Y,Z rotation angles (notice the flipped order!)
+    //        // Flipping the sign of q1,q2,q3 will fix the mismatch
+    //        record[m_sensorID].q[1] *= -1.0;
+    //        record[m_sensorID].q[2] *= -1.0;
+    //        record[m_sensorID].q[3] *= -1.0;
+    //    }
+    */
 
     for(m_sensorID = 0; m_sensorID < m_numSensorsAttached; m_sensorID++)
     {
@@ -259,19 +273,29 @@ void AscensionThread::getSample() // called by timer
 
         if( status == VALID_STATUS)
         {
+            // Weirdly, the vector part is reported with a flipped sign. Scalar part is fine.
+            // You can check this in MATLAB
+            // Use the Cubes.exe provided by Ascension to get the azimuth, elevation, and roll.
+            // These are the Z,Y,X rotation angles.
+            // You can use the Robotics Toolbox by P. Corke and run convert from quat to rpy
+            // rad2deg(quat2rpy(q0,q1,q2,q3)) -> this gives you the X,Y,Z rotation angles (notice the flipped order!)
+            // Flipping the sign of q1,q2,q3 will fix the mismatch
+            record[m_sensorID].q[1] *= -1.0;
+            record[m_sensorID].q[2] *= -1.0;
+            record[m_sensorID].q[3] *= -1.0;
             m_latestReading[m_sensorID] = record[m_sensorID];
             emit logData(tstamp, m_sensorID, record[m_sensorID]);
             //emit logData(tstamp, m_sensorID, record);
             if( m_i == 0 )
                 //emit sendDataToGUI(m_sensorID, formatOutput(tstamp, m_sensorID, record));
                 emit sendDataToGUI(m_sensorID, formatOutput(tstamp, m_sensorID, record[m_sensorID]));
-            m_i = (m_i + 1)%(int)(m_samplingFreq/10);
         }
         else
-            qDebug() << "Invalid data received.";
+            qDebug() << "Invalid data received, sensorID:" << m_sensorID;
     }
+    m_i = (m_i + 1)%(int)(m_samplingFreq/10);
 
-    // TODO: emit m_latestReading for use with the controller
+    // emit m_latestReading for use with the controller
     emit sendLatestReading(m_latestReading);
 }
 
