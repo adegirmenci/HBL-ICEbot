@@ -25,6 +25,7 @@ signals:
     void updateJointSpaceCommand(double pitch, double yaw, double roll, double trans);
     void updateConfigSpaceCommand(double alpha, double theta, double gamma, double d);
     void updateTaskSpaceCommand(double x, double y, double z, double delPsi);
+    void tellWorkerToResetBB();
     void startControlCycle(); // start control loop in worker
     void stopControlCycle(); // stop control loop in worker
 
@@ -47,6 +48,8 @@ private slots:
     void on_updateTaskSpaceButton_clicked();
 
     void on_controllerToggleButton_clicked();
+
+    void on_resetBB_Button_clicked();
 
 private:
     Ui::ControllerWidget *ui;

@@ -238,6 +238,17 @@ void AscensionThread::getSample() // called by timer
             stopAcquisition();
             return;
         }
+
+        // Weirdly, the vector part is reported with a flipped sign. Scalar part is fine.
+        // You can check this in MATLAB
+        // Use the Cubes.exe provided by Ascension to get the azimuth, elevation, and roll.
+        // These are the Z,Y,X rotation angles.
+        // You can use the Robotics Toolbox by P. Corke and run convert from quat to rpy
+        // rad2deg(quat2rpy(q0,q1,q2,q3)) -> this gives you the X,Y,Z rotation angles (notice the flipped order!)
+        // Flipping the sign of q1,q2,q3 will fix the mismatch
+        record[m_sensorID].q[1] *= -1.0;
+        record[m_sensorID].q[2] *= -1.0;
+        record[m_sensorID].q[3] *= -1.0;
     }
 
     for(m_sensorID = 0; m_sensorID < m_numSensorsAttached; m_sensorID++)
@@ -437,43 +448,34 @@ QString AscensionThread::formatOutput(QTime &timeStamp, int sensorID, DOUBLE_POS
     QString output;
     output.append(QString("[Sensor %1] - ").arg(sensorID + 1));
     output.append(timeStamp.toString("HH.mm.ss.zzz\n"));
-    output.append("x\ty\tz\n");
-    output.append(QString("%1\t%2\t%3\n")
-                        .arg(QString::number(data.x,'f',m_prec))
-                        .arg(QString::number(data.y,'f',m_prec))
-                        .arg(QString::number(data.z,'f',m_prec)));
-//    output.append("Rot\n");
-//    output.append(QString("%1\t%2\t%3\n%4\t%5\t%6\n%7\t%8\t%9\n")
-//                        .arg(QString::number(data.s[0][0],'f',m_prec))
-//                        .arg(QString::number(data.s[0][1],'f',m_prec))
-//                        .arg(QString::number(data.s[0][2],'f',m_prec))
-//                        .arg(QString::number(data.s[1][0],'f',m_prec))
-//                        .arg(QString::number(data.s[1][1],'f',m_prec))
-//                        .arg(QString::number(data.s[1][2],'f',m_prec))
-//                        .arg(QString::number(data.s[2][0],'f',m_prec))
-//                        .arg(QString::number(data.s[2][1],'f',m_prec))
-//                        .arg(QString::number(data.s[2][2],'f',m_prec)));
+//    output.append(QString("%1\t%2\t%3\n")
+//                        .arg(QString::number(data.x,'f',m_prec))
+//                        .arg(QString::number(data.y,'f',m_prec))
+//                        .arg(QString::number(data.z,'f',m_prec)));
     // TODO: comment out the quaternion
-    output.append("Rot (Quat)\n");
-    output.append(QString("%1\t%2\t%3\n%4\n")
-                        .arg(QString::number(data.q[0],'f',m_prec))
-                        .arg(QString::number(data.q[1],'f',m_prec))
-                        .arg(QString::number(data.q[2],'f',m_prec))
-                        .arg(QString::number(data.q[3],'f',m_prec)));
+//    output.append("Rot (Quat)\n");
+//    output.append(QString("%1\t%2\t%3\n%4\n")
+//                        .arg(QString::number(data.q[0],'f',m_prec))
+//                        .arg(QString::number(data.q[1],'f',m_prec))
+//                        .arg(QString::number(data.q[2],'f',m_prec))
+//                        .arg(QString::number(data.q[3],'f',m_prec)));
 
     QQuaternion qu = QQuaternion(data.q[0], data.q[1], data.q[2], data.q[3]);
-    output.append("Rot Matrix\n");
     QMatrix3x3 mat = qu.toRotationMatrix();
-    output.append(QString("%1\t%2\t%3\n%4\t%5\t%6\n%7\t%8\t%9\n")
+
+    output.append(QString("%1  %2  %3  %4\n%5  %6  %7  %8\n%9  %10  %11  %12\n")
                         .arg(QString::number((double)mat(0,0),'f',m_prec))
                         .arg(QString::number((double)mat(0,1),'f',m_prec))
                         .arg(QString::number((double)mat(0,2),'f',m_prec))
+                        .arg(QString::number(          data.x,'f',m_prec))
                         .arg(QString::number((double)mat(1,0),'f',m_prec))
                         .arg(QString::number((double)mat(1,1),'f',m_prec))
                         .arg(QString::number((double)mat(1,2),'f',m_prec))
+                        .arg(QString::number(          data.y,'f',m_prec))
                         .arg(QString::number((double)mat(2,0),'f',m_prec))
                         .arg(QString::number((double)mat(2,1),'f',m_prec))
-                        .arg(QString::number((double)mat(2,2),'f',m_prec)));
+                        .arg(QString::number((double)mat(2,2),'f',m_prec))
+                        .arg(QString::number(          data.z,'f',m_prec)));
 
     output.append("Quality: ");
     output.append(QString("%1\n")

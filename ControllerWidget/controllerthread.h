@@ -72,6 +72,7 @@ public slots:
     void updateJointSpaceCommand(double pitch, double yaw, double roll, double trans);
     void updateConfigSpaceCommand(double alpha, double theta, double gamma, double d);
     void updateTaskSpaceCommand(double x, double y, double z, double delPsi);
+    void resetBB();
     void startControlCycle(); // start timer
     void stopControlCycle(); // stop timer
     const bool isControlling() { return m_keepControlling; }
@@ -112,6 +113,7 @@ private:
 
     // transforms
     Eigen::Transform<double,3,Eigen::Affine> m_BB_Box,
+                                             m_Box_SBm,
                                              m_STm_BT,
                                              m_BT_CT,
                                              m_BB_CT_curTipPos,
@@ -120,7 +122,9 @@ private:
                                              m_BBmobile_CT,
                                              m_curTipPos,
                                              m_ISm_INSTR,
+                                             m_basTipPos_fixed,
                                              m_basTipPos_mobile,
+                                             m_Box_BBfixed,
                                              m_Box_BBmobile,
                                              m_targetPos,
                                              m_BB_targetPos,

@@ -767,7 +767,7 @@
   <widget class="QPushButton" name="controllerToggleButton">
    <property name="geometry">
     <rect>
-     <x>70</x>
+     <x>75</x>
      <y>10</y>
      <width>91</width>
      <height>21</height>
@@ -775,6 +775,19 @@
    </property>
    <property name="text">
     <string>Start Controller</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="resetBB_Button">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>100</y>
+     <width>80</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Reset BB</string>
    </property>
   </widget>
  </widget>

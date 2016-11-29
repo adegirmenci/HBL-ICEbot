@@ -33,6 +33,9 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
     connect(this, SIGNAL(startControlCycle()), m_worker, SLOT(startControlCycle()));
     connect(this, SIGNAL(stopControlCycle()), m_worker, SLOT(stopControlCycle()));
 
+    // reset BB
+    connect(this, SIGNAL(tellWorkerToResetBB()), m_worker, SLOT(resetBB()));
+
     ui->jointSpaceGroupBox->setChecked(false);
     ui->configSpaceGroupBox->setChecked(false);
 }
@@ -167,4 +170,9 @@ void ControllerWidget::on_controllerToggleButton_clicked()
     {
         emit startControlCycle();
     }
+}
+
+void ControllerWidget::on_resetBB_Button_clicked()
+{
+    emit tellWorkerToResetBB();
 }
