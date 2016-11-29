@@ -28,7 +28,7 @@ TriadEntity::TriadEntity(Qt3DCore::QEntity *parent) : Qt3DCore::QEntity(parent)
     m_arrowEntityList.resize(3);
     for(size_t i = 0; i < 3; i++)
     {
-        m_arrowEntityList.replace(i,new Qt3DCore::QEntity(this));
+        m_arrowEntityList.replace(i, new Qt3DCore::QEntity(this));
         m_arrowEntityList[i]->addComponent(m_arrowMesh);
 
         Qt3DCore::QTransform *arrowTransforms;
@@ -92,17 +92,17 @@ TriadEntity::~TriadEntity()
     //arrowMesh->deleteLater();
 }
 
-void TriadEntity::translate(QVector3D &trans)
+void TriadEntity::translate(const QVector3D &trans)
 {
     m_triadTransforms->setTranslation(trans);
 }
 
-void TriadEntity::rotate(QQuaternion &rot)
+void TriadEntity::rotate(const QQuaternion &rot)
 {
     m_triadTransforms->setRotation(rot);
 }
 
-void TriadEntity::setTransformation(Qt3DCore::QTransform &tform)
+void TriadEntity::setTransformation(const Qt3DCore::QTransform &tform)
 {
     m_triadTransforms->setMatrix(tform.matrix());
 }

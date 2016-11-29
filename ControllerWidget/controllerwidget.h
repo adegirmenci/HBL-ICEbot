@@ -30,6 +30,7 @@ signals:
 
 private slots:
     void workerStatusChanged(int status);
+    void receiveMsgFromWorker(QString msg);
 
     void on_testButton_clicked();
 

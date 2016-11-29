@@ -33,7 +33,7 @@ SceneModifier::SceneModifier(Qt3DCore::QEntity *rootEntity)
     m_baseEMpose = tf.matrix();
 
     Qt3DCore::QTransform calib;
-    calib.setRotation(QQuaternion(0.0098, -0.0530, -0.9873, -0.1492));
+    calib.setRotation(QQuaternion(0.0098f, -0.0530f, -0.9873f, -0.1492f));
 
     m_calibMat = calib.matrix();
 

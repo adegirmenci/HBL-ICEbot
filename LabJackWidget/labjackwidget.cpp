@@ -204,6 +204,7 @@ void LabJackWidget::on_initializeLJbutton_clicked()
     QVector<ushort> channelIdx;
     QVector<QString> channelNames;
 
+    // TODO: figure out which channels are desired by the user
     channelIdx.push_back(0);
     channelNames.push_back("ECG");
 

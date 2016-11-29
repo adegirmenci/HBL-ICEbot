@@ -352,6 +352,9 @@ void DataLoggerThread::logEvent(int source, int logType, QTime timeStamp, int ev
 
     switch(source)
     {
+    case SRC_CONTROLLER:
+        output.append("CONTROLLER ");
+        break;
     case SRC_EM:
         output.append("EM ");
         break;
@@ -425,6 +428,9 @@ void DataLoggerThread::logError(int source, int logType,
 
     switch(source)
     {
+    case SRC_CONTROLLER:
+        output.append("CONTROLLER ");
+        break;
     case SRC_EM:
         output.append("EM ");
         break;

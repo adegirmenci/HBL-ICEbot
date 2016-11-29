@@ -38,9 +38,9 @@ public:
 public slots:
     // setDisplayed // implemented by QEntity
 
-    void translate(QVector3D &trans);
-    void rotate(QQuaternion &rot);
-    void setTransformation(Qt3DCore::QTransform &tform);
+    void translate(const QVector3D &trans);
+    void rotate(const QQuaternion &rot);
+    void setTransformation(const Qt3DCore::QTransform &tform);
 
 private:
     Qt3DRender::QMesh *m_arrowMesh;

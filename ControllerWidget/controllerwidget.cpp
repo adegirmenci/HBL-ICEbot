@@ -16,7 +16,7 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
     connect(this, SIGNAL(tellWorkerToPrintThreadID()), m_worker, SLOT(printThreadID()));
 
     connect(m_worker, SIGNAL(sendMsgToWidget(QString)),
-            ui->statusTextEdit, SLOT(insertPlainText(QString)));
+            this, SLOT(receiveMsgFromWorker(QString)));
 
     connect(m_worker, SIGNAL(statusChanged(int)),
             this, SLOT(workerStatusChanged(int)));
@@ -80,6 +80,12 @@ void ControllerWidget::workerStatusChanged(int status)
         ui->statusTextEdit->appendPlainText("Unknown state!");
         break;
     }
+}
+
+void ControllerWidget::receiveMsgFromWorker(QString msg)
+{
+    ui->statusTextEdit->clear();
+    ui->statusTextEdit->appendPlainText(msg);
 }
 
 void ControllerWidget::on_testButton_clicked()

@@ -15,6 +15,8 @@ ControllerThread::ControllerThread(QObject *parent) :
 
     loadConstants();
 
+    m_targetPos = m_targetPos.Identity();
+
     m_mutex = new QMutex(QMutex::Recursive);
 
     m_isReady = true;
@@ -125,8 +127,8 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_QUATER
 {
     QMutexLocker locker(m_mutex);
 
-//    QElapsedTimer elTimer;
-//    elTimer.start();
+    QElapsedTimer elTimer;
+    elTimer.start();
 
     Q_ASSERT(4 == readings.size());
 
@@ -138,24 +140,43 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_QUATER
     m_Box_BBmobile = m_basTipPos_mobile * m_BB_SBm.inverse();
     m_BBfixed_BBmobile = m_BB_Box * m_Box_BBmobile;
     m_BBmobile_CT = m_Box_BBmobile.inverse()*m_curTipPos*m_STm_BT*m_BT_CT;
-    QString msg = QString("%1\t%2\t%3\t%4\n%5\t%6\t%7\t%8\n%9\t%10\t%11\t%12\n%13\t%14\t%15\t%16\n")
-                .arg(m_BBmobile_CT(0,0))
-                .arg(m_BBmobile_CT(0,1))
-                .arg(m_BBmobile_CT(0,2))
-                .arg(m_BBmobile_CT(0,3))
-                .arg(m_BBmobile_CT(1,0))
-                .arg(m_BBmobile_CT(1,1))
-                .arg(m_BBmobile_CT(1,2))
-                .arg(m_BBmobile_CT(1,3))
-                .arg(m_BBmobile_CT(2,0))
-                .arg(m_BBmobile_CT(2,1))
-                .arg(m_BBmobile_CT(2,2))
-                .arg(m_BBmobile_CT(2,3))
-                .arg(m_BBmobile_CT(3,0))
-                .arg(m_BBmobile_CT(3,1))
-                .arg(m_BBmobile_CT(3,2))
-                .arg(m_BBmobile_CT(3,3));
+//    QString msg = QString("%1  %2  %3  %4\n%5  %6  %7  %8\n%9  %10  %11  %12\n%13  %14  %15  %16\n")
+//                .arg(QString::number(m_BBmobile_CT(0,0), 'f', 3))
+//                .arg(QString::number(m_BBmobile_CT(0,1), 'f', 3))
+//                .arg(QString::number(m_BBmobile_CT(0,2), 'f', 3))
+//                .arg(QString::number(m_BBmobile_CT(0,3), 'f', 3))
+//                .arg(QString::number(m_BBmobile_CT(1,0), 'f', 3))
+//                .arg(QString::number(m_BBmobile_CT(1,1), 'f', 3))
+//                .arg(QString::number(m_BBmobile_CT(1,2), 'f', 3))
+//                .arg(QString::number(m_BBmobile_CT(1,3), 'f', 3))
+//                .arg(QString::number(m_BBmobile_CT(2,0), 'f', 3))
+//                .arg(QString::number(m_BBmobile_CT(2,1), 'f', 3))
+//                .arg(QString::number(m_BBmobile_CT(2,2), 'f', 3))
+//                .arg(QString::number(m_BBmobile_CT(2,3), 'f', 3))
+//                .arg(QString::number(m_BBmobile_CT(3,0), 'f', 3))
+//                .arg(QString::number(m_BBmobile_CT(3,1), 'f', 3))
+//                .arg(QString::number(m_BBmobile_CT(3,2), 'f', 3))
+//                .arg(QString::number(m_BBmobile_CT(3,3), 'f', 3));
+//    emit sendMsgToWidget(msg);
+
+    QString msg = QString::number(m_BBmobile_CT(0,0), 'f', 3) + "  ";
+    msg += QString::number(m_BBmobile_CT(0,1), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(0,2), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(0,3), 'f', 3) + "\n"
+       + QString::number(m_BBmobile_CT(1,0), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(1,1), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(1,2), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(1,3), 'f', 3) + "\n"
+       + QString::number(m_BBmobile_CT(2,0), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(2,1), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(2,2), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(2,3), 'f', 3) + "\n"
+       + QString::number(m_BBmobile_CT(3,0), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(3,1), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(3,2), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(3,3), 'f', 3);
     emit sendMsgToWidget(msg);
+
     //emit logEventWithMessage(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), 0, msg);
 
     //EM_SENSOR_BT:
@@ -171,8 +192,8 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_QUATER
     // EM_SENSOR_CHEST:
     Transform_From_EMreading(readings[EM_SENSOR_CHEST], m_currChest);
 
-//    qint64 elNsec = elTimer.nsecsElapsed();
-    //    qDebug() << "Nsec elapsed:" << elNsec;
+    qint64 elNsec = elTimer.nsecsElapsed();
+    qDebug() << "Nsec elapsed:" << elNsec;
 }
 
 void ControllerThread::updateJointSpaceCommand(double pitch, double yaw, double roll, double trans)
@@ -189,10 +210,18 @@ void ControllerThread::updateConfigSpaceCommand(double alpha, double theta, doub
     // qDebug() << "New Config Target Received";
 
     // run through kinematics
+    Eigen::Transform<double,3,Eigen::Affine> tempT;
+    tempT = m_cathKin.forwardKinematics(gamma, theta, alpha, d);
 
     // check limits
+    double norm = (m_targetPos.matrix().col(3) - tempT.matrix().col(3)).norm();
+    qDebug() << "Norm:" << norm;
+    if(norm < 500.0) // less than 50 cm
+    {
+        // update target
+        m_targetPos = tempT;
+    }
 
-    // update motor QCs
 }
 
 void ControllerThread::updateTaskSpaceCommand(double x, double y, double z, double delPsi)
@@ -277,7 +306,18 @@ void ControllerThread::controlCycle()
 
     if(m_isReady)
     {
-        //
+//        Eigen::Transform<double,3,Eigen::Affine> errorT;
+//        errorT = m_targetPos - m_curTipPos;
+
+        // calculate delta x,y,z,psi
+        Eigen::Vector4d dX(0, 0, 0, 0);
+
+        // calculate current gamma based on m_curTipPos and m_BB_SBm
+        double currGamma = 0.0;
+
+        // feed into control_icra2016
+        Eigen::Matrix<double, 4, 2> jointsCurrAndTarget;
+        jointsCurrAndTarget = m_cathKin.control_icra2016(m_curTipPos, dX, currGamma);
 
         // emit logData(QTime::currentTime(), newData);
 

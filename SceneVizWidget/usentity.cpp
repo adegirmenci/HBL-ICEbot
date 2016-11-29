@@ -86,7 +86,7 @@ usEntity::usEntity(Qt3DCore::QEntity *parent) : Qt3DCore::QEntity(parent)
     qDebug() << "Adding meshes to usEntityList.";
 
     m_usEntityList.fill(new Qt3DCore::QEntity(this), 1);
-    for(size_t i = 0; i < m_usEntityList.size(); i++)
+    for(int i = 0; i < m_usEntityList.size(); i++)
     {
         //m_usEntityList.replace(i, new Qt3DCore::QEntity(this));
 

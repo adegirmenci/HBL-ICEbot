@@ -36,6 +36,8 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
             ui->dataLogWidget->m_worker, SLOT(logEvent(int,int,QTime,int)));
     connect(ui->labjackWidget->m_worker, SIGNAL(logEvent(int,int,QTime,int)),
             ui->dataLogWidget->m_worker, SLOT(logEvent(int,int,QTime,int)));
+    connect(ui->controlWidget->m_worker, SIGNAL(logEvent(int,int,QTime,int)),
+            ui->dataLogWidget->m_worker, SLOT(logEvent(int,int,QTime,int)));
 
     // Errors to DataLogger
     connect(ui->emWidget->m_worker, SIGNAL(logError(int,int,QTime,int,QString)),
@@ -45,6 +47,8 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
     connect(ui->frmGrabWidget->m_worker, SIGNAL(logError(int,int,QTime,int,QString)),
             ui->dataLogWidget->m_worker, SLOT(logError(int,int,QTime,int,QString)));
     connect(ui->labjackWidget->m_worker, SIGNAL(logError(int,int,QTime,int,QString)),
+            ui->dataLogWidget->m_worker, SLOT(logError(int,int,QTime,int,QString)));
+    connect(ui->controlWidget->m_worker, SIGNAL(logError(int,int,QTime,int,QString)),
             ui->dataLogWidget->m_worker, SLOT(logError(int,int,QTime,int,QString)));
 
     // EM to SceneVizWidget

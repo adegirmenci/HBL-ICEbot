@@ -779,6 +779,30 @@
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>controllerToggleButton</tabstop>
+  <tabstop>statusLineEdit</tabstop>
+  <tabstop>statusTextEdit</tabstop>
+  <tabstop>testButton</tabstop>
+  <tabstop>jointSpaceGroupBox</tabstop>
+  <tabstop>configSpaceGroupBox</tabstop>
+  <tabstop>taskSpaceGroupBox</tabstop>
+  <tabstop>pitchSpinbox</tabstop>
+  <tabstop>yawSpinbox</tabstop>
+  <tabstop>rollSpinbox</tabstop>
+  <tabstop>transSpinbox</tabstop>
+  <tabstop>updateJointSpaceButton</tabstop>
+  <tabstop>alphaSpinbox</tabstop>
+  <tabstop>thetaSpinbox</tabstop>
+  <tabstop>gammaSpinbox</tabstop>
+  <tabstop>dSpinbox</tabstop>
+  <tabstop>updateConfigSpaceButton</tabstop>
+  <tabstop>xSpinbox</tabstop>
+  <tabstop>ySpinbox</tabstop>
+  <tabstop>zSpinbox</tabstop>
+  <tabstop>delPsiSpinbox</tabstop>
+  <tabstop>updateTaskSpaceButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
