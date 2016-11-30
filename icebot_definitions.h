@@ -90,6 +90,8 @@ enum EM_SENSOR_IDS
     EM_SENSOR_CHEST
 };
 
+static const char* const EM_SENSOR_NAMES[] = {"BB", "BT", "INST", "CHEST"};
+
 static const int EM_DEFAULT_SAMPLE_RATE = 150;
 static const int EM_MIN_SAMPLE_RATE = 20;
 static const int EM_MAX_SAMPLE_RATE = 250;

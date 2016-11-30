@@ -224,10 +224,9 @@ void AscensionThread::getSample() // called by timer
 
     QMutexLocker locker(m_mutex);
 
-    QTime tstamp = QTime::currentTime(); // get time
-
     // request all sensor readings at once
     m_errorCode = GetSynchronousRecord(ALL_SENSORS, pRecord, sizeof(record[0]) * m_numSensorsAttached);
+    QTime tstamp = QTime::currentTime(); // get time
     if(m_errorCode != BIRD_ERROR_SUCCESS)
     {
         errorHandler_(m_errorCode);
@@ -470,7 +469,7 @@ QString AscensionThread::formatOutput(QTime &timeStamp, int sensorID, DOUBLE_POS
     ts.setMSecsSinceEpoch(data.time*1000);
 
     QString output;
-    output.append(QString("[Sensor %1] - ").arg(sensorID + 1));
+    output.append(QString("[Sensor %1 - %2] - ").arg(sensorID + 1).arg(EM_SENSOR_NAMES[sensorID]));
     output.append(timeStamp.toString("HH.mm.ss.zzz\n"));
 //    output.append(QString("%1\t%2\t%3\n")
 //                        .arg(QString::number(data.x,'f',m_prec))
@@ -487,7 +486,7 @@ QString AscensionThread::formatOutput(QTime &timeStamp, int sensorID, DOUBLE_POS
     QQuaternion qu = QQuaternion(data.q[0], data.q[1], data.q[2], data.q[3]);
     QMatrix3x3 mat = qu.toRotationMatrix();
 
-    output.append(QString("%1  %2  %3  %4\n%5  %6  %7  %8\n%9  %10  %11  %12\n")
+    output.append(QString("%1   %2   %3   %4\n%5   %6   %7   %8\n%9   %10   %11   %12\n")
                         .arg(QString::number((double)mat(0,0),'f',m_prec))
                         .arg(QString::number((double)mat(0,1),'f',m_prec))
                         .arg(QString::number((double)mat(0,2),'f',m_prec))

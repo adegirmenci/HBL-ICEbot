@@ -76,6 +76,7 @@ void ControllerThread::printThreadID()
     qDebug() << QTime::currentTime() << "Worker Thread ID: " << QThread::currentThreadId();
 }
 
+// THIS FUNCTION SHOULD NOT BE USED AT ALL
 void ControllerThread::receiveEMdata(QTime timeStamp, int sensorID, DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data)
 {
     // Data Format
@@ -128,8 +129,8 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_QUATER
 {
     QMutexLocker locker(m_mutex);
 
-    QElapsedTimer elTimer;
-    elTimer.start();
+//    QElapsedTimer elTimer;
+//    elTimer.start();
 
     Q_ASSERT(4 == readings.size());
 
@@ -137,70 +138,92 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_QUATER
     m_latestReading = readings;
 
     // EM_SENSOR_BB:
-    Transform_From_EMreading(readings[EM_SENSOR_BB], m_Box_SBm); //
-    m_Box_BBmobile = m_Box_SBm * m_BB_SBm.inverse();
-    m_BBfixed_BBmobile = m_BB_Box * m_Box_BBmobile;
-    m_BBmobile_CT = m_Box_BBmobile.inverse()*m_curTipPos*m_STm_BT*m_BT_CT;
-//    QString msg = QString("%1  %2  %3  %4\n%5  %6  %7  %8\n%9  %10  %11  %12\n%13  %14  %15  %16\n")
-//                .arg(QString::number(m_BBmobile_CT(0,0), 'f', 3))
-//                .arg(QString::number(m_BBmobile_CT(0,1), 'f', 3))
-//                .arg(QString::number(m_BBmobile_CT(0,2), 'f', 3))
-//                .arg(QString::number(m_BBmobile_CT(0,3), 'f', 3))
-//                .arg(QString::number(m_BBmobile_CT(1,0), 'f', 3))
-//                .arg(QString::number(m_BBmobile_CT(1,1), 'f', 3))
-//                .arg(QString::number(m_BBmobile_CT(1,2), 'f', 3))
-//                .arg(QString::number(m_BBmobile_CT(1,3), 'f', 3))
-//                .arg(QString::number(m_BBmobile_CT(2,0), 'f', 3))
-//                .arg(QString::number(m_BBmobile_CT(2,1), 'f', 3))
-//                .arg(QString::number(m_BBmobile_CT(2,2), 'f', 3))
-//                .arg(QString::number(m_BBmobile_CT(2,3), 'f', 3))
-//                .arg(QString::number(m_BBmobile_CT(3,0), 'f', 3))
-//                .arg(QString::number(m_BBmobile_CT(3,1), 'f', 3))
-//                .arg(QString::number(m_BBmobile_CT(3,2), 'f', 3))
-//                .arg(QString::number(m_BBmobile_CT(3,3), 'f', 3));
-//    emit sendMsgToWidget(msg);
-
-
-
-    //emit logEventWithMessage(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), 0, msg);
-
-    //EM_SENSOR_BT:
-    // process CT point
+    Transform_From_EMreading(readings[EM_SENSOR_BB], m_Box_SBm);
+    // EM_SENSOR_BT
     Transform_From_EMreading(readings[EM_SENSOR_BT], m_curTipPos);
-    m_BB_CT_curTipPos = m_BB_Box*m_curTipPos*m_STm_BT*m_BT_CT; // convert to CT in terms of BBfixed
-
-
-
-    QString msg = QString::number(m_BB_CT_curTipPos(0,0), 'f', 3) + "  ";
-    msg += QString::number(m_BB_CT_curTipPos(0,1), 'f', 3) + "  "
-       + QString::number(m_BB_CT_curTipPos(0,2), 'f', 3) + "  "
-       + QString::number(m_BB_CT_curTipPos(0,3), 'f', 3) + "\n"
-       + QString::number(m_BB_CT_curTipPos(1,0), 'f', 3) + "  "
-       + QString::number(m_BB_CT_curTipPos(1,1), 'f', 3) + "  "
-       + QString::number(m_BB_CT_curTipPos(1,2), 'f', 3) + "  "
-       + QString::number(m_BB_CT_curTipPos(1,3), 'f', 3) + "\n"
-       + QString::number(m_BB_CT_curTipPos(2,0), 'f', 3) + "  "
-       + QString::number(m_BB_CT_curTipPos(2,1), 'f', 3) + "  "
-       + QString::number(m_BB_CT_curTipPos(2,2), 'f', 3) + "  "
-       + QString::number(m_BB_CT_curTipPos(2,3), 'f', 3) + "\n"
-       + QString::number(m_BB_CT_curTipPos(3,0), 'f', 3) + "  "
-       + QString::number(m_BB_CT_curTipPos(3,1), 'f', 3) + "  "
-       + QString::number(m_BB_CT_curTipPos(3,2), 'f', 3) + "  "
-       + QString::number(m_BB_CT_curTipPos(3,3), 'f', 3);
-    emit sendMsgToWidget(msg);
-
-
-
     // EM_SENSOR_INST:
     Transform_From_EMreading(readings[EM_SENSOR_INST], m_targetPos);
-    m_targetPos = m_targetPos * m_ISm_INSTR;
-    m_BB_targetPos = m_BB_Box * m_targetPos;
-
     // EM_SENSOR_CHEST:
     Transform_From_EMreading(readings[EM_SENSOR_CHEST], m_currChest);
 
-    qint64 elNsec = elTimer.nsecsElapsed();
-    qDebug() << "Nsec elapsed:" << elNsec;
+    // Calculate T_BBmobile_CT
+    m_Box_BBmobile = m_Box_SBm * m_BB_SBm.inverse();
+    m_BBfixed_BBmobile = m_BB_Box * m_Box_BBmobile;
+    m_BBmobile_CT = m_Box_BBmobile.inverse()*m_curTipPos*m_STm_BT*m_BT_CT;
+
+    //Calculate T_BB_CT_curTipPos:
+    // process CT point
+    m_BB_CT_curTipPos = m_BB_Box*m_curTipPos*m_STm_BT*m_BT_CT; // convert to CT in terms of BBfixed
+
+    //Calculate T_BB_targetPos
+    m_targetPos = m_targetPos * m_ISm_INSTR; // the tip of the instrument in EM coord
+    m_BB_targetPos = m_BB_Box * m_targetPos; // the tip of the instr in BBfixed coord
+
+    // display in GUI
+    QString msg = QString("T_BBfixed_CT:\n");
+    msg += QString::number(m_BB_CT_curTipPos(0,0), 'f', 3) + "  "
+       + QString::number(m_BB_CT_curTipPos(0,1), 'f', 3) + "  "
+       + QString::number(m_BB_CT_curTipPos(0,2), 'f', 3) + "  "
+       + QString::number(m_BB_CT_curTipPos(0,3), 'f', 2) + "\n"
+       + QString::number(m_BB_CT_curTipPos(1,0), 'f', 3) + "  "
+       + QString::number(m_BB_CT_curTipPos(1,1), 'f', 3) + "  "
+       + QString::number(m_BB_CT_curTipPos(1,2), 'f', 3) + "  "
+       + QString::number(m_BB_CT_curTipPos(1,3), 'f', 2) + "\n"
+       + QString::number(m_BB_CT_curTipPos(2,0), 'f', 3) + "  "
+       + QString::number(m_BB_CT_curTipPos(2,1), 'f', 3) + "  "
+       + QString::number(m_BB_CT_curTipPos(2,2), 'f', 3) + "  "
+       + QString::number(m_BB_CT_curTipPos(2,3), 'f', 2) + "\n"
+       + QString::number(m_BB_CT_curTipPos(3,0), 'f', 3) + "  "
+       + QString::number(m_BB_CT_curTipPos(3,1), 'f', 3) + "  "
+       + QString::number(m_BB_CT_curTipPos(3,2), 'f', 3) + "  "
+       + QString::number(m_BB_CT_curTipPos(3,3), 'f', 2) + "\n";
+
+    msg += QString("\nT_BBmobile_CT:\n")
+       + QString::number(m_BBmobile_CT(0,0), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(0,1), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(0,2), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(0,3), 'f', 2) + "\n"
+       + QString::number(m_BBmobile_CT(1,0), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(1,1), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(1,2), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(1,3), 'f', 2) + "\n"
+       + QString::number(m_BBmobile_CT(2,0), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(2,1), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(2,2), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(2,3), 'f', 2) + "\n"
+       + QString::number(m_BBmobile_CT(3,0), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(3,1), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(3,2), 'f', 3) + "  "
+       + QString::number(m_BBmobile_CT(3,3), 'f', 2) + "\n";
+
+    msg += QString("\nT_BBfixed_Instr:\n")
+       + QString::number(m_BB_targetPos(0,0), 'f', 3) + "  "
+       + QString::number(m_BB_targetPos(0,1), 'f', 3) + "  "
+       + QString::number(m_BB_targetPos(0,2), 'f', 3) + "  "
+       + QString::number(m_BB_targetPos(0,3), 'f', 2) + "\n"
+       + QString::number(m_BB_targetPos(1,0), 'f', 3) + "  "
+       + QString::number(m_BB_targetPos(1,1), 'f', 3) + "  "
+       + QString::number(m_BB_targetPos(1,2), 'f', 3) + "  "
+       + QString::number(m_BB_targetPos(1,3), 'f', 2) + "\n"
+       + QString::number(m_BB_targetPos(2,0), 'f', 3) + "  "
+       + QString::number(m_BB_targetPos(2,1), 'f', 3) + "  "
+       + QString::number(m_BB_targetPos(2,2), 'f', 3) + "  "
+       + QString::number(m_BB_targetPos(2,3), 'f', 2) + "\n"
+       + QString::number(m_BB_targetPos(3,0), 'f', 3) + "  "
+       + QString::number(m_BB_targetPos(3,1), 'f', 3) + "  "
+       + QString::number(m_BB_targetPos(3,2), 'f', 3) + "  "
+       + QString::number(m_BB_targetPos(3,3), 'f', 2) + "\n";
+
+
+
+    emit sendMsgToWidget(msg);
+
+    //emit logEventWithMessage(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), 0, msg);
+
+
+
+//    qint64 elNsec = elTimer.nsecsElapsed();
+//    qDebug() << "Nsec elapsed:" << elNsec;
 }
 
 void ControllerThread::updateJointSpaceCommand(double pitch, double yaw, double roll, double trans)
@@ -255,6 +278,9 @@ void ControllerThread::resetBB()
 
     // Save the fixed BB position, T_Box_BBfixed = T_Box_SBm_fixed * inv(T_BB_SBm)
     m_Box_BBfixed = m_basTipPos_fixed * m_BB_SBm.inverse();
+
+    // TODO: Log event
+    // TODO: Safe Tranform to file
 }
 
 void ControllerThread::startControlCycle()
