@@ -14,8 +14,8 @@ AscensionThread::AscensionThread(QObject *parent) :
     m_records = 0;
     m_latestReading.resize(4);
 
-    qRegisterMetaType<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD>("DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD");
-    qRegisterMetaType< std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> >("std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD>");
+    qRegisterMetaType<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD>("DOUBLE_POSITION_MATRIX_TIME_Q_RECORD");
+    qRegisterMetaType< std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD> >("std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD>");
 }
 
 AscensionThread::~AscensionThread()
@@ -161,7 +161,7 @@ bool AscensionThread::initializeEM() // open connection to EM
     // Set sensor output to position + rotation matrix + time stamp
     for(m_sensorID = 0; m_sensorID < m_numSensorsAttached; m_sensorID++)
     {
-        DATA_FORMAT_TYPE buf = DOUBLE_POSITION_QUATERNION_TIME_Q;
+        DATA_FORMAT_TYPE buf = DOUBLE_POSITION_MATRIX_TIME_Q;
         DATA_FORMAT_TYPE *pBuf = &buf;
         m_errorCode = SetSensorParameter(m_sensorID, DATA_FORMAT, pBuf, sizeof(buf));
         if(m_errorCode!=BIRD_ERROR_SUCCESS) {
@@ -218,7 +218,7 @@ void AscensionThread::getSample() // called by timer
     // format without first setting it.
 
     // 4 sensors
-    DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD record[8*4], *pRecord = record;
+    DOUBLE_POSITION_MATRIX_TIME_Q_RECORD record[8*4], *pRecord = record;
     //DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD *pRecord = record
     //DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD record, *pRecord = &record;
 
@@ -279,9 +279,9 @@ void AscensionThread::getSample() // called by timer
             // You can use the Robotics Toolbox by P. Corke and run convert from quat to rpy
             // rad2deg(quat2rpy(q0,q1,q2,q3)) -> this gives you the X,Y,Z rotation angles (notice the flipped order!)
             // Flipping the sign of q1,q2,q3 will fix the mismatch
-            record[m_sensorID].q[1] *= -1.0;
-            record[m_sensorID].q[2] *= -1.0;
-            record[m_sensorID].q[3] *= -1.0;
+//            record[m_sensorID].q[1] *= -1.0;
+//            record[m_sensorID].q[2] *= -1.0;
+//            record[m_sensorID].q[3] *= -1.0;
             m_latestReading[m_sensorID] = record[m_sensorID];
             emit logData(tstamp, m_sensorID, record[m_sensorID]);
             //emit logData(tstamp, m_sensorID, record);
@@ -424,7 +424,7 @@ int AscensionThread::getNumSensors()
     return m_numSensorsAttached;
 }
 
-void AscensionThread::getLatestReading(const int sensorID, DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD &dataContainer)
+void AscensionThread::getLatestReading(const int sensorID, DOUBLE_POSITION_MATRIX_TIME_Q_RECORD &dataContainer)
 {
     QMutexLocker locker(m_mutex);
     if(sensorID < 0)
@@ -435,7 +435,7 @@ void AscensionThread::getLatestReading(const int sensorID, DOUBLE_POSITION_QUATE
         qDebug() << "sensorID exceeds number of sensors!";
 }
 
-void AscensionThread::getLatestReadingsAll(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> &dataContainer)
+void AscensionThread::getLatestReadingsAll(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD> &dataContainer)
 {
     QMutexLocker locker(m_mutex);
     dataContainer = m_latestReading;
@@ -463,7 +463,7 @@ void AscensionThread::errorHandler_(int error)
     }
 }
 
-QString AscensionThread::formatOutput(QTime &timeStamp, int sensorID, DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD &data)
+QString AscensionThread::formatOutput(QTime &timeStamp, int sensorID, DOUBLE_POSITION_MATRIX_TIME_Q_RECORD &data)
 {
     QDateTime ts;
     ts.setMSecsSinceEpoch(data.time*1000);
@@ -483,22 +483,22 @@ QString AscensionThread::formatOutput(QTime &timeStamp, int sensorID, DOUBLE_POS
 //                        .arg(QString::number(data.q[2],'f',m_prec))
 //                        .arg(QString::number(data.q[3],'f',m_prec)));
 
-    QQuaternion qu = QQuaternion(data.q[0], data.q[1], data.q[2], data.q[3]);
-    QMatrix3x3 mat = qu.toRotationMatrix();
+//    QQuaternion qu = QQuaternion(data.q[0], data.q[1], data.q[2], data.q[3]);
+//    QMatrix3x3 mat = qu.toRotationMatrix();
 
     output.append(QString("%1   %2   %3   %4\n%5   %6   %7   %8\n%9   %10   %11   %12\n")
-                        .arg(QString::number((double)mat(0,0),'f',m_prec))
-                        .arg(QString::number((double)mat(0,1),'f',m_prec))
-                        .arg(QString::number((double)mat(0,2),'f',m_prec))
-                        .arg(QString::number(          data.x,'f',m_prec))
-                        .arg(QString::number((double)mat(1,0),'f',m_prec))
-                        .arg(QString::number((double)mat(1,1),'f',m_prec))
-                        .arg(QString::number((double)mat(1,2),'f',m_prec))
-                        .arg(QString::number(          data.y,'f',m_prec))
-                        .arg(QString::number((double)mat(2,0),'f',m_prec))
-                        .arg(QString::number((double)mat(2,1),'f',m_prec))
-                        .arg(QString::number((double)mat(2,2),'f',m_prec))
-                        .arg(QString::number(          data.z,'f',m_prec)));
+                        .arg(QString::number(data.s[0][0],'f',m_prec))
+                        .arg(QString::number(data.s[0][1],'f',m_prec))
+                        .arg(QString::number(data.s[0][2],'f',m_prec))
+                        .arg(QString::number(data.x      ,'f',m_prec))
+                        .arg(QString::number(data.s[1][0],'f',m_prec))
+                        .arg(QString::number(data.s[1][1],'f',m_prec))
+                        .arg(QString::number(data.s[1][2],'f',m_prec))
+                        .arg(QString::number(data.y      ,'f',m_prec))
+                        .arg(QString::number(data.s[2][0],'f',m_prec))
+                        .arg(QString::number(data.s[2][1],'f',m_prec))
+                        .arg(QString::number(data.s[2][2],'f',m_prec))
+                        .arg(QString::number(data.z      ,'f',m_prec)));
 
     output.append("Quality: ");
     output.append(QString("%1\n")

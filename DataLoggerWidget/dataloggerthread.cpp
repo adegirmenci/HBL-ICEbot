@@ -21,7 +21,7 @@ DataLoggerThread::DataLoggerThread(QObject *parent) : QObject(parent)
     m_TextStreams.resize(DATALOG_NUM_FILES);
     m_DataStreams.resize(DATALOG_NUM_FILES);
 
-    //qRegisterMetaType<DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD>("DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD");
+    //qRegisterMetaType<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD>("DOUBLE_POSITION_MATRIX_TIME_Q_RECORD");
 
 }
 
@@ -176,7 +176,7 @@ void DataLoggerThread::initializeDataLogger(std::vector<int> enableMask, std::ve
 
 void DataLoggerThread::logEMdata(QTime timeStamp,
                                  int sensorID,
-                                 DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data)
+                                 DOUBLE_POSITION_MATRIX_TIME_Q_RECORD data)
 {
     // Data Format
     // | Sensor ID | Time Stamp | x | y | z | q1 | q2 | q3 | q4 | quality |
@@ -191,20 +191,21 @@ void DataLoggerThread::logEMdata(QTime timeStamp,
                                         << data.x
                                         << data.y
                                         << data.z
-                                        << data.q[0]
-                                        << data.q[1]
-                                        << data.q[2]
-                                        << data.q[3]
+                                        << data.s[0][0]
+                                        << data.s[0][1]
+                                        << data.s[0][2]
+                                        << data.s[1][0]
+                                        << data.s[1][1]
+                                        << data.s[1][2]
+                                        << data.s[2][0]
+                                        << data.s[2][1]
+                                        << data.s[2][2]
                                         << data.quality;
-//                                        << data.s[0][0]
-//                                        << data.s[0][1]
-//                                        << data.s[0][2]
-//                                        << data.s[1][0]
-//                                        << data.s[1][1]
-//                                        << data.s[1][2]
-//                                        << data.s[2][0]
-//                                        << data.s[2][1]
-//                                        << data.s[2][2];
+//        << data.q[0]
+//        << data.q[1]
+//        << data.q[2]
+//        << data.q[3]
+
         // emit fileStatusChanged(DATALOG_EM_ID, DATALOG_FILE_DATA_LOGGED);
     }
     else

@@ -21,7 +21,7 @@
 #include "../AscensionWidget/3DGAPI/ATC3DG.h"
 #include "../FrmGrabWidget/frmgrabthread.h"
 
-//Q_DECLARE_METATYPE(DOUBLE_POSITION_MATRIX_TIME_STAMP_RECORD)
+//Q_DECLARE_METATYPE(DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)
 
 Q_DECLARE_METATYPE(std::vector<int>)
 
@@ -51,7 +51,7 @@ public slots:
     // EM slots
     void logEMdata(QTime timeStamp,
                  int sensorID,
-                 DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data);
+                 DOUBLE_POSITION_MATRIX_TIME_Q_RECORD data);
     void logFrmGrabImage(std::shared_ptr<Frame> frm);
     void logLabJackData(QTime timeStamp, std::vector<double> data);
     void logEPOSdata(QTime timeStamp,

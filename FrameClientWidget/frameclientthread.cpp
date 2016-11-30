@@ -68,13 +68,18 @@ void FrameClientThread::sendFrame()
     if(m_keepStreaming)
     {
         // construct frame
-        QQuaternion q(m_currBird.data.q[0],
-                      m_currBird.data.q[1],
-                      m_currBird.data.q[2],
-                      m_currBird.data.q[3]);
-        QVector3D v(m_currBird.data.x,
-                    m_currBird.data.y,
-                    m_currBird.data.z);
+        QMatrix4x4 tmp(m_currBird.data.s[0][0], m_currBird.data.s[0][1], m_currBird.data.s[0][2], m_currBird.data.x,
+                       m_currBird.data.s[1][0], m_currBird.data.s[1][1], m_currBird.data.s[1][2], m_currBird.data.y,
+                       m_currBird.data.s[2][0], m_currBird.data.s[2][1], m_currBird.data.s[2][2], m_currBird.data.z,
+                                0.0,          0.0,          0.0,               1.0);
+        Qt3DCore::QTransform tform;
+        tform.setMatrix(tmp);
+//        QQuaternion q(m_currBird.data.q[0],
+//                      m_currBird.data.q[1],
+//                      m_currBird.data.q[2],
+//                      m_currBird.data.q[3]);
+        QQuaternion q = tform.rotation();
+        QVector3D v = tform.translation();
         m_currExtdFrame.EMq_ = q;
         m_currExtdFrame.EMv_ = v;
         m_currExtdFrame.image_ = saveFrame(m_currFrame); // write to disk
@@ -119,7 +124,7 @@ void FrameClientThread::receiveFrame(std::shared_ptr<Frame> frame)
     m_currFrame = frame;
 }
 
-void FrameClientThread::receiveEMreading(QTime timeStamp, int sensorID, DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data)
+void FrameClientThread::receiveEMreading(QTime timeStamp, int sensorID, DOUBLE_POSITION_MATRIX_TIME_Q_RECORD data)
 {
     QMutexLocker locker(m_mutex);
 

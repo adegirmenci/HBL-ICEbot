@@ -18,6 +18,8 @@
 #include <QByteArray>
 #include <QHostAddress>
 
+#include <QMatrix4x4>
+#include <Qt3DCore/QTransform>
 #include <QQuaternion>
 #include <QVector3D>
 
@@ -67,11 +69,11 @@ struct FrameExtd{
 struct EMreading{
     QTime timeStamp;
     int sensorID;
-    DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data;
+    DOUBLE_POSITION_MATRIX_TIME_Q_RECORD data;
 
     explicit EMreading(QTime t_ = QTime(),
                        int s_ = -1,
-                       DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD r_ = DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD()) :
+                       DOUBLE_POSITION_MATRIX_TIME_Q_RECORD r_ = DOUBLE_POSITION_MATRIX_TIME_Q_RECORD()) :
         timeStamp(t_), sensorID(s_)
     {
         data = r_;
@@ -103,7 +105,7 @@ public slots:
     void receiveFrame(std::shared_ptr<Frame> frame);
     void receiveEMreading(QTime timeStamp,
                           int sensorID,
-                          DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data);
+                          DOUBLE_POSITION_MATRIX_TIME_Q_RECORD data);
     void handleTcpError(QAbstractSocket::SocketError error);
     void connectedToHost();
     void disconnectedFromHost();

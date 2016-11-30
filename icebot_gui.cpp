@@ -10,8 +10,8 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
     qDebug() << "Setting up GUI connections.";
 
     // EM Data to DataLogger
-    connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)),
-            ui->dataLogWidget->m_worker, SLOT(logEMdata(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)));
+    connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)),
+            ui->dataLogWidget->m_worker, SLOT(logEMdata(QTime,int,DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)));
 
     // LabJack Data to DataLogger
     connect(ui->labjackWidget->m_worker, SIGNAL(logData(QTime,std::vector<double>)),
@@ -52,20 +52,20 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
             ui->dataLogWidget->m_worker, SLOT(logError(int,int,QTime,int,QString)));
 
     // EM to SceneVizWidget
-    connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)),
-            ui->sceneVizWidget->m_modifier, SLOT(receiveEMreading(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)));
+    connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)),
+            ui->sceneVizWidget->m_modifier, SLOT(receiveEMreading(QTime,int,DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)));
 
     // EM to Controller
     //connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)),
     //        ui->controlWidget->m_worker, SLOT(receiveEMdata(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)));
-    connect(ui->emWidget->m_worker, SIGNAL(sendLatestReading(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD>)),
-            ui->controlWidget->m_worker, SLOT(receiveLatestEMreading(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD>)));
+    connect(ui->emWidget->m_worker, SIGNAL(sendLatestReading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD>)),
+            ui->controlWidget->m_worker, SLOT(receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD>)));
 
     // inter-process communication
     connect(ui->frmGrabWidget->m_worker, SIGNAL(imageAcquired(std::shared_ptr<Frame>)),
             ui->frameClientWidget->m_worker, SLOT(receiveFrame(std::shared_ptr<Frame>)));
-    connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)),
-            ui->frameClientWidget->m_worker, SLOT(receiveEMreading(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)));
+    connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)),
+            ui->frameClientWidget->m_worker, SLOT(receiveEMreading(QTime,int,DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)));
 
     // get current date time
     m_epoch = QDateTime::currentDateTime();

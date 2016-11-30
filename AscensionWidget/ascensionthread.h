@@ -42,8 +42,8 @@ public:
 };
 // ------------------------------
 
-Q_DECLARE_METATYPE(DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)
-Q_DECLARE_METATYPE(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD>)
+Q_DECLARE_METATYPE(DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)
+Q_DECLARE_METATYPE(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD>)
 
 // ##################################
 // # Ascension Thread Class Members #
@@ -66,8 +66,8 @@ signals:
     //void EM_Ready(bool status); // tells the widget that the EM tracker is ready
     void logData(QTime timeStamp,
                  int sensorID,
-                 DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data);
-    void sendLatestReading(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> latestReading);
+                 DOUBLE_POSITION_MATRIX_TIME_Q_RECORD data);
+    void sendLatestReading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD> latestReading);
     void logEvent(int source, // LOG_SOURCE
                   int logType, // LOG_TYPES
                   QTime timeStamp,
@@ -92,8 +92,8 @@ public slots:
     bool disconnectEM(); // disconnect from EM
     void setEpoch(const QDateTime &datetime); // set Epoch
     void setSampleRate(int freq); // set freq
-    void getLatestReading(const int sensorID, DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD &dataContainer);
-    void getLatestReadingsAll(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> &dataContainer);
+    void getLatestReading(const int sensorID, DOUBLE_POSITION_MATRIX_TIME_Q_RECORD &dataContainer);
+    void getLatestReadingsAll(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD> &dataContainer);
 
 private slots:
     void getSample(); // called by timer
@@ -136,7 +136,7 @@ private:
     int m_records;
     int m_numberBytes;
     // latest reading
-    std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> m_latestReading;
+    std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD> m_latestReading;
 
     const int m_prec = 4; // precision for print operations
 
@@ -145,7 +145,7 @@ private:
 
     QString formatOutput(QTime &timeStamp,
                          int sensorID,
-                         DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD &record);
+                         DOUBLE_POSITION_MATRIX_TIME_Q_RECORD &record);
 
 };
 

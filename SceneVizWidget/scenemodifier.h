@@ -37,7 +37,7 @@ public slots:
     void enableObject(bool enabled, int objID);
     void receiveEMreading(QTime timeStamp,
                           int sensorID,
-                          DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data);
+                          DOUBLE_POSITION_MATRIX_TIME_Q_RECORD data);
     void resetBase();
     void changeTFormOption(int opt);
     void setUSangle(int ang);

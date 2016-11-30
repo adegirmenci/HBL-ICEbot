@@ -80,11 +80,17 @@ void SceneModifier::enableObject(bool enabled, int objID)
     m_entityList[objID]->setEnabled(enabled);
 }
 
-void SceneModifier::receiveEMreading(QTime timeStamp, int sensorID, DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data)
+void SceneModifier::receiveEMreading(QTime timeStamp, int sensorID, DOUBLE_POSITION_MATRIX_TIME_Q_RECORD data)
 {
+    QMatrix4x4 tmp(data.s[0][0], data.s[0][1], data.s[0][2], data.x,
+                   data.s[1][0], data.s[1][1], data.s[1][2], data.y,
+                   data.s[2][0], data.s[2][1], data.s[2][2], data.z,
+                            0.0,          0.0,          0.0, 1.0);
+
     Qt3DCore::QTransform tf;
-    tf.setRotation(QQuaternion(data.q[0],data.q[1],data.q[2],data.q[3]));
-    tf.setTranslation(QVector3D(data.x,data.y,data.z));
+    tf.setMatrix(tmp);
+//    tf.setRotation(QQuaternion(data.q[0],data.q[1],data.q[2],data.q[3]));
+//    tf.setTranslation(QVector3D(data.x,data.y,data.z));
 
     if(m_tformOption == 0)
         tf.setMatrix(tf.matrix());

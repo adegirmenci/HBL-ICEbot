@@ -77,7 +77,7 @@ void ControllerThread::printThreadID()
 }
 
 // THIS FUNCTION SHOULD NOT BE USED AT ALL
-void ControllerThread::receiveEMdata(QTime timeStamp, int sensorID, DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data)
+void ControllerThread::receiveEMdata(QTime timeStamp, int sensorID, DOUBLE_POSITION_MATRIX_TIME_Q_RECORD data)
 {
     // Data Format
     // | Sensor ID | Time Stamp | x | y | z | q1 | q2 | q3 | q4 |
@@ -125,7 +125,7 @@ void ControllerThread::receiveEMdata(QTime timeStamp, int sensorID, DOUBLE_POSIT
     qDebug() << "Nsec elapsed:" << elNsec;
 }
 
-void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> readings)
+void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD> readings)
 {
     QMutexLocker locker(m_mutex);
 
@@ -385,14 +385,20 @@ void ControllerThread::controlCycle()
 // ----------------
 // HELPER FUNCTIONS
 // ----------------
-static void Transform_From_EMreading(DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD &input, Eigen::Transform<double,3,Eigen::Affine> &output)
+static void Transform_From_EMreading(DOUBLE_POSITION_MATRIX_TIME_Q_RECORD &input, Eigen::Transform<double,3,Eigen::Affine> &output)
 {
 //    QElapsedTimer elTimer;
 //    elTimer.start();
 
     Eigen::Translation3d trans(input.x, input.y, input.z);
-    Eigen::Quaterniond quat(input.q[0], input.q[1], input.q[2], input.q[3]);
-    output = trans * quat;
+    Eigen::Matrix3d rot;
+    rot << input.s[0][0], input.s[0][1], input.s[0][2],
+           input.s[1][0], input.s[1][1], input.s[1][2],
+           input.s[2][0], input.s[2][1], input.s[2][2];
+
+    output = trans * rot;
+
+    std::cout << output.matrix() << std::endl;
 
 //    qint64 elNsec = elTimer.nsecsElapsed();
 

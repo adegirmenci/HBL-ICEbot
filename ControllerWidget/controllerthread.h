@@ -67,8 +67,8 @@ public slots:
     void printThreadID();
     void receiveEMdata(QTime timeStamp,
                       int sensorID,
-                      DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD data);
-    void receiveLatestEMreading(std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> readings);
+                      DOUBLE_POSITION_MATRIX_TIME_Q_RECORD data);
+    void receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD> readings);
     void updateJointSpaceCommand(double pitch, double yaw, double roll, double trans);
     void updateConfigSpaceCommand(double alpha, double theta, double gamma, double d);
     void updateTaskSpaceCommand(double x, double y, double z, double delPsi);
@@ -108,8 +108,8 @@ private:
     const int m_prec = 4; // precision for print operations
 
     // latest reading
-    std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> m_prevReading;
-    std::vector<DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD> m_latestReading;
+    std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD> m_prevReading;
+    std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD> m_latestReading;
 
     // transforms
     Eigen::Transform<double,3,Eigen::Affine> m_BB_Box,
@@ -151,6 +151,6 @@ public:
 
 inline const QString getCurrTimeStr();
 inline const QString getCurrDateTimeStr();
-static void Transform_From_EMreading(DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD &input, Eigen::Transform<double,3,Eigen::Affine> &output);
+static void Transform_From_EMreading(DOUBLE_POSITION_MATRIX_TIME_Q_RECORD &input, Eigen::Transform<double,3,Eigen::Affine> &output);
 
 #endif // CONTROLLERTHREAD_H
