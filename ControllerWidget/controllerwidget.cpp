@@ -164,10 +164,12 @@ void ControllerWidget::on_controllerToggleButton_clicked()
 
     if(m_worker->isControlling())
     {
+        // TODO: this should stop LabJack collection
         emit stopControlCycle();
     }
     else
     {
+        // TODO: this should trigger LabJack collection
         emit startControlCycle();
     }
 }

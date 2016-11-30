@@ -599,7 +599,10 @@ Eigen::Transform<double,3,Eigen::Affine> ControllerThread::readTransformFromTxtF
         }
     }
 
-    qDebug() << "Loaded:" << path;
+    // convert from meters to mm
+    tform.translation() *= 1000.0;
+
+    std::cout << "Loaded:" << path.toStdString().c_str() << std::endl;
     std::cout << tform.matrix() << std::endl;
 
     return tform;
