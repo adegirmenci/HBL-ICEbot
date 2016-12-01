@@ -192,13 +192,13 @@ void DataLoggerThread::logEMdata(QTime timeStamp,
                                         << data.y
                                         << data.z
                                         << data.s[0][0]
-                                        << data.s[1][0]
-                                        << data.s[2][0]
                                         << data.s[0][1]
-                                        << data.s[1][1]
-                                        << data.s[2][1]
                                         << data.s[0][2]
+                                        << data.s[1][0]
+                                        << data.s[1][1]
                                         << data.s[1][2]
+                                        << data.s[2][0]
+                                        << data.s[2][1]
                                         << data.s[2][2]
                                         << data.quality;
 //        << data.q[0]
