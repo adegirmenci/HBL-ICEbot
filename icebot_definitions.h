@@ -18,6 +18,8 @@
 //
 //*****************************************************************************//
 
+#include "../AscensionWidget/3DGAPI/ATC3DG.h"
+
 // Alternative to using Boost for value of Pi
 //const long double PI = 3.141592653589793238L;
 //const double PI = 3.141592653589793;
@@ -95,6 +97,9 @@ static const char* const EM_SENSOR_NAMES[] = {"BB", "BT", "INST", "CHEST"};
 static const int EM_DEFAULT_SAMPLE_RATE = 150;
 static const int EM_MIN_SAMPLE_RATE = 20;
 static const int EM_MAX_SAMPLE_RATE = 250;
+
+//typedef DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD EM_RECORD_TYPE;
+// typedef DOUBLE_POSITION_MATRIX_TIME_Q_RECORD EM_RECORD_TYPE;
 
 // Preferred EM reading type is : DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD
 

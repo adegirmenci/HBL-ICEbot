@@ -67,11 +67,11 @@ void FrameClientThread::sendFrame()
 
     if(m_keepStreaming)
     {
-        // construct frame
+        // construct frame - rot matrix from Ascension is transposed
         QMatrix4x4 tmp(m_currBird.data.s[0][0], m_currBird.data.s[0][1], m_currBird.data.s[0][2], m_currBird.data.x,
                        m_currBird.data.s[1][0], m_currBird.data.s[1][1], m_currBird.data.s[1][2], m_currBird.data.y,
                        m_currBird.data.s[2][0], m_currBird.data.s[2][1], m_currBird.data.s[2][2], m_currBird.data.z,
-                                0.0,          0.0,          0.0,               1.0);
+                                           0.0,                     0.0,                     0.0,               1.0);
         Qt3DCore::QTransform tform;
         tform.setMatrix(tmp);
 //        QQuaternion q(m_currBird.data.q[0],

@@ -16,9 +16,9 @@
   <widget class="QGroupBox" name="statusGroupBox">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>40</y>
-     <width>200</width>
+     <width>241</width>
      <height>51</height>
     </rect>
    </property>
@@ -30,7 +30,7 @@
      <rect>
       <x>10</x>
       <y>25</y>
-      <width>180</width>
+      <width>221</width>
       <height>20</height>
      </rect>
     </property>
@@ -58,7 +58,7 @@
      <x>260</x>
      <y>10</y>
      <width>291</width>
-     <height>211</height>
+     <height>231</height>
     </rect>
    </property>
    <property name="readOnly">
@@ -71,9 +71,9 @@
   <widget class="QGroupBox" name="configSpaceGroupBox">
    <property name="geometry">
     <rect>
-     <x>260</x>
+     <x>310</x>
      <y>250</y>
-     <width>141</width>
+     <width>121</width>
      <height>171</height>
     </rect>
    </property>
@@ -89,17 +89,23 @@
    <widget class="QWidget" name="gridLayoutWidget_2">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>0</x>
       <y>20</y>
-      <width>121</width>
+      <width>111</width>
       <height>112</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_3">
      <item row="3" column="1">
       <widget class="QDoubleSpinBox" name="dSpinbox">
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="suffix">
-        <string> mm</string>
+        <string notr="true"> mm</string>
        </property>
        <property name="decimals">
         <number>2</number>
@@ -198,8 +204,14 @@
      </item>
      <item row="0" column="1">
       <widget class="QDoubleSpinBox" name="alphaSpinbox">
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="suffix">
-        <string> deg</string>
+        <string notr="true"> deg</string>
        </property>
        <property name="decimals">
         <number>2</number>
@@ -217,8 +229,14 @@
      </item>
      <item row="2" column="1">
       <widget class="QDoubleSpinBox" name="gammaSpinbox">
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="suffix">
-        <string> deg</string>
+        <string notr="true"> deg</string>
        </property>
        <property name="decimals">
         <number>2</number>
@@ -236,8 +254,14 @@
      </item>
      <item row="1" column="1">
       <widget class="QDoubleSpinBox" name="thetaSpinbox">
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="suffix">
-        <string> deg</string>
+        <string notr="true"> deg</string>
        </property>
        <property name="decimals">
         <number>2</number>
@@ -288,7 +312,7 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>20</x>
       <y>140</y>
       <width>81</width>
       <height>21</height>
@@ -311,9 +335,9 @@
   <widget class="QGroupBox" name="taskSpaceGroupBox">
    <property name="geometry">
     <rect>
-     <x>410</x>
+     <x>430</x>
      <y>250</y>
-     <width>141</width>
+     <width>121</width>
      <height>171</height>
     </rect>
    </property>
@@ -326,17 +350,23 @@
    <widget class="QWidget" name="gridLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>0</x>
       <y>20</y>
-      <width>121</width>
+      <width>111</width>
       <height>112</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
      <item row="3" column="1">
       <widget class="QDoubleSpinBox" name="delPsiSpinbox">
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="suffix">
-        <string> mm</string>
+        <string notr="true"> mm</string>
        </property>
        <property name="decimals">
         <number>2</number>
@@ -408,8 +438,14 @@
      </item>
      <item row="2" column="1">
       <widget class="QDoubleSpinBox" name="zSpinbox">
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="suffix">
-        <string> mm</string>
+        <string notr="true"> mm</string>
        </property>
        <property name="decimals">
         <number>2</number>
@@ -427,8 +463,14 @@
      </item>
      <item row="0" column="1">
       <widget class="QDoubleSpinBox" name="xSpinbox">
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="suffix">
-        <string> mm</string>
+        <string notr="true"> mm</string>
        </property>
        <property name="decimals">
         <number>2</number>
@@ -473,8 +515,14 @@
      </item>
      <item row="1" column="1">
       <widget class="QDoubleSpinBox" name="ySpinbox">
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="suffix">
-        <string> mm</string>
+        <string notr="true"> mm</string>
        </property>
        <property name="decimals">
         <number>2</number>
@@ -522,7 +570,7 @@
    <widget class="QPushButton" name="updateTaskSpaceButton">
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>20</x>
       <y>140</y>
       <width>81</width>
       <height>21</height>
@@ -536,9 +584,9 @@
   <widget class="QGroupBox" name="jointSpaceGroupBox">
    <property name="geometry">
     <rect>
-     <x>110</x>
+     <x>190</x>
      <y>250</y>
-     <width>141</width>
+     <width>121</width>
      <height>171</height>
     </rect>
    </property>
@@ -554,17 +602,23 @@
    <widget class="QWidget" name="gridLayoutWidget_3">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>0</x>
       <y>20</y>
-      <width>131</width>
+      <width>111</width>
       <height>112</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_4">
      <item row="3" column="1">
       <widget class="QDoubleSpinBox" name="transSpinbox">
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="suffix">
-        <string> deg</string>
+        <string notr="true"> deg</string>
        </property>
        <property name="decimals">
         <number>2</number>
@@ -663,8 +717,14 @@
      </item>
      <item row="0" column="1">
       <widget class="QDoubleSpinBox" name="pitchSpinbox">
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="suffix">
-        <string> deg</string>
+        <string notr="true"> deg</string>
        </property>
        <property name="decimals">
         <number>2</number>
@@ -682,8 +742,14 @@
      </item>
      <item row="2" column="1">
       <widget class="QDoubleSpinBox" name="rollSpinbox">
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="suffix">
-        <string> deg</string>
+        <string notr="true"> deg</string>
        </property>
        <property name="decimals">
         <number>2</number>
@@ -701,8 +767,14 @@
      </item>
      <item row="1" column="1">
       <widget class="QDoubleSpinBox" name="yawSpinbox">
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="suffix">
-        <string> deg</string>
+        <string notr="true"> deg</string>
        </property>
        <property name="decimals">
         <number>2</number>
@@ -753,7 +825,7 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>20</x>
       <y>140</y>
       <width>81</width>
       <height>21</height>
@@ -767,7 +839,7 @@
   <widget class="QPushButton" name="controllerToggleButton">
    <property name="geometry">
     <rect>
-     <x>75</x>
+     <x>10</x>
      <y>10</y>
      <width>91</width>
      <height>21</height>
@@ -780,8 +852,8 @@
   <widget class="QPushButton" name="resetBB_Button">
    <property name="geometry">
     <rect>
-     <x>80</x>
-     <y>100</y>
+     <x>170</x>
+     <y>10</y>
      <width>80</width>
      <height>21</height>
     </rect>
@@ -790,13 +862,226 @@
     <string>Reset BB</string>
    </property>
   </widget>
+  <widget class="QGroupBox" name="gainsGroupBox">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>90</y>
+     <width>241</width>
+     <height>151</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Gains</string>
+   </property>
+   <widget class="QWidget" name="gridLayoutWidget_4">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>20</y>
+      <width>241</width>
+      <height>121</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gainsLayout">
+     <item row="4" column="1">
+      <widget class="QDoubleSpinBox" name="gainTransMinSpinbox"/>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="gainMinLabel">
+       <property name="text">
+        <string>Min</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QLabel" name="gainMaxLabel">
+       <property name="text">
+        <string>Max</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="pTransLabel">
+       <property name="text">
+        <string>Pitch</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QDoubleSpinBox" name="gainPitchMinSpinbox"/>
+     </item>
+     <item row="2" column="2">
+      <widget class="QDoubleSpinBox" name="gainYawMaxSpinbox"/>
+     </item>
+     <item row="3" column="2">
+      <widget class="QDoubleSpinBox" name="gainRollMaxSpinbox"/>
+     </item>
+     <item row="1" column="2">
+      <widget class="QDoubleSpinBox" name="gainPitchMaxSpinbox"/>
+     </item>
+     <item row="2" column="1">
+      <widget class="QDoubleSpinBox" name="gainYawMinSpinbox"/>
+     </item>
+     <item row="3" column="1">
+      <widget class="QDoubleSpinBox" name="gainRollMinSpinbox"/>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="kTransLabel">
+       <property name="text">
+        <string>Translation</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="rTransLabel">
+       <property name="text">
+        <string>Roll</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="yTransLabel">
+       <property name="text">
+        <string>Yaw</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="gainLabel">
+       <property name="text">
+        <string>K</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="2">
+      <widget class="QDoubleSpinBox" name="gainTransMaxSpinbox"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_2">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>250</y>
+     <width>171</width>
+     <height>121</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Convergence Limits</string>
+   </property>
+   <widget class="QWidget" name="gridLayoutWidget_5">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>20</y>
+      <width>172</width>
+      <height>101</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_5">
+     <item row="1" column="0">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_9">
+       <property name="suffix">
+        <string notr="true"> mm</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_11">
+       <property name="suffix">
+        <string notr="true"> deg</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_10">
+       <property name="suffix">
+        <string notr="true"> mm</string>
+       </property>
+       <property name="maximum">
+        <double>999.990000000000009</double>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_12">
+       <property name="suffix">
+        <string notr="true"> deg</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string>Position Min</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="label_9">
+       <property name="text">
+        <string>Position Max</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_10">
+       <property name="text">
+        <string>US Angle Min</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLabel" name="label_11">
+       <property name="text">
+        <string>US Angle Max</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
   <tabstop>controllerToggleButton</tabstop>
-  <tabstop>statusLineEdit</tabstop>
-  <tabstop>statusTextEdit</tabstop>
-  <tabstop>testButton</tabstop>
+  <tabstop>resetBB_Button</tabstop>
+  <tabstop>gainPitchMinSpinbox</tabstop>
+  <tabstop>gainPitchMaxSpinbox</tabstop>
+  <tabstop>gainYawMinSpinbox</tabstop>
+  <tabstop>gainYawMaxSpinbox</tabstop>
+  <tabstop>gainRollMinSpinbox</tabstop>
+  <tabstop>gainRollMaxSpinbox</tabstop>
+  <tabstop>gainTransMinSpinbox</tabstop>
+  <tabstop>gainTransMaxSpinbox</tabstop>
+  <tabstop>doubleSpinBox_9</tabstop>
+  <tabstop>doubleSpinBox_10</tabstop>
+  <tabstop>doubleSpinBox_11</tabstop>
+  <tabstop>doubleSpinBox_12</tabstop>
   <tabstop>jointSpaceGroupBox</tabstop>
   <tabstop>configSpaceGroupBox</tabstop>
   <tabstop>taskSpaceGroupBox</tabstop>
@@ -815,6 +1100,9 @@
   <tabstop>zSpinbox</tabstop>
   <tabstop>delPsiSpinbox</tabstop>
   <tabstop>updateTaskSpaceButton</tabstop>
+  <tabstop>statusLineEdit</tabstop>
+  <tabstop>statusTextEdit</tabstop>
+  <tabstop>testButton</tabstop>
  </tabstops>
  <resources/>
  <connections/>

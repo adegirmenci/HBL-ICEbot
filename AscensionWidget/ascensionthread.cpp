@@ -264,6 +264,9 @@ void AscensionThread::getSample() // called by timer
     //    }
     */
 
+    m_latestReading.clear();
+    m_latestReading.resize(4);
+
     for(m_sensorID = 0; m_sensorID < m_numSensorsAttached; m_sensorID++)
     {
         // get the status of the last data record
@@ -272,16 +275,31 @@ void AscensionThread::getSample() // called by timer
 
         if( status == VALID_STATUS)
         {
-            // Weirdly, the vector part is reported with a flipped sign. Scalar part is fine.
+            // The rotations are reported in inverted form.
             // You can check this in MATLAB
             // Use the Cubes.exe provided by Ascension to get the azimuth, elevation, and roll.
             // These are the Z,Y,X rotation angles.
             // You can use the Robotics Toolbox by P. Corke and run convert from quat to rpy
             // rad2deg(quat2rpy(q0,q1,q2,q3)) -> this gives you the X,Y,Z rotation angles (notice the flipped order!)
             // Flipping the sign of q1,q2,q3 will fix the mismatch
+
+            // For a quaternion, this corresponds to the vector part being negated.
 //            record[m_sensorID].q[1] *= -1.0;
 //            record[m_sensorID].q[2] *= -1.0;
 //            record[m_sensorID].q[3] *= -1.0;
+
+            // transpose rotation matrix to invert it (R transpose = R inverse)
+            double temp = record[m_sensorID].s[1][0];
+            record[m_sensorID].s[1][0] = record[m_sensorID].s[0][1];
+            record[m_sensorID].s[0][1] = temp;
+            temp = record[m_sensorID].s[2][0];
+            record[m_sensorID].s[2][0] = record[m_sensorID].s[0][2];
+            record[m_sensorID].s[0][2] = temp;
+            temp = record[m_sensorID].s[1][2];
+            record[m_sensorID].s[1][2] = record[m_sensorID].s[2][1];
+            record[m_sensorID].s[2][1] = temp;
+            // transpose done
+
             m_latestReading[m_sensorID] = record[m_sensorID];
             emit logData(tstamp, m_sensorID, record[m_sensorID]);
             //emit logData(tstamp, m_sensorID, record);
@@ -463,7 +481,7 @@ void AscensionThread::errorHandler_(int error)
     }
 }
 
-QString AscensionThread::formatOutput(QTime &timeStamp, int sensorID, DOUBLE_POSITION_MATRIX_TIME_Q_RECORD &data)
+QString AscensionThread::formatOutput(QTime &timeStamp, const int sensorID, DOUBLE_POSITION_MATRIX_TIME_Q_RECORD &data)
 {
     QDateTime ts;
     ts.setMSecsSinceEpoch(data.time*1000);

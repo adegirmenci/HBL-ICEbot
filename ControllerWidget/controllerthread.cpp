@@ -11,7 +11,7 @@ ControllerThread::ControllerThread(QObject *parent) :
 
     m_numCycles = 0;
 
-    m_cathKin = Kinematics_4DOF(0.05, 0.00135, 0.90*0.0254);
+    m_cathKin = Kinematics_4DOF(0.05*1000.0, 0.00135*1000.0, 0.90*0.0254*1000.0);
 
     loadConstants();
 
@@ -147,6 +147,7 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX
     Transform_From_EMreading(readings[EM_SENSOR_CHEST], m_currChest);
 
     // Calculate T_BBmobile_CT
+    m_basTipPos_mobile = m_Box_SBm;
     m_Box_BBmobile = m_Box_SBm * m_BB_SBm.inverse();
     m_BBfixed_BBmobile = m_BB_Box * m_Box_BBmobile;
     m_BBmobile_CT = m_Box_BBmobile.inverse()*m_curTipPos*m_STm_BT*m_BT_CT;
@@ -159,6 +160,7 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX
     m_targetPos = m_targetPos * m_ISm_INSTR; // the tip of the instrument in EM coord
     m_BB_targetPos = m_BB_Box * m_targetPos; // the tip of the instr in BBfixed coord
 
+    //std::cout << m_BB_CT_curTipPos.matrix() << std::endl;
     // display in GUI
     QString msg = QString("T_BBfixed_CT:\n");
     msg += QString::number(m_BB_CT_curTipPos(0,0), 'f', 3) + "  "
@@ -212,9 +214,7 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX
        + QString::number(m_BB_targetPos(3,0), 'f', 3) + "  "
        + QString::number(m_BB_targetPos(3,1), 'f', 3) + "  "
        + QString::number(m_BB_targetPos(3,2), 'f', 3) + "  "
-       + QString::number(m_BB_targetPos(3,3), 'f', 2) + "\n";
-
-
+       + QString::number(m_BB_targetPos(3,3), 'f', 2);
 
     emit sendMsgToWidget(msg);
 
@@ -395,10 +395,14 @@ static void Transform_From_EMreading(DOUBLE_POSITION_MATRIX_TIME_Q_RECORD &input
     rot << input.s[0][0], input.s[0][1], input.s[0][2],
            input.s[1][0], input.s[1][1], input.s[1][2],
            input.s[2][0], input.s[2][1], input.s[2][2];
+//    Eigen::Matrix3d rot;
+//    rot << input.s[0][0], input.s[1][0], input.s[2][0],
+//           input.s[0][1], input.s[1][1], input.s[2][1],
+//           input.s[0][2], input.s[1][2], input.s[2][2];
 
     output = trans * rot;
 
-    std::cout << output.matrix() << std::endl;
+    // std::cout << output.matrix() << std::endl;
 
 //    qint64 elNsec = elTimer.nsecsElapsed();
 

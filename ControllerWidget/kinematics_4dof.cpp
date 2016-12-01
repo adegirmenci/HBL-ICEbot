@@ -27,7 +27,7 @@ Eigen::Transform<double, 3, Eigen::Affine> Kinematics_4DOF::forwardKinematics(do
     Eigen::Matrix4d t_;
 
 
-    if(alpha != 0.)
+    if(alpha > 0.000001)
     {
         t_ << sin(gamma + theta)*sin(theta) + cos(gamma + theta)*cos(theta)*cos(alpha),
              -sin(gamma + theta)*cos(theta) + cos(gamma + theta)*sin(theta)*cos(alpha),

@@ -144,7 +144,7 @@ private:
     void errorHandler_(int error);
 
     QString formatOutput(QTime &timeStamp,
-                         int sensorID,
+                         const int sensorID,
                          DOUBLE_POSITION_MATRIX_TIME_Q_RECORD &record);
 
 };
