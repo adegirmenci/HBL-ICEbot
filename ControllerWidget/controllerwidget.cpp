@@ -37,6 +37,10 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
     // reset BB
     connect(this, SIGNAL(tellWorkerToResetBB()), m_worker, SLOT(resetBB()));
 
+    // Gains Widget
+    connect(gainWidget, SIGNAL(closeGainsWindow()), this, SLOT(on_adjustGainsButton_clicked()));
+    connect(gainWidget, SIGNAL(setGains(GainsPYRT)), m_worker, SLOT(setGains(GainsPYRT)));
+
     ui->jointSpaceGroupBox->setChecked(false);
     ui->configSpaceGroupBox->setChecked(false);
 

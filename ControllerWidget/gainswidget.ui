@@ -47,9 +47,9 @@
       <height>133</height>
      </rect>
     </property>
-    <layout class="QGridLayout" name="gainsLayout_2">
+    <layout class="QGridLayout" name="gainsLayout">
      <item row="4" column="1">
-      <widget class="QDoubleSpinBox" name="gainTransMinSpinbox_2">
+      <widget class="QDoubleSpinBox" name="gainTransMinSpinbox">
        <property name="maximum">
         <double>5.000000000000000</double>
        </property>
@@ -62,7 +62,7 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QLabel" name="gainMinLabel_2">
+      <widget class="QLabel" name="gainMinLabel">
        <property name="maximumSize">
         <size>
          <width>16777215</width>
@@ -81,7 +81,7 @@
       </widget>
      </item>
      <item row="0" column="2">
-      <widget class="QLabel" name="gainMaxLabel_2">
+      <widget class="QLabel" name="gainMaxLabel">
        <property name="maximumSize">
         <size>
          <width>16777215</width>
@@ -100,7 +100,7 @@
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="pTransLabel_2">
+      <widget class="QLabel" name="pTransLabel">
        <property name="frameShape">
         <enum>QFrame::Panel</enum>
        </property>
@@ -113,7 +113,7 @@
       </widget>
      </item>
      <item row="2" column="2">
-      <widget class="QDoubleSpinBox" name="gainYawMaxSpinbox_2">
+      <widget class="QDoubleSpinBox" name="gainYawMaxSpinbox">
        <property name="maximum">
         <double>5.000000000000000</double>
        </property>
@@ -126,7 +126,7 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QDoubleSpinBox" name="gainPitchMinSpinbox_2">
+      <widget class="QDoubleSpinBox" name="gainPitchMinSpinbox">
        <property name="maximum">
         <double>5.000000000000000</double>
        </property>
@@ -139,7 +139,7 @@
       </widget>
      </item>
      <item row="1" column="2">
-      <widget class="QDoubleSpinBox" name="gainPitchMaxSpinbox_2">
+      <widget class="QDoubleSpinBox" name="gainPitchMaxSpinbox">
        <property name="maximum">
         <double>5.000000000000000</double>
        </property>
@@ -152,7 +152,7 @@
       </widget>
      </item>
      <item row="3" column="2">
-      <widget class="QDoubleSpinBox" name="gainRollMaxSpinbox_2">
+      <widget class="QDoubleSpinBox" name="gainRollMaxSpinbox">
        <property name="maximum">
         <double>5.000000000000000</double>
        </property>
@@ -165,7 +165,7 @@
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QDoubleSpinBox" name="gainYawMinSpinbox_2">
+      <widget class="QDoubleSpinBox" name="gainYawMinSpinbox">
        <property name="maximum">
         <double>5.000000000000000</double>
        </property>
@@ -178,7 +178,7 @@
       </widget>
      </item>
      <item row="4" column="0">
-      <widget class="QLabel" name="kTransLabel_2">
+      <widget class="QLabel" name="kTransLabel">
        <property name="frameShape">
         <enum>QFrame::Panel</enum>
        </property>
@@ -191,7 +191,7 @@
       </widget>
      </item>
      <item row="3" column="1">
-      <widget class="QDoubleSpinBox" name="gainRollMinSpinbox_2">
+      <widget class="QDoubleSpinBox" name="gainRollMinSpinbox">
        <property name="maximum">
         <double>5.000000000000000</double>
        </property>
@@ -204,7 +204,7 @@
       </widget>
      </item>
      <item row="4" column="2">
-      <widget class="QDoubleSpinBox" name="gainTransMaxSpinbox_2">
+      <widget class="QDoubleSpinBox" name="gainTransMaxSpinbox">
        <property name="maximum">
         <double>5.000000000000000</double>
        </property>
@@ -217,7 +217,7 @@
       </widget>
      </item>
      <item row="3" column="0">
-      <widget class="QLabel" name="rTransLabel_2">
+      <widget class="QLabel" name="rTransLabel">
        <property name="frameShape">
         <enum>QFrame::Panel</enum>
        </property>
@@ -230,7 +230,7 @@
       </widget>
      </item>
      <item row="0" column="0">
-      <widget class="QLabel" name="gainLabel_2">
+      <widget class="QLabel" name="gainLabel">
        <property name="maximumSize">
         <size>
          <width>16777215</width>
@@ -249,7 +249,7 @@
       </widget>
      </item>
      <item row="2" column="0">
-      <widget class="QLabel" name="yTransLabel_2">
+      <widget class="QLabel" name="yTransLabel">
        <property name="frameShape">
         <enum>QFrame::Panel</enum>
        </property>

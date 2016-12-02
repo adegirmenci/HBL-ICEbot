@@ -3,6 +3,23 @@
 
 #include <QWidget>
 
+#include <QCloseEvent>
+#include <QVector>
+
+struct GainsPYRT
+{
+    double kPitchMin;
+    double kPitchMax;
+    double kYawMin;
+    double kYawMax;
+    double kRollMin;
+    double kRollMax;
+    double kTransMin;
+    double kTransMax;
+};
+
+Q_DECLARE_METATYPE(GainsPYRT)
+
 namespace Ui {
 class gainsWidget;
 }
@@ -15,8 +32,19 @@ public:
     explicit gainsWidget(QWidget *parent = 0);
     ~gainsWidget();
 
+signals:
+    void closeGainsWindow();
+    void setGains(GainsPYRT gains);
+
+private slots:
+    void on_closeButton_clicked();
+
+    void on_setGainsButton_clicked();
+
 private:
     Ui::gainsWidget *ui;
+
+    void closeEvent(QCloseEvent *event);
 };
 
 #endif // GAINSWIDGET_H

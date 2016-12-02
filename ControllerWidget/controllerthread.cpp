@@ -348,6 +348,18 @@ void ControllerThread::stopControlCycle()
     }
 }
 
+void ControllerThread::setGains(GainsPYRT gains)
+{
+    QMutexLocker locker(m_mutex);
+
+    m_gains = gains;
+
+    qDebug() << "Gains set:\nPitch:" << gains.kPitchMin << gains.kPitchMax
+             << "\nYaw:" << gains.kYawMin << gains.kYawMax
+             << "\nRoll:" << gains.kRollMin << gains.kRollMax
+             << "\nTrans:" << gains.kTransMin << gains.kTransMax;
+}
+
 void ControllerThread::controlCycle()
 {
     QMutexLocker locker(m_mutex);

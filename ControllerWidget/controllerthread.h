@@ -32,6 +32,7 @@
 
 #include "../icebot_definitions.h"
 #include "../AscensionWidget/3DGAPI/ATC3DG.h"
+#include "gainswidget.h"
 
 class ControllerThread : public QObject
 {
@@ -76,6 +77,7 @@ public slots:
     void startControlCycle(); // start timer
     void stopControlCycle(); // stop timer
     const bool isControlling() { return m_keepControlling; }
+    void setGains(GainsPYRT gains);
 
 private slots:
     void controlCycle(); // on a timer
@@ -129,6 +131,9 @@ private:
                                              m_targetPos,
                                              m_BB_targetPos,
                                              m_currChest;
+
+    // gains
+    GainsPYRT m_gains;
 
     // keep track of number of control cycles
     // an atomic variable alleviates the need to use mutexes during mutation
