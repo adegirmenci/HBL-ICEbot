@@ -40,7 +40,8 @@ SOURCES += main.cpp\
     ControllerWidget/controllerthread.cpp \
     ControllerWidget/controllerwidget.cpp \
     ControllerWidget/kinematics_4dof.cpp \
-    SceneVizWidget/usentity.cpp
+    SceneVizWidget/usentity.cpp \
+    ControllerWidget/gainswidget.cpp
 
 HEADERS  += icebot_gui.h \
     OmniWidget/omni.h \
@@ -66,7 +67,8 @@ HEADERS  += icebot_gui.h \
     ControllerWidget/controllerthread.h \
     ControllerWidget/controllerwidget.h \
     ControllerWidget/kinematics_4dof.h \
-    SceneVizWidget/usentity.h
+    SceneVizWidget/usentity.h \
+    ControllerWidget/gainswidget.h
 
 FORMS    += icebot_gui.ui \
     OmniWidget/omni.ui \
@@ -77,7 +79,8 @@ FORMS    += icebot_gui.ui \
     LabJackWidget/labjackwidget.ui \
     SceneVizWidget/scenevizwidget.ui \
     FrameClientWidget/frameclientwidget.ui \
-    ControllerWidget/controllerwidget.ui
+    ControllerWidget/controllerwidget.ui \
+    ControllerWidget/gainswidget.ui
 
 RC_FILE = ICEbotGUI.rc
 

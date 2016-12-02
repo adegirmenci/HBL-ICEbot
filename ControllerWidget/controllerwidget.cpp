@@ -3,7 +3,8 @@
 
 ControllerWidget::ControllerWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::ControllerWidget)
+    ui(new Ui::ControllerWidget),
+    gainWidget(new gainsWidget)
 {
     ui->setupUi(this);
 
@@ -38,6 +39,7 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
 
     ui->jointSpaceGroupBox->setChecked(false);
     ui->configSpaceGroupBox->setChecked(false);
+
 }
 
 ControllerWidget::~ControllerWidget()
@@ -46,6 +48,7 @@ ControllerWidget::~ControllerWidget()
     m_thread.wait();
     qDebug() << "Controller thread quit.";
 
+    delete gainWidget;
     delete ui;
 }
 
@@ -177,4 +180,20 @@ void ControllerWidget::on_controllerToggleButton_clicked()
 void ControllerWidget::on_resetBB_Button_clicked()
 {
     emit tellWorkerToResetBB();
+}
+
+void ControllerWidget::on_adjustGainsButton_clicked()
+{
+    if(gainWidget->isHidden())
+    {
+        ui->adjustGainsButton->setText("Hide Gains");
+        gainWidget->show();
+        gainWidget->raise();
+    }
+    else
+    {
+        ui->adjustGainsButton->setText("Adjust Gains");
+        //gainWidget->hide();
+        gainWidget->close();
+    }
 }

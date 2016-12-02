@@ -42,8 +42,8 @@
   <widget class="QPushButton" name="testButton">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>400</y>
+     <x>90</x>
+     <y>100</y>
      <width>80</width>
      <height>21</height>
     </rect>
@@ -604,7 +604,7 @@
      <rect>
       <x>0</x>
       <y>20</y>
-      <width>111</width>
+      <width>115</width>
       <height>112</height>
      </rect>
     </property>
@@ -862,125 +862,6 @@
     <string>Reset BB</string>
    </property>
   </widget>
-  <widget class="QGroupBox" name="gainsGroupBox">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>90</y>
-     <width>241</width>
-     <height>151</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Gains</string>
-   </property>
-   <widget class="QWidget" name="gridLayoutWidget_4">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>20</y>
-      <width>241</width>
-      <height>121</height>
-     </rect>
-    </property>
-    <layout class="QGridLayout" name="gainsLayout">
-     <item row="4" column="1">
-      <widget class="QDoubleSpinBox" name="gainTransMinSpinbox"/>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLabel" name="gainMinLabel">
-       <property name="text">
-        <string>Min</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="2">
-      <widget class="QLabel" name="gainMaxLabel">
-       <property name="text">
-        <string>Max</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="pTransLabel">
-       <property name="text">
-        <string>Pitch</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QDoubleSpinBox" name="gainPitchMinSpinbox"/>
-     </item>
-     <item row="2" column="2">
-      <widget class="QDoubleSpinBox" name="gainYawMaxSpinbox"/>
-     </item>
-     <item row="3" column="2">
-      <widget class="QDoubleSpinBox" name="gainRollMaxSpinbox"/>
-     </item>
-     <item row="1" column="2">
-      <widget class="QDoubleSpinBox" name="gainPitchMaxSpinbox"/>
-     </item>
-     <item row="2" column="1">
-      <widget class="QDoubleSpinBox" name="gainYawMinSpinbox"/>
-     </item>
-     <item row="3" column="1">
-      <widget class="QDoubleSpinBox" name="gainRollMinSpinbox"/>
-     </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="kTransLabel">
-       <property name="text">
-        <string>Translation</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="rTransLabel">
-       <property name="text">
-        <string>Roll</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="yTransLabel">
-       <property name="text">
-        <string>Yaw</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="gainLabel">
-       <property name="text">
-        <string>K</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="2">
-      <widget class="QDoubleSpinBox" name="gainTransMaxSpinbox"/>
-     </item>
-    </layout>
-   </widget>
-  </widget>
   <widget class="QGroupBox" name="groupBox_2">
    <property name="geometry">
     <rect>
@@ -998,7 +879,7 @@
      <rect>
       <x>0</x>
       <y>20</y>
-      <width>172</width>
+      <width>182</width>
       <height>101</height>
      </rect>
     </property>
@@ -1008,12 +889,30 @@
        <property name="suffix">
         <string notr="true"> mm</string>
        </property>
+       <property name="maximum">
+        <double>100.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.500000000000000</double>
+       </property>
+       <property name="value">
+        <double>0.500000000000000</double>
+       </property>
       </widget>
      </item>
      <item row="3" column="0">
       <widget class="QDoubleSpinBox" name="doubleSpinBox_11">
        <property name="suffix">
         <string notr="true"> deg</string>
+       </property>
+       <property name="maximum">
+        <double>90.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.500000000000000</double>
+       </property>
+       <property name="value">
+        <double>1.000000000000000</double>
        </property>
       </widget>
      </item>
@@ -1023,7 +922,13 @@
         <string notr="true"> mm</string>
        </property>
        <property name="maximum">
-        <double>999.990000000000009</double>
+        <double>1000.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.500000000000000</double>
+       </property>
+       <property name="value">
+        <double>4.000000000000000</double>
        </property>
       </widget>
      </item>
@@ -1032,12 +937,24 @@
        <property name="suffix">
         <string notr="true"> deg</string>
        </property>
+       <property name="maximum">
+        <double>180.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>5.500000000000000</double>
+       </property>
+       <property name="value">
+        <double>5.000000000000000</double>
+       </property>
       </widget>
      </item>
      <item row="0" column="0">
       <widget class="QLabel" name="label_8">
        <property name="text">
         <string>Position Min</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
        </property>
       </widget>
      </item>
@@ -1046,12 +963,18 @@
        <property name="text">
         <string>Position Max</string>
        </property>
+       <property name="alignment">
+        <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+       </property>
       </widget>
      </item>
      <item row="2" column="0">
       <widget class="QLabel" name="label_10">
        <property name="text">
         <string>US Angle Min</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
        </property>
       </widget>
      </item>
@@ -1060,24 +983,32 @@
        <property name="text">
         <string>US Angle Max</string>
        </property>
+       <property name="alignment">
+        <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+       </property>
       </widget>
      </item>
     </layout>
    </widget>
+  </widget>
+  <widget class="QPushButton" name="adjustGainsButton">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>390</y>
+     <width>80</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Adjust Gains</string>
+   </property>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
   <tabstop>controllerToggleButton</tabstop>
   <tabstop>resetBB_Button</tabstop>
-  <tabstop>gainPitchMinSpinbox</tabstop>
-  <tabstop>gainPitchMaxSpinbox</tabstop>
-  <tabstop>gainYawMinSpinbox</tabstop>
-  <tabstop>gainYawMaxSpinbox</tabstop>
-  <tabstop>gainRollMinSpinbox</tabstop>
-  <tabstop>gainRollMaxSpinbox</tabstop>
-  <tabstop>gainTransMinSpinbox</tabstop>
-  <tabstop>gainTransMaxSpinbox</tabstop>
   <tabstop>doubleSpinBox_9</tabstop>
   <tabstop>doubleSpinBox_10</tabstop>
   <tabstop>doubleSpinBox_11</tabstop>

@@ -5,6 +5,7 @@
 #include <QThread>
 
 #include "controllerthread.h"
+#include "gainswidget.h"
 
 namespace Ui {
 class ControllerWidget;
@@ -51,8 +52,12 @@ private slots:
 
     void on_resetBB_Button_clicked();
 
+    void on_adjustGainsButton_clicked();
+
 private:
     Ui::ControllerWidget *ui;
+
+    gainsWidget *gainWidget;
 
     QThread m_thread; // Controller Thread will live in here
 };
