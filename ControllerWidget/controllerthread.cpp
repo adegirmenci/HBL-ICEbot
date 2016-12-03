@@ -360,6 +360,16 @@ void ControllerThread::setGains(GainsPYRT gains)
              << "\nTrans:" << gains.kTransMin << gains.kTransMax;
 }
 
+void ControllerThread::setLimits(ConvergenceLimits limits)
+{
+    QMutexLocker locker(m_mutex);
+
+    m_convLimits = limits;
+
+    qDebug() << "Convergence limits set:\nPosition:" << limits.posMin << limits.posMax
+             << "\nAngle:" << limits.angleMin << limits.angleMax;
+}
+
 void ControllerThread::controlCycle()
 {
     QMutexLocker locker(m_mutex);

@@ -8,6 +8,8 @@ gainsWidget::gainsWidget(QWidget *parent) :
     ui->setupUi(this);
 
     qRegisterMetaType<GainsPYRT>("GainsPYRT");
+    qRegisterMetaType<ConvergenceLimits>("ConvergenceLimits");
+
 }
 
 gainsWidget::~gainsWidget()
@@ -40,4 +42,16 @@ void gainsWidget::on_setGainsButton_clicked()
     gains.kTransMax = ui->gainTransMaxSpinbox->value();
 
     emit setGains(gains);
+}
+
+void gainsWidget::on_setLimitsButton_clicked()
+{
+    ConvergenceLimits limits;
+
+    limits.posMin = ui->posConvMinSpinbox->value();
+    limits.posMax = ui->posConvMaxSpinbox->value();
+    limits.angleMin = ui->angConvMinSpinbox->value();
+    limits.angleMax = ui->angConvMaxSpinbox->value();
+
+    emit setLimits(limits);
 }

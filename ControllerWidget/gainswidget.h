@@ -18,7 +18,16 @@ struct GainsPYRT
     double kTransMax;
 };
 
+struct ConvergenceLimits
+{
+    double posMin;
+    double posMax;
+    double angleMin;
+    double angleMax;
+};
+
 Q_DECLARE_METATYPE(GainsPYRT)
+Q_DECLARE_METATYPE(ConvergenceLimits)
 
 namespace Ui {
 class gainsWidget;
@@ -35,11 +44,15 @@ public:
 signals:
     void closeGainsWindow();
     void setGains(GainsPYRT gains);
+    void setLimits(ConvergenceLimits limits);
+
+public slots:
+    void on_setGainsButton_clicked();
+
+    void on_setLimitsButton_clicked();
 
 private slots:
     void on_closeButton_clicked();
-
-    void on_setGainsButton_clicked();
 
 private:
     Ui::gainsWidget *ui;

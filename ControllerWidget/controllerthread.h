@@ -78,6 +78,7 @@ public slots:
     void stopControlCycle(); // stop timer
     const bool isControlling() { return m_keepControlling; }
     void setGains(GainsPYRT gains);
+    void setLimits(ConvergenceLimits limits);
 
 private slots:
     void controlCycle(); // on a timer
@@ -134,13 +135,17 @@ private:
 
     // gains
     GainsPYRT m_gains;
+    // convergence limits
+    ConvergenceLimits m_convLimits;
 
     // keep track of number of control cycles
     // an atomic variable alleviates the need to use mutexes during mutation
     std::atomic<unsigned int> m_numCycles;
 
+    // Kinematics oject
     Kinematics_4DOF m_cathKin;
 
+    // --- Private methods ---
     std::shared_ptr< std::vector<double> > cycle_recalculate(std::vector<double> &inputs);
 
     Eigen::Transform<double,3,Eigen::Affine> readTransformFromTxtFile(const QString &path);

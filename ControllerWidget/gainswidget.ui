@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>304</width>
-    <height>229</height>
+    <width>491</width>
+    <height>221</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,9 +16,9 @@
   <widget class="QPushButton" name="closeButton">
    <property name="geometry">
     <rect>
-     <x>190</x>
+     <x>280</x>
      <y>190</y>
-     <width>80</width>
+     <width>201</width>
      <height>21</height>
     </rect>
    </property>
@@ -29,10 +29,10 @@
   <widget class="QGroupBox" name="gainsGroupBox">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>10</y>
      <width>261</width>
-     <height>171</height>
+     <height>201</height>
     </rect>
    </property>
    <property name="title">
@@ -50,6 +50,9 @@
     <layout class="QGridLayout" name="gainsLayout">
      <item row="4" column="1">
       <widget class="QDoubleSpinBox" name="gainTransMinSpinbox">
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
        <property name="maximum">
         <double>5.000000000000000</double>
        </property>
@@ -70,7 +73,7 @@
         </size>
        </property>
        <property name="frameShape">
-        <enum>QFrame::Box</enum>
+        <enum>QFrame::Panel</enum>
        </property>
        <property name="text">
         <string>Min</string>
@@ -89,7 +92,7 @@
         </size>
        </property>
        <property name="frameShape">
-        <enum>QFrame::Box</enum>
+        <enum>QFrame::Panel</enum>
        </property>
        <property name="text">
         <string>Max</string>
@@ -114,6 +117,9 @@
      </item>
      <item row="2" column="2">
       <widget class="QDoubleSpinBox" name="gainYawMaxSpinbox">
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
        <property name="maximum">
         <double>5.000000000000000</double>
        </property>
@@ -127,6 +133,9 @@
      </item>
      <item row="1" column="1">
       <widget class="QDoubleSpinBox" name="gainPitchMinSpinbox">
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
        <property name="maximum">
         <double>5.000000000000000</double>
        </property>
@@ -140,6 +149,9 @@
      </item>
      <item row="1" column="2">
       <widget class="QDoubleSpinBox" name="gainPitchMaxSpinbox">
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
        <property name="maximum">
         <double>5.000000000000000</double>
        </property>
@@ -153,6 +165,9 @@
      </item>
      <item row="3" column="2">
       <widget class="QDoubleSpinBox" name="gainRollMaxSpinbox">
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
        <property name="maximum">
         <double>5.000000000000000</double>
        </property>
@@ -166,6 +181,9 @@
      </item>
      <item row="2" column="1">
       <widget class="QDoubleSpinBox" name="gainYawMinSpinbox">
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
        <property name="maximum">
         <double>5.000000000000000</double>
        </property>
@@ -192,6 +210,9 @@
      </item>
      <item row="3" column="1">
       <widget class="QDoubleSpinBox" name="gainRollMinSpinbox">
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
        <property name="maximum">
         <double>5.000000000000000</double>
        </property>
@@ -205,6 +226,9 @@
      </item>
      <item row="4" column="2">
       <widget class="QDoubleSpinBox" name="gainTransMaxSpinbox">
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
        <property name="maximum">
         <double>5.000000000000000</double>
        </property>
@@ -263,19 +287,185 @@
      </item>
     </layout>
    </widget>
+   <widget class="QPushButton" name="setGainsButton">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>170</y>
+      <width>241</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Set Gains</string>
+    </property>
+   </widget>
   </widget>
-  <widget class="QPushButton" name="setGainsButton">
+  <widget class="QGroupBox" name="convLimitsGroupBox">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>190</y>
-     <width>80</width>
-     <height>21</height>
+     <x>280</x>
+     <y>10</y>
+     <width>201</width>
+     <height>171</height>
     </rect>
    </property>
-   <property name="text">
-    <string>Set Gains</string>
+   <property name="title">
+    <string>Convergence Limits</string>
    </property>
+   <widget class="QWidget" name="gridLayoutWidget_6">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>30</y>
+      <width>182</width>
+      <height>101</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_5">
+     <item row="1" column="0">
+      <widget class="QDoubleSpinBox" name="posConvMinSpinbox">
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="suffix">
+        <string notr="true"> mm</string>
+       </property>
+       <property name="maximum">
+        <double>100.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.500000000000000</double>
+       </property>
+       <property name="value">
+        <double>0.500000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QDoubleSpinBox" name="angConvMinSpinbox">
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="suffix">
+        <string notr="true"> deg</string>
+       </property>
+       <property name="maximum">
+        <double>90.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.500000000000000</double>
+       </property>
+       <property name="value">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QDoubleSpinBox" name="posConvMaxSpinbox">
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="suffix">
+        <string notr="true"> mm</string>
+       </property>
+       <property name="maximum">
+        <double>1000.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.500000000000000</double>
+       </property>
+       <property name="value">
+        <double>4.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QDoubleSpinBox" name="angConvMaxSpinbox">
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="suffix">
+        <string notr="true"> deg</string>
+       </property>
+       <property name="maximum">
+        <double>180.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.500000000000000</double>
+       </property>
+       <property name="value">
+        <double>5.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="posConvMinLabel">
+       <property name="frameShape">
+        <enum>QFrame::Panel</enum>
+       </property>
+       <property name="text">
+        <string>Position Min</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="posConvMaxLabel">
+       <property name="frameShape">
+        <enum>QFrame::Panel</enum>
+       </property>
+       <property name="text">
+        <string>Position Max</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="angConvMinLabel">
+       <property name="frameShape">
+        <enum>QFrame::Panel</enum>
+       </property>
+       <property name="text">
+        <string>US Angle Min</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLabel" name="angConvMaxLabel">
+       <property name="frameShape">
+        <enum>QFrame::Panel</enum>
+       </property>
+       <property name="text">
+        <string>US Angle Max</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QPushButton" name="setLimitsButton">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>140</y>
+      <width>181</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Set Limits</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>

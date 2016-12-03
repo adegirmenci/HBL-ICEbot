@@ -40,6 +40,10 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
     // Gains Widget
     connect(gainWidget, SIGNAL(closeGainsWindow()), this, SLOT(on_adjustGainsButton_clicked()));
     connect(gainWidget, SIGNAL(setGains(GainsPYRT)), m_worker, SLOT(setGains(GainsPYRT)));
+    connect(gainWidget, SIGNAL(setLimits(ConvergenceLimits)), m_worker, SLOT(setLimits(ConvergenceLimits)));
+
+    gainWidget->on_setGainsButton_clicked();
+    gainWidget->on_setLimitsButton_clicked();
 
     ui->jointSpaceGroupBox->setChecked(false);
     ui->configSpaceGroupBox->setChecked(false);
