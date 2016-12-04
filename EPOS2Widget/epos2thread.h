@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <Windows.h>
 
-//Q_DECLARE_METATYPE(std::vector<long>)
+Q_DECLARE_METATYPE(std::vector<long>)
 //Q_DECLARE_METATYPE(std::vector<int>)
 
 struct eposMotor

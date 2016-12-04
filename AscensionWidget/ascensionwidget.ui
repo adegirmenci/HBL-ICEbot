@@ -127,6 +127,9 @@
      <height>400</height>
     </rect>
    </property>
+   <property name="readOnly">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QGroupBox" name="groupBox_3">
    <property name="geometry">

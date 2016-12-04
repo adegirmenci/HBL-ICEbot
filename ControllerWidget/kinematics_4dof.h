@@ -67,7 +67,7 @@ public:
     Eigen::Vector4d dampedLeastSquaresStep(const Eigen::Matrix<double, 6, 4> &J,
                                            const Eigen::Matrix<double,6,1> &C_error);
 
-    const double pi = boost::math::constants::pi<double>();
+
 
 private:
     // GEOMETRY CONSTANTS
@@ -90,5 +90,14 @@ private:
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
+
+static const double pi = boost::math::constants::pi<double>();
+static const double deg180overPi = 180.0/pi;
+static const double piOverDeg180 = pi/180.0;
+
+template <typename T>
+inline T lerp(const T v0, const T v1, const T t) {
+    return (1-t)*v0 + t*v1;
+}
 
 #endif // KINEMATICS_4DOF_H

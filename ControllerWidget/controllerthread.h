@@ -62,6 +62,7 @@ signals:
                   int errCode, // FRMGRAB_ERROR_CODES
                   QString message);
     void finished(); // emit upon termination
+    void setEPOSservoTargetPos(std::vector<long> targetPos, bool moveAbsOrRel);
 
 public slots:
     void setEpoch(const QDateTime &epoch);
@@ -72,11 +73,15 @@ public slots:
     void receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD> readings);
     void updateJointSpaceCommand(double pitch, double yaw, double roll, double trans);
     void updateConfigSpaceCommand(double alpha, double theta, double gamma, double d);
-    void updateTaskSpaceCommand(double x, double y, double z, double delPsi);
+    void updateTaskSpaceCommand(double x, double y, double z, double delPsi, bool isAbsolute);
+
     void resetBB();
+
     void startControlCycle(); // start timer
     void stopControlCycle(); // stop timer
+
     const bool isControlling() { return m_keepControlling; }
+
     void setGains(GainsPYRT gains);
     void setLimits(ConvergenceLimits limits);
 
@@ -120,6 +125,7 @@ private:
                                              m_STm_BT,
                                              m_BT_CT,
                                              m_BB_CT_curTipPos,
+                                             m_BBfixed_CTorig,
                                              m_BB_SBm,
                                              m_BBfixed_BBmobile,
                                              m_BBmobile_CT,
@@ -132,6 +138,9 @@ private:
                                              m_targetPos,
                                              m_BB_targetPos,
                                              m_currChest;
+
+    // delta x,y,z,psi to target
+    Eigen::Vector4d m_deltaXYZPsiToTarget;
 
     // gains
     GainsPYRT m_gains;
@@ -146,7 +155,7 @@ private:
     Kinematics_4DOF m_cathKin;
 
     // --- Private methods ---
-    std::shared_ptr< std::vector<double> > cycle_recalculate(std::vector<double> &inputs);
+    std::shared_ptr< std::vector<double> > cycle_recalculate(const std::vector<double> &inputs);
 
     Eigen::Transform<double,3,Eigen::Affine> readTransformFromTxtFile(const QString &path);
     void loadConstants();

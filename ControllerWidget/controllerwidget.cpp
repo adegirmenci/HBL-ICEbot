@@ -27,8 +27,8 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
             m_worker, SLOT(updateJointSpaceCommand(double,double,double,double)));
     connect(this, SIGNAL(updateConfigSpaceCommand(double,double,double,double)),
             m_worker, SLOT(updateConfigSpaceCommand(double,double,double,double)));
-    connect(this, SIGNAL(updateTaskSpaceCommand(double,double,double,double)),
-            m_worker, SLOT(updateTaskSpaceCommand(double,double,double,double)));
+    connect(this, SIGNAL(updateTaskSpaceCommand(double,double,double,double,bool)),
+            m_worker, SLOT(updateTaskSpaceCommand(double,double,double,double,bool)));
 
     // control cycle signals
     connect(this, SIGNAL(startControlCycle()), m_worker, SLOT(startControlCycle()));
@@ -135,24 +135,34 @@ void ControllerWidget::on_jointSpaceGroupBox_toggled(bool arg1)
 
 void ControllerWidget::on_updateJointSpaceButton_clicked()
 {
-    double pitch = ui->pitchSpinbox->value();
-    double yaw   = ui->yawSpinbox->value();
-    double roll  = ui->rollSpinbox->value();
+    double pitch = ui->pitchSpinbox->value() * piOverDeg180;
+    double yaw   = ui->yawSpinbox->value() * piOverDeg180;
+    double roll  = ui->rollSpinbox->value() * piOverDeg180;
     double trans = ui->transSpinbox->value();
 
-    ui->statusTextEdit->appendPlainText(QString("[%5] Joint Space Command: %1 %2 %3 %4").arg(pitch).arg(yaw).arg(roll).arg(trans).arg(QTime::currentTime().toString("HH:mm:ss")));
+    ui->statusTextEdit->appendPlainText(QString("[%5] Joint Space Command: %1 %2 %3 %4")
+                                        .arg(pitch)
+                                        .arg(yaw)
+                                        .arg(roll)
+                                        .arg(trans)
+                                        .arg(QTime::currentTime().toString("HH:mm:ss")));
 
     emit updateJointSpaceCommand(pitch, yaw, roll, trans);
 }
 
 void ControllerWidget::on_updateConfigSpaceButton_clicked()
 {
-    double alpha = ui->alphaSpinbox->value();
-    double theta = ui->thetaSpinbox->value();
-    double gamma = ui->gammaSpinbox->value();
+    double alpha = ui->alphaSpinbox->value() * piOverDeg180;
+    double theta = ui->thetaSpinbox->value() * piOverDeg180;
+    double gamma = ui->gammaSpinbox->value() * piOverDeg180;
     double d     = ui->dSpinbox->value();
 
-    ui->statusTextEdit->appendPlainText(QString("[%5] Config Space Command: %1 %2 %3 %4").arg(alpha).arg(theta).arg(gamma).arg(d).arg(QTime::currentTime().toString("HH:mm:ss")));
+    ui->statusTextEdit->appendPlainText(QString("[%5] Config Space Command: %1 %2 %3 %4")
+                                        .arg(alpha)
+                                        .arg(theta)
+                                        .arg(gamma)
+                                        .arg(d)
+                                        .arg(QTime::currentTime().toString("HH:mm:ss")));
 
     emit updateConfigSpaceCommand(alpha, theta, gamma, d);
 }
@@ -162,11 +172,18 @@ void ControllerWidget::on_updateTaskSpaceButton_clicked()
     double x      = ui->xSpinbox->value();
     double y      = ui->ySpinbox->value();
     double z      = ui->zSpinbox->value();
-    double delPsi = ui->delPsiSpinbox->value();
+    double delPsi = ui->delPsiSpinbox->value() * piOverDeg180;
+    bool isAbsolute = ui->absoluteRadiobutton->isChecked();
 
-    ui->statusTextEdit->appendPlainText(QString("[%5] Task Space Command: %1 %2 %3 %4").arg(x).arg(y).arg(z).arg(delPsi).arg(QTime::currentTime().toString("HH:mm:ss")));
+    ui->statusTextEdit->appendPlainText(QString("[%6] Task Space Command: %1 %2 %3 %4 %5")
+                                        .arg(x)
+                                        .arg(y)
+                                        .arg(z)
+                                        .arg(delPsi)
+                                        .arg(isAbsolute ? "Abs" : "Rel") // ? : ternary operator
+                                        .arg(QTime::currentTime().toString("HH:mm:ss")));
 
-    emit updateTaskSpaceCommand(x, y, z, delPsi);
+    emit updateTaskSpaceCommand(x, y, z, delPsi, isAbsolute);
 }
 
 void ControllerWidget::on_controllerToggleButton_clicked()

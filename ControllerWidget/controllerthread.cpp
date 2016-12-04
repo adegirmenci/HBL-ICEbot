@@ -26,16 +26,16 @@ ControllerThread::ControllerThread(QObject *parent) :
 
 ControllerThread::~ControllerThread()
 {
-    std::cout << m_cathKin.forwardKinematics(1,0.1,0.1,0).matrix() << std::endl;
+    std::cout << "FwdKin\n" << m_cathKin.forwardKinematics(1,0.1,0.1,0).matrix() << std::endl;
 
-    std::cout << m_cathKin.JacobianNumeric(1,0.1,0.1,0).matrix() << std::endl;
+    std::cout << "Jacobian\n" << m_cathKin.JacobianNumeric(1,0.1,0.1,0).matrix() << std::endl;
 
-    std::cout << m_cathKin.inverseKinematics3D(.005,.005,0.012,0.1) << std::endl;
+    std::cout << "InvKin3D\n" << m_cathKin.inverseKinematics3D(5,5,12,0.1) << std::endl;
 
     Eigen::Transform<double, 3, Eigen::Affine> T_in(Eigen::Matrix<double, 4, 4>::Identity());
-    std::cout << T_in.matrix() << std::endl;
-    Eigen::Vector4d configIn(0.0010, 0.0001, 0, 0);
-    std::cout << m_cathKin.control_icra2016(T_in, configIn, 0.0) << std::endl;
+    std::cout << "T_in\n" << T_in.matrix() << std::endl;
+    Eigen::Vector4d configIn(0.0010, 0.0001, 0.0001, 0);
+    std::cout << "control_icra2016\n" << m_cathKin.control_icra2016(T_in, configIn, 0.0) << std::endl;
 
     qDebug() << "Ending ControllerThread - ID: " << QThread::currentThreadId() << ".";
 
@@ -63,12 +63,11 @@ void ControllerThread::setEpoch(const QDateTime &epoch)
         m_epoch = epoch;
         m_isEpochSet = true;
 
-        //emit logEventWithMessage(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_EPOCH_SET,
-        //                         m_epoch.toString("dd/MM/yyyy - hh:mm:ss.zzz"));
+        emit logEventWithMessage(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_EPOCH_SET,
+                                 m_epoch.toString("dd/MM/yyyy - hh:mm:ss.zzz"));
     }
     else
-        //emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_EPOCH_SET_FAILED);
-        ;
+        emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_EPOCH_SET_FAILED);
 }
 
 void ControllerThread::printThreadID()
@@ -220,24 +219,28 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX
 
     //emit logEventWithMessage(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), 0, msg);
 
-
-
 //    qint64 elNsec = elTimer.nsecsElapsed();
 //    qDebug() << "Nsec elapsed:" << elNsec;
+
+    controlCycle();
 }
 
 void ControllerThread::updateJointSpaceCommand(double pitch, double yaw, double roll, double trans)
 {
     // qDebug() << "New Joint Target Received";
+    QMutexLocker locker(m_mutex);
 
     // check limits
 
     // update motor QCs
+
+    // emit event to DataLogger
 }
 
 void ControllerThread::updateConfigSpaceCommand(double alpha, double theta, double gamma, double d)
 {
     // qDebug() << "New Config Target Received";
+    QMutexLocker locker(m_mutex);
 
     // run through kinematics
     Eigen::Transform<double,3,Eigen::Affine> tempT;
@@ -252,17 +255,36 @@ void ControllerThread::updateConfigSpaceCommand(double alpha, double theta, doub
         m_targetPos = tempT;
     }
 
+    // emit event to DataLogger
 }
 
-void ControllerThread::updateTaskSpaceCommand(double x, double y, double z, double delPsi)
+void ControllerThread::updateTaskSpaceCommand(double x, double y, double z, double delPsi, bool isAbsolute)
 {
     // qDebug() << "New Task Target Received";
+    QMutexLocker locker(m_mutex);
 
-    // run through kinematics
+    // Store the current tip pose as the new origin
+    m_BBfixed_CTorig = m_BB_CT_curTipPos;
+
+    // update target
+    if(isAbsolute)
+    {
+        m_deltaXYZPsiToTarget(0) = x - m_BBfixed_CTorig(0,3);
+        m_deltaXYZPsiToTarget(1) = y - m_BBfixed_CTorig(1,3);
+        m_deltaXYZPsiToTarget(2) = z - m_BBfixed_CTorig(2,3);
+    }
+    else
+    {
+        m_deltaXYZPsiToTarget(0) = x;
+        m_deltaXYZPsiToTarget(1) = y;
+        m_deltaXYZPsiToTarget(2) = z;
+    }
+    m_deltaXYZPsiToTarget(3) = delPsi;
 
     // check limits
 
-    // update motor QCs
+    // emit event to DataLogger
+    std::cout << "New deltaXYZPsi : " << m_deltaXYZPsiToTarget << std::endl;
 }
 
 void ControllerThread::resetBB()
@@ -280,7 +302,7 @@ void ControllerThread::resetBB()
     m_Box_BBfixed = m_basTipPos_fixed * m_BB_SBm.inverse();
 
     // TODO: Log event
-    // TODO: Safe Tranform to file
+    // TODO: Save Transform to file
 }
 
 void ControllerThread::startControlCycle()
@@ -292,23 +314,24 @@ void ControllerThread::startControlCycle()
         //Start the cycle
         m_keepControlling = true;
 
-        m_timer = new QTimer(this);
-        connect(m_timer, SIGNAL(timeout()), this, SLOT(controlCycle()));
+//        m_timer = new QTimer(this);
+//        connect(m_timer, SIGNAL(timeout()), this, SLOT(controlCycle()));
 
-        m_timer->start(1); // every 1ms
+//        m_timer->start(6); // every 6ms
 
-        if(m_timer->isActive())
-        {
-            qDebug() << "Timer started.";
-            emit statusChanged(CONTROLLER_LOOP_STARTED);
-            emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_LOOP_STARTED);
-        }
-        else
-        {
-            qDebug() << "Timer is not active.";
-            emit statusChanged(CONTROLLER_LOOP_STOPPED);
-            emit logError(SRC_CONTROLLER, LOG_ERROR, QTime::currentTime(), CONTROLLER_INITIALIZE_FAILED, QString("Timer is not active."));
-        }
+//        if(m_timer->isActive())
+//        {
+//            qDebug() << "Timer started.";
+//            emit statusChanged(CONTROLLER_LOOP_STARTED);
+//            emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_LOOP_STARTED);
+//        }
+//        else
+//        {
+//            qDebug() << "Timer is not active.";
+//            emit statusChanged(CONTROLLER_LOOP_STOPPED);
+//            emit logError(SRC_CONTROLLER, LOG_ERROR, QTime::currentTime(), CONTROLLER_INITIALIZE_FAILED, QString("Timer is not active."));
+//        }
+        emit statusChanged(CONTROLLER_LOOP_STARTED);
     }
     else
     {
@@ -331,11 +354,11 @@ void ControllerThread::stopControlCycle()
     {
         m_keepControlling = false;
 
-        m_timer->stop();
+//        m_timer->stop();
 
-        disconnect(m_timer, SIGNAL(timeout()), 0, 0);
+//        disconnect(m_timer, SIGNAL(timeout()), 0, 0);
 
-        delete m_timer;
+//        delete m_timer;
 
         emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_LOOP_STOPPED);
         emit statusChanged(CONTROLLER_LOOP_STOPPED);
@@ -354,6 +377,8 @@ void ControllerThread::setGains(GainsPYRT gains)
 
     m_gains = gains;
 
+    locker.unlock();
+
     qDebug() << "Gains set:\nPitch:" << gains.kPitchMin << gains.kPitchMax
              << "\nYaw:" << gains.kYawMin << gains.kYawMax
              << "\nRoll:" << gains.kRollMin << gains.kRollMax
@@ -366,6 +391,8 @@ void ControllerThread::setLimits(ConvergenceLimits limits)
 
     m_convLimits = limits;
 
+    locker.unlock();
+
     qDebug() << "Convergence limits set:\nPosition:" << limits.posMin << limits.posMax
              << "\nAngle:" << limits.angleMin << limits.angleMax;
 }
@@ -374,27 +401,124 @@ void ControllerThread::controlCycle()
 {
     QMutexLocker locker(m_mutex);
 
-    if(m_isReady)
+    if(m_isReady && m_keepControlling)
     {
+        // ########################################
+        //
+        // TODO: calculate distance and angle error
+        //
+        // ########################################
+
+        // Calculate the angle between the new x-axis and the original x-axis
+        Eigen::Transform<double,3,Eigen::Affine> T_CTorig_CT = m_BBfixed_CTorig.inverse()*m_BB_CT_curTipPos;
+        // This is the total amount of psy that has occurred at the tip since we started
+        double total_psy = atan2(T_CTorig_CT(1,0), T_CTorig_CT(0,0));
+
+//        double normalization = pow(T_CTorig_CT(0,0),2) + pow(T_CTorig_CT(1,0),2);
+//        double total_psy2 = atan2(T_CTorig_CT(1,0)/normalization, T_CTorig_CT(0,0)/normalization);
+
+//        std::cout << "Psy 1 : " << total_psy << "Psy 2 : " << total_psy2 << std::endl;
+
+        // Existing roll in the catheter handle
+        // Assuming the BB point has rotated about its Z axis, the amount of roll in
+        // the handle is calculated as the angle of rotation about the base z-axis.
+        // Here we calculate the angle between the new x-axis and the original
+        // x-axis.
+        double currGamma = atan2(m_BBfixed_BBmobile(1,0), m_BBfixed_BBmobile(0,0));
+
+        std::cout << "Psy : " << total_psy * deg180overPi << " Gamma : " << currGamma * deg180overPi << std::endl;
+
+        // Get BT w.r.t. mobile BB, rather than fixed BB
+        Eigen::Transform<double,3,Eigen::Affine> T_BBmob_BT = m_BBfixed_BBmobile.inverse() * m_BB_CT_curTipPos * m_BT_CT.inverse();
+
+        // How much does the cath still need to move?
+        // calculate delta x,y,z,psi
+        Eigen::Vector4d dXYZPsi;
+        dXYZPsi(0) = m_deltaXYZPsiToTarget(0) - (m_BB_CT_curTipPos(0,3) - m_BBfixed_CTorig(0,3));
+        dXYZPsi(1) = m_deltaXYZPsiToTarget(1) - (m_BB_CT_curTipPos(1,3) - m_BBfixed_CTorig(1,3));
+        dXYZPsi(2) = m_deltaXYZPsiToTarget(2) - (m_BB_CT_curTipPos(2,3) - m_BBfixed_CTorig(2,3));
+        dXYZPsi(3) = m_deltaXYZPsiToTarget(3) - total_psy;
+
+        std::cout << "dx : " << dXYZPsi(0) << " dy : " << dXYZPsi(1) << " dz : " << dXYZPsi(2) << " dpsi : " << dXYZPsi(3) * deg180overPi << std::endl;
+
+        // Calculate distance from target
+        double distError = dXYZPsi.segment(0,3).norm();
+        double angleError = dXYZPsi(3);
+
+        // Update gains
+        double kPitch = 0.0, kYaw = 0.0, kRoll = 0.0, kTrans = 0.0;
+
+        if(distError < m_convLimits.posMin)
+        {
+            kPitch = m_gains.kPitchMin;
+            kYaw = m_gains.kYawMin;
+            kTrans = m_gains.kTransMin;
+        }
+        else if(distError > m_convLimits.posMax)
+        {
+            kPitch = m_gains.kPitchMax;
+            kYaw = m_gains.kYawMax;
+            kTrans = m_gains.kTransMax;
+        }
+        else
+        {
+            double tPos = (distError - m_convLimits.posMin)/(m_convLimits.posMax - m_convLimits.posMin);
+            kPitch = lerp(m_gains.kPitchMin, m_gains.kPitchMax, tPos);
+            kYaw = lerp(m_gains.kYawMin, m_gains.kYawMax, tPos);
+            kTrans = lerp(m_gains.kTransMin, m_gains.kTransMax, tPos);
+        }
+
+        if(angleError < m_convLimits.angleMin)
+        {
+            kRoll = m_gains.kRollMin;
+        }
+        else if(angleError > m_convLimits.angleMax)
+        {
+            kRoll = m_gains.kRollMax;
+        }
+        else
+        {
+            double tAng = (angleError - m_convLimits.angleMin)/(m_convLimits.angleMax - m_convLimits.angleMin);
+            kRoll = lerp(m_gains.kRollMin, m_gains.kRollMax, tAng);
+        }
+
+
 //        Eigen::Transform<double,3,Eigen::Affine> errorT;
 //        errorT = m_targetPos - m_curTipPos;
 
-        // calculate delta x,y,z,psi
-        Eigen::Vector4d dX(0, 0, 0, 0);
-
         // calculate current gamma based on m_curTipPos and m_BB_SBm
-        double currGamma = 0.0;
+        //double currGamma = 0.0;
 
         // feed into control_icra2016
         Eigen::Matrix<double, 4, 2> jointsCurrAndTarget;
-        jointsCurrAndTarget = m_cathKin.control_icra2016(m_curTipPos, dX, currGamma);
+        jointsCurrAndTarget = m_cathKin.control_icra2016(m_BB_CT_curTipPos, dXYZPsi, currGamma);
+
+        Eigen::Vector4d relQCs;  // knob_tgt - knob_curr
+        relQCs(0) = (jointsCurrAndTarget(0,1) - jointsCurrAndTarget(0,0)) * kTrans * 0.001 * EPOS_TRANS_RAD2QC;
+        relQCs(1) = (jointsCurrAndTarget(1,1) - jointsCurrAndTarget(1,0)) * kPitch * EPOS_PITCH_RAD2QC;
+        relQCs(2) = (jointsCurrAndTarget(2,1) - jointsCurrAndTarget(2,0)) * kYaw * EPOS_YAW_RAD2QC;
+        relQCs(3) = (jointsCurrAndTarget(3,1) - jointsCurrAndTarget(3,0)) * kRoll * EPOS_ROLL_RAD2QC;
+
+        // motor commands
+        std::cout << "QCs - T: " << relQCs(0) << " P: " << relQCs(1) << " Y: " << relQCs(2) << " R: " << relQCs(3) << std::endl;
+
+        std::vector<long> targetPos;
+        targetPos.push_back((long)relQCs(0));
+        targetPos.push_back((long)relQCs(1));
+        targetPos.push_back((long)relQCs(2));
+        targetPos.push_back((long)relQCs(3));
+
+        std::cout << "QCs - T: " << targetPos[0] << " P: " << targetPos[1] << " Y: " << targetPos[2] << " R: " << targetPos[3] << std::endl;
+
+        // TODO : check if the EPOS Servo Loop is active, if not, don't send commands
+        emit setEPOSservoTargetPos(targetPos, false); //relative
 
         // emit logData(QTime::currentTime(), newData);
 
         qDebug() << QTime::currentTime() << "Cycle:" << m_numCycles;
-    }
 
-    m_numCycles++;
+        m_numCycles++;
+    }
 }
 
 // ----------------
@@ -431,7 +555,7 @@ static void Transform_From_EMreading(DOUBLE_POSITION_MATRIX_TIME_Q_RECORD &input
 //    qDebug() << "Nsec elapsed:" << elNsec;
 }
 
-std::shared_ptr< std::vector<double> > ControllerThread::cycle_recalculate(std::vector<double> &inputs)
+std::shared_ptr< std::vector<double> > ControllerThread::cycle_recalculate(const std::vector<double> &inputs)
 {
     //    std::ifstream is("inputs.txt");
     //    std::istream_iterator<double> start(is), end;
@@ -449,7 +573,7 @@ std::shared_ptr< std::vector<double> > ControllerThread::cycle_recalculate(std::
 
     // TODO: add error checking to ensure that the vector size is correct
 
-    std::vector<double>::iterator iter = inputs.begin();
+    std::vector<double>::const_iterator iter = inputs.begin();
 
     // get all of the constants
     int m = static_cast<int>(*iter); ++iter; // m = number of sinusoid components

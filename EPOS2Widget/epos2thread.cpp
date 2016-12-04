@@ -1,9 +1,9 @@
 #include "epos2thread.h"
 
-
-
 EPOS2Thread::EPOS2Thread(QObject *parent) : QObject(parent)
 {
+    qRegisterMetaType< std::vector<long> >("std::vector<long>");
+
     m_isEpochSet = false;
     m_isReady = false;
     m_keepServoing = false;
@@ -25,6 +25,7 @@ EPOS2Thread::EPOS2Thread(QObject *parent) : QObject(parent)
 
         m_motors[i]->m_enabled = false;
     }
+
 }
 
 EPOS2Thread::~EPOS2Thread()
@@ -166,11 +167,14 @@ void EPOS2Thread::setServoTargetPos(std::vector<long> targetPos, bool moveAbsOrR
 
     for(int i = 0; i < EPOS_NUM_MOTORS; i++)
     {
-        if(moveAbsOrRel)
-            m_motors[i]->m_lTargetPosition = targetPos[i];
-        else
-            m_motors[i]->m_lTargetPosition += targetPos[i];
+//        if(moveAbsOrRel)
+//            m_motors[i]->m_lTargetPosition = targetPos[i];
+//        else
+//            m_motors[i]->m_lTargetPosition += targetPos[i];
+        setServoTargetPos(i, targetPos[i], moveAbsOrRel);
     }
+
+    //qDebug() << "New servo pos received.";
 }
 
 int EPOS2Thread::checkMotorLimits(const int axisID, const long targetPos)

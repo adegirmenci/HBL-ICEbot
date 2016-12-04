@@ -72,7 +72,7 @@ Eigen::Vector4d Kinematics_4DOF::inverseKinematics3D(const double xt,
     double theta, alpha, d;
     // If gamma is not provided, this problem is underdefined. 1 DoF is free since we didn't specify
     // an orientation for the US crystal. We deal with this by setting default gamma to zero.
-    if( (xt == 0) && (yt == 0) )
+    if( (abs(xt) < 0.000001) && (abs(yt) < 0.000001) )
     {
         theta = 0; // bending axis 0
         alpha = 0; // bending angle 0
@@ -81,13 +81,19 @@ Eigen::Vector4d Kinematics_4DOF::inverseKinematics3D(const double xt,
     else
     {
         double gamma_plus_theta = atan2(yt, xt); // roll plus bending axis angle
+
+        //std::cout << "atan2(1.0,0.0) = " << atan2(1.0,0.0) << std::endl;
+        // Checking for this is not necessary, since atan2 returns pi/2 if x = 0
+        //if(xt == 0)
+        //    gamma_plus_theta = boost::math::copysign(pi/2., yt);
+
         theta = gamma_plus_theta - gamma;
 
         double df = sqrt(pow(xt,2) + pow(yt,2));
 
         double c = df/m_L; // constant
 
-        fZeroAlpha(c, alpha);
+        bool fZeroSuccess = fZeroAlpha(c, alpha);
 
         d = zt - (m_L*sin(alpha))/alpha; // translation
     }
@@ -127,7 +133,7 @@ Eigen::Vector4d Kinematics_4DOF::inverseKinematics(const Eigen::Transform<double
 
     double theta, alpha, d;
 
-    if( (xt == 0) && (yt == 0) )
+    if( (abs(xt) < 0.000001) && (abs(yt) < 0.000001) )
     {
         theta = 0; // bending axis 0
         alpha = 0; // bending angle 0
@@ -138,20 +144,22 @@ Eigen::Vector4d Kinematics_4DOF::inverseKinematics(const Eigen::Transform<double
         double gamma_plus_theta = atan2(yt, xt); // roll plus bending axis angle
         theta = gamma_plus_theta - gamma;
 
+        bool fZeroSuccess;
+
         if (fmod(gamma_plus_theta,pi) == 0)
         {
             double c = xt/m_L/cos(gamma_plus_theta); // constant
 
-            fZeroAlpha(c, alpha);
+            fZeroSuccess = fZeroAlpha(c, alpha);
         }
         else
         {
             double c = yt/m_L/sin(gamma_plus_theta); // constant
 
-            fZeroAlpha(c, alpha);
+            fZeroSuccess = fZeroAlpha(c, alpha);
         }
-        d = zt - (m_L*sin(alpha))/alpha; // translation
 
+        d = zt - (m_L*sin(alpha))/alpha; // translation
 
     }
 
@@ -182,6 +190,7 @@ Eigen::Matrix<double, 4, 2> Kinematics_4DOF::control_icra2016(const Eigen::Trans
     Eigen::Vector4d configTgt = inverseKinematics3D(xt, yt, zt,
                                                     configCurr(0)); // gammaCurr
     Eigen::Transform<double, 3, Eigen::Affine> T_Tgt = forwardKinematics(configTgt);
+    //std::cout << "Target Tform\n" << T_Tgt.matrix() << std::endl;
 
     // Figure out how much to unroll
     // Project initial x axis to the final x-y plane
@@ -190,13 +199,24 @@ Eigen::Matrix<double, 4, 2> Kinematics_4DOF::control_icra2016(const Eigen::Trans
     Eigen::Vector3d z_final = T_Tgt.rotation().block<3,1>(0,2);
     Eigen::Vector3d x_init_proj = x_init - x_init.dot(z_final)*z_final;
     x_init_proj.normalize();
+    //std::cout << "x_init_proj\n" << x_init_proj << std::endl;
 
     // Find the angle between the projected and final x axes
     Eigen::Vector3d cross_xinit_xfinal = x_final.cross(x_init_proj);
     cross_xinit_xfinal.normalize();
-    double delta_angle = acos(x_init_proj.dot(x_final));
+    //std::cout << "cross_xinit_xfinal\n" << cross_xinit_xfinal << std::endl;
+    double dot_xinitproj_xfinal = x_init_proj.dot(x_final);
+    //std::cout << "dot_xinitproj_xfinal\n" << dot_xinitproj_xfinal << std::endl;
+    // The dot product can be slightly larger than 1 or -1, causing acos to return NAN
+    if( (-1.0 > dot_xinitproj_xfinal) && (dot_xinitproj_xfinal > -1.01))
+        dot_xinitproj_xfinal = -1.0;
+    if( (1.0 < dot_xinitproj_xfinal) && (dot_xinitproj_xfinal < 1.01) )
+        dot_xinitproj_xfinal = 1.0;
+    double delta_angle = acos(dot_xinitproj_xfinal);
+    //std::cout << "delta_angle\n" << delta_angle << std::endl;
     if( z_final.dot(cross_xinit_xfinal) < 0.0)
         delta_angle = -delta_angle; // account for directionality
+    //std::cout << "delta_angle\n" << delta_angle << std::endl;
 
     // Add the unroll and user's desired roll angles to handle roll
     double angle_diff = delta_angle + dX(3); // dX(3) =>> dpsi in MATLAB
@@ -209,8 +229,8 @@ Eigen::Matrix<double, 4, 2> Kinematics_4DOF::control_icra2016(const Eigen::Trans
 
     Eigen::Matrix<double, 4, 2> jointsCurrAndTgt;
 
-    std::cout << jointsCurr << std::endl;
-    std::cout << jointsTgt << std::endl;
+    //std::cout << "Joints Curr\n" << jointsCurr << std::endl;
+    //std::cout << "Joints Target\n" << jointsTgt << std::endl;
 
     jointsCurrAndTgt << jointsCurr, jointsTgt;
 
@@ -348,9 +368,9 @@ bool Kinematics_4DOF::fZeroAlpha(const double c, double &alpha)
 
         a1 = a0 - y/yprime;
 
-        if(abs(a1 - a0) <=  (1.0e-7 * abs(a1)) )
+        if(abs(a1 - a0) <= (1.0e-7 * abs(a1)) )
         {
-            printf("Found solution in %d steps.\n", i);
+            printf("Found solution in %d steps.\n", i+1);
             foundSoln = true;
             break;
         }

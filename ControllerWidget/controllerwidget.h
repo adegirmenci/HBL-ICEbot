@@ -25,7 +25,7 @@ signals:
     void tellWorkerToPrintThreadID();
     void updateJointSpaceCommand(double pitch, double yaw, double roll, double trans);
     void updateConfigSpaceCommand(double alpha, double theta, double gamma, double d);
-    void updateTaskSpaceCommand(double x, double y, double z, double delPsi);
+    void updateTaskSpaceCommand(double x, double y, double z, double delPsi, bool isAbsolute);
     void tellWorkerToResetBB();
     void startControlCycle(); // start control loop in worker
     void stopControlCycle(); // stop control loop in worker

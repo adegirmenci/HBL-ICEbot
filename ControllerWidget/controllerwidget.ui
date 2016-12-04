@@ -71,7 +71,7 @@
   <widget class="QGroupBox" name="configSpaceGroupBox">
    <property name="geometry">
     <rect>
-     <x>310</x>
+     <x>280</x>
      <y>250</y>
      <width>121</width>
      <height>171</height>
@@ -335,9 +335,9 @@
   <widget class="QGroupBox" name="taskSpaceGroupBox">
    <property name="geometry">
     <rect>
-     <x>430</x>
+     <x>400</x>
      <y>250</y>
-     <width>121</width>
+     <width>151</width>
      <height>171</height>
     </rect>
    </property>
@@ -350,7 +350,7 @@
    <widget class="QWidget" name="gridLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>0</x>
+      <x>20</x>
       <y>20</y>
       <width>111</width>
       <height>112</height>
@@ -366,7 +366,7 @@
         </size>
        </property>
        <property name="suffix">
-        <string notr="true"> mm</string>
+        <string notr="true"> deg</string>
        </property>
        <property name="decimals">
         <number>2</number>
@@ -570,9 +570,9 @@
    <widget class="QPushButton" name="updateTaskSpaceButton">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>80</x>
       <y>140</y>
-      <width>81</width>
+      <width>61</width>
       <height>21</height>
      </rect>
     </property>
@@ -580,11 +580,40 @@
      <string>Update</string>
     </property>
    </widget>
+   <widget class="QRadioButton" name="absoluteRadiobutton">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>130</y>
+      <width>84</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Absolute</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="relativeRadiobutton">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>150</y>
+      <width>84</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Relative</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QGroupBox" name="jointSpaceGroupBox">
    <property name="geometry">
     <rect>
-     <x>190</x>
+     <x>160</x>
      <y>250</y>
      <width>121</width>
      <height>171</height>
