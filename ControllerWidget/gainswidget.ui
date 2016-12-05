@@ -53,14 +53,17 @@
        <property name="alignment">
         <set>Qt::AlignCenter</set>
        </property>
+       <property name="decimals">
+        <number>3</number>
+       </property>
        <property name="maximum">
-        <double>5.000000000000000</double>
+        <double>1.000000000000000</double>
        </property>
        <property name="singleStep">
-        <double>0.100000000000000</double>
+        <double>0.010000000000000</double>
        </property>
        <property name="value">
-        <double>0.100000000000000</double>
+        <double>0.080000000000000</double>
        </property>
       </widget>
      </item>
@@ -120,14 +123,17 @@
        <property name="alignment">
         <set>Qt::AlignCenter</set>
        </property>
+       <property name="decimals">
+        <number>3</number>
+       </property>
        <property name="maximum">
-        <double>5.000000000000000</double>
+        <double>1.500000000000000</double>
        </property>
        <property name="singleStep">
-        <double>0.100000000000000</double>
+        <double>0.050000000000000</double>
        </property>
        <property name="value">
-        <double>0.700000000000000</double>
+        <double>0.500000000000000</double>
        </property>
       </widget>
      </item>
@@ -136,14 +142,17 @@
        <property name="alignment">
         <set>Qt::AlignCenter</set>
        </property>
+       <property name="decimals">
+        <number>3</number>
+       </property>
        <property name="maximum">
-        <double>5.000000000000000</double>
+        <double>1.000000000000000</double>
        </property>
        <property name="singleStep">
-        <double>0.100000000000000</double>
+        <double>0.050000000000000</double>
        </property>
        <property name="value">
-        <double>0.300000000000000</double>
+        <double>0.200000000000000</double>
        </property>
       </widget>
      </item>
@@ -152,14 +161,17 @@
        <property name="alignment">
         <set>Qt::AlignCenter</set>
        </property>
+       <property name="decimals">
+        <number>3</number>
+       </property>
        <property name="maximum">
-        <double>5.000000000000000</double>
+        <double>1.500000000000000</double>
        </property>
        <property name="singleStep">
-        <double>0.100000000000000</double>
+        <double>0.050000000000000</double>
        </property>
        <property name="value">
-        <double>0.700000000000000</double>
+        <double>0.500000000000000</double>
        </property>
       </widget>
      </item>
@@ -168,14 +180,17 @@
        <property name="alignment">
         <set>Qt::AlignCenter</set>
        </property>
+       <property name="decimals">
+        <number>3</number>
+       </property>
        <property name="maximum">
-        <double>5.000000000000000</double>
+        <double>1.500000000000000</double>
        </property>
        <property name="singleStep">
-        <double>0.100000000000000</double>
+        <double>0.050000000000000</double>
        </property>
        <property name="value">
-        <double>0.700000000000000</double>
+        <double>0.500000000000000</double>
        </property>
       </widget>
      </item>
@@ -184,14 +199,17 @@
        <property name="alignment">
         <set>Qt::AlignCenter</set>
        </property>
+       <property name="decimals">
+        <number>3</number>
+       </property>
        <property name="maximum">
-        <double>5.000000000000000</double>
+        <double>1.000000000000000</double>
        </property>
        <property name="singleStep">
-        <double>0.100000000000000</double>
+        <double>0.050000000000000</double>
        </property>
        <property name="value">
-        <double>0.300000000000000</double>
+        <double>0.200000000000000</double>
        </property>
       </widget>
      </item>
@@ -213,14 +231,17 @@
        <property name="alignment">
         <set>Qt::AlignCenter</set>
        </property>
+       <property name="decimals">
+        <number>3</number>
+       </property>
        <property name="maximum">
-        <double>5.000000000000000</double>
+        <double>1.000000000000000</double>
        </property>
        <property name="singleStep">
-        <double>0.100000000000000</double>
+        <double>0.050000000000000</double>
        </property>
        <property name="value">
-        <double>0.300000000000000</double>
+        <double>0.200000000000000</double>
        </property>
       </widget>
      </item>
@@ -229,14 +250,17 @@
        <property name="alignment">
         <set>Qt::AlignCenter</set>
        </property>
+       <property name="decimals">
+        <number>3</number>
+       </property>
        <property name="maximum">
-        <double>5.000000000000000</double>
+        <double>1.500000000000000</double>
        </property>
        <property name="singleStep">
-        <double>0.100000000000000</double>
+        <double>0.010000000000000</double>
        </property>
        <property name="value">
-        <double>0.500000000000000</double>
+        <double>0.300000000000000</double>
        </property>
       </widget>
      </item>
@@ -319,7 +343,7 @@
       <x>10</x>
       <y>30</y>
       <width>182</width>
-      <height>101</height>
+      <height>108</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_5">

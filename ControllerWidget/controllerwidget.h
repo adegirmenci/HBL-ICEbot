@@ -54,6 +54,10 @@ private slots:
 
     void on_adjustGainsButton_clicked();
 
+    void on_relativeRadiobutton_clicked();
+
+    void on_absoluteRadiobutton_clicked();
+
 private:
     Ui::ControllerWidget *ui;
 

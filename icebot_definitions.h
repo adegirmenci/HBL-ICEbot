@@ -172,9 +172,9 @@ static const int ROLL_AXIS_ID = 3;
 
 static const int EPOS_AXIS_IDS[EPOS_NUM_MOTORS] = {TRANS_AXIS_ID, PITCH_AXIS_ID, YAW_AXIS_ID, ROLL_AXIS_ID};
 
-static const int EPOS_VELOCITY = 5000;
-static const int EPOS_ACCEL = 8000;
-static const int EPOS_DECEL = 8000;
+static const int EPOS_VELOCITY[EPOS_NUM_MOTORS] = {5000, 10000, 10000, 10000};
+static const int EPOS_ACCEL[EPOS_NUM_MOTORS] = {20000, 50000, 50000, 50000};
+static const int EPOS_DECEL[EPOS_NUM_MOTORS] = {20000, 30000, 30000, 30000};
 
 static const long EPOS_TRANS_MIN = -320000;
 static const long EPOS_TRANS_MAX = 320000;

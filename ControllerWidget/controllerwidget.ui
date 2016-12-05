@@ -459,6 +459,9 @@
        <property name="singleStep">
         <double>1.000000000000000</double>
        </property>
+       <property name="value">
+        <double>70.000000000000000</double>
+       </property>
       </widget>
      </item>
      <item row="0" column="1">
@@ -876,6 +879,12 @@
    </property>
    <property name="text">
     <string>Start Controller</string>
+   </property>
+   <property name="autoDefault">
+    <bool>true</bool>
+   </property>
+   <property name="default">
+    <bool>true</bool>
    </property>
   </widget>
   <widget class="QPushButton" name="resetBB_Button">

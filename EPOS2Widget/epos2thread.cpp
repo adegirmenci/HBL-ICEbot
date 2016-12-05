@@ -135,22 +135,27 @@ void EPOS2Thread::setServoTargetPos(const int axisID, long targetPos, bool moveA
         if(moveAbsOrRel)
             targetPos = clampToMotorLimits(axisID, targetPos); // abs
         else
-            targetPos = clampToMotorLimits(axisID, m_motors[axisID]->m_lTargetPosition + targetPos); // rel
+            targetPos = clampToMotorLimits(axisID, m_motors[axisID]->m_lActualValue + targetPos); // rel
 
         // compensate for roll
         if(ROLL_AXIS_ID == axisID)
         {
             // #relativeRoll = #currentIncrement - #oldPosition
-            long relativeRoll = targetPos - m_motors[ROLL_AXIS_ID]->m_lTargetPosition;
+            long relativeRoll = targetPos - m_motors[ROLL_AXIS_ID]->m_lActualValue;
 
             m_motors[PITCH_AXIS_ID]->m_lTargetPosition += relativeRoll; //pitch
             m_motors[YAW_AXIS_ID]->m_lTargetPosition   -= relativeRoll; //yaw
 
             //update limits
-            m_motors[PITCH_AXIS_ID]->m_minQC += relativeRoll;
-            m_motors[PITCH_AXIS_ID]->m_maxQC += relativeRoll;
-            m_motors[YAW_AXIS_ID]->m_minQC -= relativeRoll;
-            m_motors[YAW_AXIS_ID]->m_maxQC -= relativeRoll;
+//            m_motors[PITCH_AXIS_ID]->m_minQC += relativeRoll;
+//            m_motors[PITCH_AXIS_ID]->m_maxQC += relativeRoll;
+//            m_motors[YAW_AXIS_ID]->m_minQC -= relativeRoll;
+//            m_motors[YAW_AXIS_ID]->m_maxQC -= relativeRoll;
+            m_motors[PITCH_AXIS_ID]->m_minQC = EPOS_PITCH_MIN + targetPos;
+            m_motors[PITCH_AXIS_ID]->m_maxQC = EPOS_PITCH_MAX + targetPos;
+            m_motors[YAW_AXIS_ID]->m_minQC = EPOS_YAW_MIN - targetPos;
+            m_motors[YAW_AXIS_ID]->m_maxQC = EPOS_YAW_MAX - targetPos;
+
         }
 
         // finally, update the roll target
@@ -164,6 +169,8 @@ void EPOS2Thread::setServoTargetPos(std::vector<long> targetPos, bool moveAbsOrR
 
     if(targetPos.size() != EPOS_NUM_MOTORS)
         qDebug() << "Wrong vector size in setServoTargetPos.";
+
+    //updateMotorQCs();
 
     for(int i = 0; i < EPOS_NUM_MOTORS; i++)
     {
@@ -211,6 +218,8 @@ void EPOS2Thread::servoToPosition()
 {
     QMutexLocker locker(m_mutex);
 
+    updateMotorQCs();
+
 //  QElapsedTimer elTimer;
 //  qDebug() << "Using clock type " << elTimer.clockType();
 //  elTimer.start();
@@ -233,7 +242,7 @@ void EPOS2Thread::servoToPosition(const int axisID)
 
         if(m_motors[axisID]->m_enabled)
         {
-            updateMotorQC(axisID); // this may not be the best place to put this
+            //updateMotorQC(axisID); // this may not be the best place to put this
 
             emit logData(QTime::currentTime(), EPOS_COMMANDED, axisID, m_motors[axisID]->m_lTargetPosition);
 
@@ -350,7 +359,7 @@ void EPOS2Thread::homeAxis(const int axisID)
 
             // reset speed
             if(!VCS_SetPositionProfile(m_KeyHandle,nodeID,
-                                       EPOS_VELOCITY,EPOS_ACCEL,EPOS_DECEL,&m_ulErrorCode))
+                                       EPOS_VELOCITY[axisID],EPOS_ACCEL[axisID],EPOS_DECEL[axisID],&m_ulErrorCode))
             {
                 ShowErrorInformation(m_ulErrorCode);
             }
@@ -395,7 +404,7 @@ void EPOS2Thread::homeAllAxes()
         {
             WORD nodeID = m_motors[i]->m_nodeID;
             if(!VCS_SetPositionProfile(m_KeyHandle,nodeID,
-                                       EPOS_VELOCITY,EPOS_ACCEL,EPOS_DECEL,&m_ulErrorCode))
+                                       EPOS_VELOCITY[i],EPOS_ACCEL[i],EPOS_DECEL[i],&m_ulErrorCode))
             {
                 ShowErrorInformation(m_ulErrorCode);
             }
@@ -513,14 +522,14 @@ bool EPOS2Thread::initializeMotor(const int motID)
                             {
                                 //Write Profile Position Objects
                                 if(VCS_SetPositionProfile(m_KeyHandle, usNodeID,
-                                                          EPOS_VELOCITY,
-                                                          EPOS_ACCEL,
-                                                          EPOS_DECEL,
+                                                          EPOS_VELOCITY[motID],
+                                                          EPOS_ACCEL[motID],
+                                                          EPOS_DECEL[motID],
                                                           &m_ulErrorCode))
                                 {
-                                    mot->m_ulProfileVelocity = EPOS_VELOCITY;
-                                    mot->m_ulProfileAcceleration = EPOS_ACCEL;
-                                    mot->m_ulProfileDeceleration = EPOS_DECEL;
+                                    mot->m_ulProfileVelocity = EPOS_VELOCITY[motID];
+                                    mot->m_ulProfileAcceleration = EPOS_ACCEL[motID];
+                                    mot->m_ulProfileDeceleration = EPOS_DECEL[motID];
 
                                     //Read Actual Position
                                     if(VCS_GetPositionIs(m_KeyHandle, usNodeID,

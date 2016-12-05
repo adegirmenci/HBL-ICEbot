@@ -42,6 +42,7 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
     connect(gainWidget, SIGNAL(setGains(GainsPYRT)), m_worker, SLOT(setGains(GainsPYRT)));
     connect(gainWidget, SIGNAL(setLimits(ConvergenceLimits)), m_worker, SLOT(setLimits(ConvergenceLimits)));
 
+    // Initalize gains and limits to defaults
     gainWidget->on_setGainsButton_clicked();
     gainWidget->on_setLimitsButton_clicked();
 
@@ -55,6 +56,8 @@ ControllerWidget::~ControllerWidget()
     m_thread.quit();
     m_thread.wait();
     qDebug() << "Controller thread quit.";
+
+    gainWidget->close();
 
     delete gainWidget;
     delete ui;
@@ -221,4 +224,20 @@ void ControllerWidget::on_adjustGainsButton_clicked()
         //gainWidget->hide();
         gainWidget->close();
     }
+}
+
+void ControllerWidget::on_relativeRadiobutton_clicked()
+{
+    ui->xSpinbox->setValue(0.0);
+    ui->ySpinbox->setValue(0.0);
+    ui->zSpinbox->setValue(0.0);
+    ui->delPsiSpinbox->setValue(0.0);
+}
+
+void ControllerWidget::on_absoluteRadiobutton_clicked()
+{
+    ui->xSpinbox->setValue(0.0);
+    ui->ySpinbox->setValue(0.0);
+    ui->zSpinbox->setValue(70.0);
+    ui->delPsiSpinbox->setValue(0.0);
 }

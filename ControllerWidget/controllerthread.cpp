@@ -482,6 +482,8 @@ void ControllerThread::controlCycle()
             kRoll = lerp(m_gains.kRollMin, m_gains.kRollMax, tAng);
         }
 
+        std::cout << "Gains - kR: " << kRoll << " kP: " << kPitch << " kY: " << kYaw << " kT: " << kTrans << std::endl;
+
 
 //        Eigen::Transform<double,3,Eigen::Affine> errorT;
 //        errorT = m_targetPos - m_curTipPos;
@@ -500,13 +502,30 @@ void ControllerThread::controlCycle()
         relQCs(3) = (jointsCurrAndTarget(3,1) - jointsCurrAndTarget(3,0)) * kRoll * EPOS_ROLL_RAD2QC;
 
         // motor commands
-        std::cout << "QCs - T: " << relQCs(0) << " P: " << relQCs(1) << " Y: " << relQCs(2) << " R: " << relQCs(3) << std::endl;
+        //std::cout << "QCs - T: " << relQCs(0) << " P: " << relQCs(1) << " Y: " << relQCs(2) << " R: " << relQCs(3) << std::endl;
+
+        // check if QCs are finite
+        if( !(isfinite(relQCs(0)) && isfinite(relQCs(1)) && isfinite(relQCs(2)) && isfinite(relQCs(3))) )
+        {
+            relQCs = relQCs.Zero();
+        }
 
         std::vector<long> targetPos;
         targetPos.push_back((long)relQCs(0));
         targetPos.push_back((long)relQCs(1));
         targetPos.push_back((long)relQCs(2));
         targetPos.push_back((long)relQCs(3));
+
+        // limit QCs to EPOS velocity limits
+        // TODO : velocity is QCs/s, so we should convert this velocity to QCs/control cycle (= Ascension time = ~6ms)
+        if(abs(targetPos[0]) > EPOS_VELOCITY[0])
+            targetPos[0] = boost::math::copysign(EPOS_VELOCITY[0], targetPos[0]);
+        if(abs(targetPos[1]) > EPOS_VELOCITY[1])
+            targetPos[1] = boost::math::copysign(EPOS_VELOCITY[1], targetPos[1]);
+        if(abs(targetPos[2]) > EPOS_VELOCITY[2])
+            targetPos[2] = boost::math::copysign(EPOS_VELOCITY[2], targetPos[2]);
+        if(abs(targetPos[3]) > EPOS_VELOCITY[3])
+            targetPos[3] = boost::math::copysign(EPOS_VELOCITY[3], targetPos[3]);
 
         std::cout << "QCs - T: " << targetPos[0] << " P: " << targetPos[1] << " Y: " << targetPos[2] << " R: " << targetPos[3] << std::endl;
 
