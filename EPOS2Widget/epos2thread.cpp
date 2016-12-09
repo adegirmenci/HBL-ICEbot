@@ -34,7 +34,7 @@ EPOS2Thread::~EPOS2Thread()
 
     m_mutex->lock();
     m_abort = true;
-    qDebug() << "Ending EPOS2Thread - ID: " << QThread::currentThreadId() << ".";
+    qDebug() << "Ending EPOS2Thread - ID: " << reinterpret_cast<int>(QThread::currentThreadId()) << ".";
     m_mutex->unlock();
 
     delete m_mutex;
@@ -143,6 +143,9 @@ void EPOS2Thread::setServoTargetPos(const int axisID, long targetPos, bool moveA
             // #relativeRoll = #currentIncrement - #oldPosition
             long relativeRoll = targetPos - m_motors[ROLL_AXIS_ID]->m_lActualValue;
 
+            // this works because roll is the last to update
+            // if roll is not the last to get updated, then these target values
+            // would get overwritten
             m_motors[PITCH_AXIS_ID]->m_lTargetPosition += relativeRoll; //pitch
             m_motors[YAW_AXIS_ID]->m_lTargetPosition   -= relativeRoll; //yaw
 
@@ -158,7 +161,7 @@ void EPOS2Thread::setServoTargetPos(const int axisID, long targetPos, bool moveA
 
         }
 
-        // finally, update the roll target
+        // finally, update the target
         m_motors[axisID]->m_lTargetPosition = targetPos;
     }
 }

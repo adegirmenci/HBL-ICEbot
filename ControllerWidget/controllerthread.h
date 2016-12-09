@@ -43,7 +43,18 @@ struct ModeFlags
     int instTrackMode;
     int EKFstate;
     int inVivoMode;
+
+    explicit ModeFlags(int cF = COORD_FRAME_WORLD,
+                       int tth = MODE_TETHETERED,
+                       int iTS = INST_TRACK_OFF,
+                       int iTM = INST_TRACK_POSITION,
+                       int EKFs = EKF_OFF,
+                       int iVM = IN_VIVO_OFF) :
+        coordFrame(cF), tethered(tth), instTrackState(iTS), instTrackMode(iTM), EKFstate(EKFs), inVivoMode(iVM)
+    { }
 };
+
+Q_DECLARE_METATYPE(ModeFlags)
 
 class ControllerThread : public QObject
 {
@@ -95,6 +106,8 @@ public slots:
 
     void setGains(GainsPYRT gains);
     void setLimits(ConvergenceLimits limits);
+    void setModeFlags(ModeFlags flags);
+    void setUSangle(double usAngle);
 
 private slots:
     void controlCycle(); // on a timer
@@ -158,6 +171,10 @@ private:
     GainsPYRT m_gains;
     // convergence limits
     ConvergenceLimits m_convLimits;
+    // Mode Flags
+    ModeFlags m_modeFlags;
+    // US angle
+    double m_USangle;
 
     // keep track of number of control cycles
     // an atomic variable alleviates the need to use mutexes during mutation

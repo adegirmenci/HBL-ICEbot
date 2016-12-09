@@ -35,7 +35,7 @@ FrameClientThread::~FrameClientThread()
     }
     m_mutex->unlock();
 
-    qDebug() << "Ending FrameClientThread - ID: " << QThread::currentThreadId() << ".";
+    qDebug() << "Ending FrameClientThread - ID: " << reinterpret_cast<int>(QThread::currentThreadId()) << ".";
 
     delete m_mutex;
     emit finished();

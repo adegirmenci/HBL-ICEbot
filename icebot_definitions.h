@@ -298,25 +298,36 @@ enum CONTROLLER_SPACE_VARIABLES
     TASK_SPACE_DEL_PSI
 };
 
-
-// int coordFrame;
-//int tethered;
-//int instTrackState;
-//int instTrackMode;
-//int EKFstate;
-//int inVivoMode;
-
+// Mode flags
 enum COORD_FRAME_MODE
 {
     COORD_FRAME_WORLD = 0,
     COORD_FRAME_MOBILE
 };
 
-//enum TETHER_MODE
-//{
-//    COORD_FRAME_WORLD = 0,
-//    COORD_FRAME_MOBILE
-//};
+enum TETHER_MODE
+{
+    MODE_TETHETERED = 0,
+    MODE_RELATIVE
+};
+
+enum INST_TRACK_STATE
+{
+    INST_TRACK_OFF = 0,
+    INST_TRACK_ON
+};
+
+enum INST_TRACK_MODE
+{
+    INST_TRACK_POSITION = 0,
+    INST_TRACK_IMAGER
+};
+
+enum EKF_STATE
+{
+    EKF_OFF = 0,
+    EKF_ON
+};
 
 enum IN_VIVO_MODE
 {
@@ -325,6 +336,7 @@ enum IN_VIVO_MODE
 };
 
 static const int CONTROLLER_LOOP_TIMER_MSEC = 1;
+
 // ***********************
 // ***** DATA LOGGER *****
 // ***********************

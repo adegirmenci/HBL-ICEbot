@@ -23,7 +23,7 @@ FrmGrabThread::~FrmGrabThread()
 
     m_mutex->lock();
     m_abort = true;
-    qDebug() << "Ending FrmGrabThread - ID: " << QThread::currentThreadId() << ".";
+    qDebug() << "Ending FrmGrabThread - ID: " << reinterpret_cast<int>(QThread::currentThreadId()) << ".";
     m_mutex->unlock();
 
     delete m_mutex;

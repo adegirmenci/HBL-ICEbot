@@ -29,7 +29,7 @@ DataLoggerThread::~DataLoggerThread()
 {
     closeLogFiles();
 
-    qDebug() << "Ending DataLoggerThread - ID: " << QThread::currentThreadId() << ".";
+    qDebug() << "Ending DataLoggerThread - ID: " << reinterpret_cast<int>(QThread::currentThreadId()) << ".";
 
     delete m_mutex;
 

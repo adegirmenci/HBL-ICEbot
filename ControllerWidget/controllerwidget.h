@@ -29,6 +29,8 @@ signals:
     void tellWorkerToResetBB();
     void startControlCycle(); // start control loop in worker
     void stopControlCycle(); // stop control loop in worker
+    void updateModeFlags(ModeFlags flags);
+    void updateUSangle(double usAngle);
 
 private slots:
     void workerStatusChanged(int status);
@@ -57,6 +59,10 @@ private slots:
     void on_relativeRadiobutton_clicked();
 
     void on_absoluteRadiobutton_clicked();
+
+    void on_updateFlagsButton_clicked();
+
+    void on_setUSangleButton_clicked();
 
 private:
     Ui::ControllerWidget *ui;

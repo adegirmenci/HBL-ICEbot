@@ -3,6 +3,8 @@
 ControllerThread::ControllerThread(QObject *parent) :
     QObject(parent)
 {
+    qRegisterMetaType<ModeFlags>("ModeFlags");
+
     m_isEpochSet = false;
     m_isReady = false;
     m_keepControlling = false;
@@ -37,7 +39,7 @@ ControllerThread::~ControllerThread()
     Eigen::Vector4d configIn(0.0010, 0.0001, 0.0001, 0);
     std::cout << "control_icra2016\n" << m_cathKin.control_icra2016(T_in, configIn, 0.0) << std::endl;
 
-    qDebug() << "Ending ControllerThread - ID: " << QThread::currentThreadId() << ".";
+    qDebug() << "Ending ControllerThread - ID: " << reinterpret_cast<int>(QThread::currentThreadId()) << ".";
 
     // stop controller
     stopControlCycle();
@@ -72,7 +74,7 @@ void ControllerThread::setEpoch(const QDateTime &epoch)
 
 void ControllerThread::printThreadID()
 {
-    qDebug() << QTime::currentTime() << "Worker Thread ID: " << QThread::currentThreadId();
+    qDebug() << QTime::currentTime() << "Worker Thread ID: " << reinterpret_cast<int>(QThread::currentThreadId());
 }
 
 // THIS FUNCTION SHOULD NOT BE USED AT ALL
@@ -402,6 +404,42 @@ void ControllerThread::setLimits(ConvergenceLimits limits)
 
     qDebug() << "Convergence limits set:\nPosition:" << limits.posMin << limits.posMax
              << "\nAngle:" << limits.angleMin << limits.angleMax;
+}
+
+void ControllerThread::setModeFlags(ModeFlags flags)
+{
+    QMutexLocker locker(m_mutex);
+
+    m_modeFlags = flags;
+
+    locker.unlock();
+
+    qDebug() << "Mode flags set: " << flags.coordFrame
+             << flags.tethered << flags.instTrackState
+             << flags.instTrackMode << flags.EKFstate
+             << flags.inVivoMode;
+}
+
+void ControllerThread::setUSangle(double usAngle)
+{
+    QMutexLocker locker(m_mutex);
+
+    usAngle *= piOverDeg180;
+    m_USangle = usAngle;
+
+    m_BT_CT = m_BT_CT.Identity();
+    m_BT_CT(0,0) = cos(usAngle);
+    m_BT_CT(1,1) = m_BT_CT(0,0);
+    m_BT_CT(0,1) = -sin(usAngle);
+    m_BT_CT(1,0) = -m_BT_CT(0,1);
+    m_BT_CT(2,3) = 21.7;
+
+//    m_BT_CT << cos(usAngle), -sin(usAngle), 0,    0,
+//               sin(usAngle),  cos(usAngle), 0,    0,
+//                         0,              0, 1, 21.7;
+
+    std::cout << "New m_BT_CT:\n" << m_BT_CT.matrix() << std::endl;
+    qDebug() << "US angle updated to" << m_USangle*deg180overPi << "degrees.";
 }
 
 void ControllerThread::controlCycle()

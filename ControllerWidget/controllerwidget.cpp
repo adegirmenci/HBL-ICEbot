@@ -46,6 +46,12 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
     gainWidget->on_setGainsButton_clicked();
     gainWidget->on_setLimitsButton_clicked();
 
+    // Mode Flags
+    connect(this, SIGNAL(updateModeFlags(ModeFlags)), m_worker, SLOT(setModeFlags(ModeFlags)));
+
+    // US angle
+    connect(this, SIGNAL(updateUSangle(double)), m_worker, SLOT(setUSangle(double)));
+
     ui->jointSpaceGroupBox->setChecked(false);
     ui->configSpaceGroupBox->setChecked(false);
 
@@ -107,7 +113,7 @@ void ControllerWidget::receiveMsgFromWorker(QString msg)
 
 void ControllerWidget::on_testButton_clicked()
 {
-    qDebug() << QTime::currentTime() << "Widget Thread ID: " << QThread::currentThreadId();
+    qDebug() << QTime::currentTime() << "Widget Thread ID: " << reinterpret_cast<int>(QThread::currentThreadId());
 
     emit tellWorkerToPrintThreadID();
 }
@@ -240,4 +246,68 @@ void ControllerWidget::on_absoluteRadiobutton_clicked()
     ui->ySpinbox->setValue(0.0);
     ui->zSpinbox->setValue(70.0);
     ui->delPsiSpinbox->setValue(0.0);
+}
+
+void ControllerWidget::on_updateFlagsButton_clicked()
+{
+    ModeFlags flags;
+
+//    int coordFrame;
+//    int tethered;
+//    int instTrackState;
+//    int instTrackMode;
+//    int EKFstate;
+//    int inVivoMode;
+
+
+    if(ui->mobileRadioButton->isChecked())
+        flags.coordFrame = COORD_FRAME_MOBILE;
+    else if(ui->worldRadioButton->isChecked())
+        flags.coordFrame = COORD_FRAME_WORLD;
+    else{
+        qDebug() << "coordFrame: State not recognized!"; return; }
+
+    if(ui->relativeModeRadioButton->isChecked())
+        flags.tethered = MODE_RELATIVE;
+    else if(ui->tetheredModeRadioButton->isChecked())
+        flags.tethered = MODE_TETHETERED;
+    else{
+        qDebug() << "tethered: State not recognized!"; return; }
+
+    if(ui->ITonRadioButton->isChecked())
+        flags.instTrackState = INST_TRACK_ON;
+    else if(ui->IToffRadioButton->isChecked())
+        flags.instTrackState = INST_TRACK_OFF;
+    else{
+        qDebug() << "instTrackState: State not recognized!"; return; }
+
+    if(ui->imagerRadioButton->isChecked())
+        flags.instTrackMode = INST_TRACK_IMAGER;
+    else if(ui->positionRadioButton->isChecked())
+        flags.instTrackMode = INST_TRACK_POSITION;
+    else{
+        qDebug() << "instTrackMode: State not recognized!"; return; }
+
+    if(ui->EKFonRadioButton->isChecked())
+        flags.EKFstate = EKF_ON;
+    else if(ui->EKFoffRadioButton->isChecked())
+        flags.EKFstate = EKF_OFF;
+    else{
+        qDebug() << "EKFstate: State not recognized!"; return; }
+
+    if(ui->InVivoOnRadioButton->isChecked())
+        flags.inVivoMode = IN_VIVO_ON;
+    else if(ui->InVivoOffRadioButton->isChecked())
+        flags.inVivoMode = IN_VIVO_OFF;
+    else{
+        qDebug() << "inVivoMode: State not recognized!"; return; }
+
+    emit updateModeFlags(flags);
+}
+
+void ControllerWidget::on_setUSangleButton_clicked()
+{
+    double usAngle = ui->usAngleSpinBox->value();
+
+    emit updateUSangle(usAngle);
 }

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1078</width>
+    <width>560</width>
     <height>450</height>
    </rect>
   </property>
@@ -17,8 +17,8 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>210</y>
-     <width>241</width>
+     <y>230</y>
+     <width>141</width>
      <height>51</height>
     </rect>
    </property>
@@ -30,7 +30,7 @@
      <rect>
       <x>10</x>
       <y>25</y>
-      <width>221</width>
+      <width>121</width>
       <height>20</height>
      </rect>
     </property>
@@ -42,8 +42,8 @@
   <widget class="QPushButton" name="testButton">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>270</y>
+     <x>160</x>
+     <y>240</y>
      <width>80</width>
      <height>21</height>
     </rect>
@@ -890,7 +890,7 @@
   <widget class="QPushButton" name="resetBB_Button">
    <property name="geometry">
     <rect>
-     <x>190</x>
+     <x>160</x>
      <y>10</y>
      <width>80</width>
      <height>21</height>
@@ -913,268 +913,13 @@
     <string>Adjust Gains</string>
    </property>
   </widget>
-  <widget class="QGroupBox" name="coordFrameGroupBox">
-   <property name="geometry">
-    <rect>
-     <x>610</x>
-     <y>270</y>
-     <width>111</width>
-     <height>61</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Coordinate Frame</string>
-   </property>
-   <widget class="QWidget" name="verticalLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>20</y>
-      <width>91</width>
-      <height>46</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="QRadioButton" name="worldRadioButton">
-       <property name="text">
-        <string>World</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="mobileRadioButton">
-       <property name="text">
-        <string>Mobile</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QGroupBox" name="instTrackGroupBox">
-   <property name="geometry">
-    <rect>
-     <x>610</x>
-     <y>340</y>
-     <width>111</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Instrument Tracking</string>
-   </property>
-   <widget class="QWidget" name="horizontalLayoutWidget_2">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>20</y>
-      <width>91</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="QRadioButton" name="IToffRadioButton">
-       <property name="text">
-        <string>Off</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="ITonRadioButton">
-       <property name="text">
-        <string>On</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QGroupBox" name="ITModeGroupBox">
-   <property name="geometry">
-    <rect>
-     <x>730</x>
-     <y>340</y>
-     <width>131</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>IT Mode</string>
-   </property>
-   <widget class="QWidget" name="horizontalLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>20</y>
-      <width>121</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QRadioButton" name="positionRadioButton">
-       <property name="text">
-        <string>Position</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="imagerRadioButton">
-       <property name="text">
-        <string>Imager</string>
-       </property>
-       <property name="checked">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QGroupBox" name="wrtModeGroupBox">
-   <property name="geometry">
-    <rect>
-     <x>730</x>
-     <y>270</y>
-     <width>101</width>
-     <height>61</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Mode</string>
-   </property>
-   <widget class="QWidget" name="verticalLayoutWidget_2">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>20</y>
-      <width>81</width>
-      <height>46</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout_2">
-     <item>
-      <widget class="QRadioButton" name="tetheredRadioButton">
-       <property name="text">
-        <string>Tethered</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="relativeRadioButton">
-       <property name="text">
-        <string>Relative</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QGroupBox" name="EKFGroupBox">
-   <property name="geometry">
-    <rect>
-     <x>610</x>
-     <y>390</y>
-     <width>111</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>EKF</string>
-   </property>
-   <widget class="QWidget" name="horizontalLayoutWidget_7">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>20</y>
-      <width>91</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_7">
-     <item>
-      <widget class="QRadioButton" name="EKFoffRadioButton">
-       <property name="text">
-        <string>Off</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="EKFonRadioButton">
-       <property name="text">
-        <string>On</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QGroupBox" name="InVivoGroupBox">
-   <property name="geometry">
-    <rect>
-     <x>730</x>
-     <y>390</y>
-     <width>131</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>In Vivo Mode</string>
-   </property>
-   <widget class="QWidget" name="horizontalLayoutWidget_8">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>20</y>
-      <width>111</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_8">
-     <item>
-      <widget class="QRadioButton" name="InVivoOffRadioButton">
-       <property name="text">
-        <string>Off</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="InVivoOnRadioButton">
-       <property name="text">
-        <string>On</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
   <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>40</y>
      <width>231</width>
-     <height>181</height>
+     <height>191</height>
     </rect>
    </property>
    <property name="title">
@@ -1184,14 +929,14 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>30</y>
+      <y>20</y>
       <width>211</width>
-      <height>31</height>
+      <height>30</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
+    <layout class="QHBoxLayout" name="coordFrameLayout">
      <item>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="coordFrameLabel">
        <property name="minimumSize">
         <size>
          <width>64</width>
@@ -1213,7 +958,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="worldRadioButton_2">
+      <widget class="QRadioButton" name="worldRadioButton">
        <property name="minimumSize">
         <size>
          <width>69</width>
@@ -1235,7 +980,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="mobileRadioButton_2">
+      <widget class="QRadioButton" name="mobileRadioButton">
        <property name="text">
         <string>Mobile</string>
        </property>
@@ -1247,14 +992,14 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>60</y>
+      <y>50</y>
       <width>211</width>
       <height>21</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_6">
+    <layout class="QHBoxLayout" name="wrtModeLayout">
      <item>
-      <widget class="QLabel" name="label_2">
+      <widget class="QLabel" name="wrtModeLabel">
        <property name="minimumSize">
         <size>
          <width>64</width>
@@ -1273,7 +1018,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="worldRadioButton_3">
+      <widget class="QRadioButton" name="tetheredModeRadioButton">
        <property name="minimumSize">
         <size>
          <width>69</width>
@@ -1295,7 +1040,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="mobileRadioButton_3">
+      <widget class="QRadioButton" name="relativeModeRadioButton">
        <property name="text">
         <string>Relative</string>
        </property>
@@ -1307,14 +1052,14 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>80</y>
+      <y>70</y>
       <width>211</width>
       <height>31</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_9">
+    <layout class="QHBoxLayout" name="instTrackLayout">
      <item>
-      <widget class="QLabel" name="label_3">
+      <widget class="QLabel" name="instTrackLabel">
        <property name="minimumSize">
         <size>
          <width>64</width>
@@ -1336,7 +1081,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="worldRadioButton_4">
+      <widget class="QRadioButton" name="IToffRadioButton">
        <property name="minimumSize">
         <size>
          <width>69</width>
@@ -1358,7 +1103,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="mobileRadioButton_4">
+      <widget class="QRadioButton" name="ITonRadioButton">
        <property name="text">
         <string>On</string>
        </property>
@@ -1370,14 +1115,14 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>110</y>
+      <y>100</y>
       <width>211</width>
       <height>21</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_10">
+    <layout class="QHBoxLayout" name="ITmodeLayout">
      <item>
-      <widget class="QLabel" name="label_4">
+      <widget class="QLabel" name="ITmodeLabel">
        <property name="minimumSize">
         <size>
          <width>64</width>
@@ -1396,7 +1141,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="worldRadioButton_5">
+      <widget class="QRadioButton" name="positionRadioButton">
        <property name="minimumSize">
         <size>
          <width>69</width>
@@ -1418,7 +1163,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="mobileRadioButton_5">
+      <widget class="QRadioButton" name="imagerRadioButton">
        <property name="text">
         <string>Imager</string>
        </property>
@@ -1430,14 +1175,14 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>130</y>
+      <y>120</y>
       <width>211</width>
       <height>21</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_11">
+    <layout class="QHBoxLayout" name="EKFLayout">
      <item>
-      <widget class="QLabel" name="label_5">
+      <widget class="QLabel" name="EKFalbel">
        <property name="minimumSize">
         <size>
          <width>64</width>
@@ -1456,7 +1201,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="worldRadioButton_6">
+      <widget class="QRadioButton" name="EKFoffRadioButton">
        <property name="minimumSize">
         <size>
          <width>69</width>
@@ -1478,7 +1223,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="mobileRadioButton_6">
+      <widget class="QRadioButton" name="EKFonRadioButton">
        <property name="text">
         <string>On</string>
        </property>
@@ -1490,14 +1235,14 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>150</y>
+      <y>140</y>
       <width>211</width>
       <height>21</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_12">
+    <layout class="QHBoxLayout" name="inVivoLayout">
      <item>
-      <widget class="QLabel" name="label_6">
+      <widget class="QLabel" name="inVivoLabel">
        <property name="minimumSize">
         <size>
          <width>64</width>
@@ -1516,7 +1261,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="worldRadioButton_7">
+      <widget class="QRadioButton" name="InVivoOffRadioButton">
        <property name="minimumSize">
         <size>
          <width>69</width>
@@ -1538,13 +1283,71 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="mobileRadioButton_7">
+      <widget class="QRadioButton" name="InVivoOnRadioButton">
        <property name="text">
         <string>On</string>
        </property>
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QPushButton" name="updateFlagsButton">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>165</y>
+      <width>211</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Update</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="USangleGroupBox">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>280</y>
+     <width>141</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>US Angle</string>
+   </property>
+   <widget class="QDoubleSpinBox" name="usAngleSpinBox">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>81</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="suffix">
+     <string notr="true"> deg</string>
+    </property>
+    <property name="minimum">
+     <double>-180.000000000000000</double>
+    </property>
+    <property name="maximum">
+     <double>180.000000000000000</double>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="setUSangleButton">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>20</y>
+      <width>31</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Set</string>
+    </property>
    </widget>
   </widget>
  </widget>

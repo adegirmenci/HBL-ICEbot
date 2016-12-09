@@ -23,7 +23,7 @@ AscensionThread::~AscensionThread()
     stopAcquisition();
     m_mutex->lock();
     m_abort = true;
-    qDebug() << "Ending AscensionThread - ID: " << QThread::currentThreadId() << ".";
+    qDebug() << "Ending AscensionThread - ID: " << reinterpret_cast<int>(QThread::currentThreadId()) << ".";
     m_mutex->unlock();
 
     delete m_mutex;

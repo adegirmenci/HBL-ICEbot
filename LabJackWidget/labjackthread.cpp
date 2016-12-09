@@ -39,7 +39,7 @@ LabJackThread::~LabJackThread()
 
     m_mutex->lock();
     m_abort = true;
-    qDebug() << "Ending LabJackThread - ID: " << QThread::currentThreadId() << ".";
+    qDebug() << "Ending LabJackThread - ID: " << reinterpret_cast<int>(QThread::currentThreadId()) << ".";
     m_mutex->unlock();
 
     delete m_mutex;
