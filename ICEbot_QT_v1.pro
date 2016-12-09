@@ -41,7 +41,9 @@ SOURCES += main.cpp\
     ControllerWidget/controllerwidget.cpp \
     ControllerWidget/kinematics_4dof.cpp \
     SceneVizWidget/usentity.cpp \
-    ControllerWidget/gainswidget.cpp
+    ControllerWidget/gainswidget.cpp \
+    ControllerWidget/filtfilt.cpp \
+    ControllerWidget/cyclicmodel.cpp
 
 HEADERS  += icebot_gui.h \
     OmniWidget/omni.h \
@@ -68,7 +70,9 @@ HEADERS  += icebot_gui.h \
     ControllerWidget/controllerwidget.h \
     ControllerWidget/kinematics_4dof.h \
     SceneVizWidget/usentity.h \
-    ControllerWidget/gainswidget.h
+    ControllerWidget/gainswidget.h \
+    ControllerWidget/filtfilt.h \
+    ControllerWidget/cyclicmodel.h
 
 FORMS    += icebot_gui.ui \
     OmniWidget/omni.ui \

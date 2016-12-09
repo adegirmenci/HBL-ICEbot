@@ -128,8 +128,8 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX
 {
     QMutexLocker locker(m_mutex);
 
-//    QElapsedTimer elTimer;
-//    elTimer.start();
+    QElapsedTimer elTimer;
+    elTimer.start();
 
     Q_ASSERT(4 == readings.size());
 
@@ -149,15 +149,24 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX
     m_basTipPos_mobile = m_Box_SBm;
     m_Box_BBmobile = m_Box_SBm * m_BB_SBm.inverse();
     m_BBfixed_BBmobile = m_BB_Box * m_Box_BBmobile;
-    m_BBmobile_CT = m_Box_BBmobile.inverse()*m_curTipPos*m_STm_BT*m_BT_CT;
+    // this is from MATLAB >>> Get BT w.r.t. mobile BB, rather than fixed BB
+    // this is from MATLAB >>> m_BBmobile_BT = m_BBfixed_BBmobile.inverse() * m_BB_CT_curTipPos * m_BT_CT.inverse();
+    m_BBmobile_BT = m_Box_BBmobile.inverse() * m_curTipPos * m_STm_BT;
+    // this is the original C++ >>> m_BBmobile_CT = m_Box_BBmobile.inverse() * m_curTipPos * m_STm_BT * m_BT_CT;
+    m_BBmobile_CT = m_BBmobile_BT * m_BT_CT;
 
     //Calculate T_BB_CT_curTipPos:
     // process CT point
-    m_BB_CT_curTipPos = m_BB_Box*m_curTipPos*m_STm_BT*m_BT_CT; // convert to CT in terms of BBfixed
+    m_BB_CT_curTipPos = m_BB_Box * m_curTipPos * m_STm_BT * m_BT_CT; // convert to CT in terms of BBfixed
 
     //Calculate T_BB_targetPos
     m_targetPos = m_targetPos * m_ISm_INSTR; // the tip of the instrument in EM coord
     m_BB_targetPos = m_BB_Box * m_targetPos; // the tip of the instr in BBfixed coord
+
+    controlCycle();
+
+    qint64 elNsec = elTimer.nsecsElapsed();
+    qDebug() << "Nsec elapsed:" << elNsec;
 
     //std::cout << m_BB_CT_curTipPos.matrix() << std::endl;
     // display in GUI
@@ -219,10 +228,6 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX
 
     //emit logEventWithMessage(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), 0, msg);
 
-//    qint64 elNsec = elTimer.nsecsElapsed();
-//    qDebug() << "Nsec elapsed:" << elNsec;
-
-    controlCycle();
 }
 
 void ControllerThread::updateJointSpaceCommand(double pitch, double yaw, double roll, double trans)
@@ -239,6 +244,8 @@ void ControllerThread::updateJointSpaceCommand(double pitch, double yaw, double 
 
 void ControllerThread::updateConfigSpaceCommand(double alpha, double theta, double gamma, double d)
 {
+    // this is not implemented at the moment, just test code
+
     // qDebug() << "New Config Target Received";
     QMutexLocker locker(m_mutex);
 
@@ -252,7 +259,7 @@ void ControllerThread::updateConfigSpaceCommand(double alpha, double theta, doub
     if(norm < 500.0) // less than 50 cm
     {
         // update target
-        m_targetPos = tempT;
+        ;
     }
 
     // emit event to DataLogger
@@ -399,25 +406,14 @@ void ControllerThread::setLimits(ConvergenceLimits limits)
 
 void ControllerThread::controlCycle()
 {
-    QMutexLocker locker(m_mutex);
+    //QMutexLocker locker(m_mutex);
 
     if(m_isReady && m_keepControlling)
     {
-        // ########################################
-        //
-        // TODO: calculate distance and angle error
-        //
-        // ########################################
-
         // Calculate the angle between the new x-axis and the original x-axis
         Eigen::Transform<double,3,Eigen::Affine> T_CTorig_CT = m_BBfixed_CTorig.inverse()*m_BB_CT_curTipPos;
         // This is the total amount of psy that has occurred at the tip since we started
         double total_psy = atan2(T_CTorig_CT(1,0), T_CTorig_CT(0,0));
-
-//        double normalization = pow(T_CTorig_CT(0,0),2) + pow(T_CTorig_CT(1,0),2);
-//        double total_psy2 = atan2(T_CTorig_CT(1,0)/normalization, T_CTorig_CT(0,0)/normalization);
-
-//        std::cout << "Psy 1 : " << total_psy << "Psy 2 : " << total_psy2 << std::endl;
 
         // Existing roll in the catheter handle
         // Assuming the BB point has rotated about its Z axis, the amount of roll in
@@ -427,9 +423,6 @@ void ControllerThread::controlCycle()
         double currGamma = atan2(m_BBfixed_BBmobile(1,0), m_BBfixed_BBmobile(0,0));
 
         std::cout << "Psy : " << total_psy * deg180overPi << " Gamma : " << currGamma * deg180overPi << std::endl;
-
-        // Get BT w.r.t. mobile BB, rather than fixed BB
-        Eigen::Transform<double,3,Eigen::Affine> T_BBmob_BT = m_BBfixed_BBmobile.inverse() * m_BB_CT_curTipPos * m_BT_CT.inverse();
 
         // How much does the cath still need to move?
         // calculate delta x,y,z,psi

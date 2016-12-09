@@ -82,7 +82,6 @@ void SceneModifier::enableObject(bool enabled, int objID)
 
 void SceneModifier::receiveEMreading(QTime timeStamp, int sensorID, DOUBLE_POSITION_MATRIX_TIME_Q_RECORD data)
 {
-    // rot matrix from Ascension is transposed
     QMatrix4x4 tmp(data.s[0][0], data.s[0][1], data.s[0][2], data.x,
                    data.s[1][0], data.s[1][1], data.s[1][2], data.y,
                    data.s[2][0], data.s[2][1], data.s[2][2], data.z,

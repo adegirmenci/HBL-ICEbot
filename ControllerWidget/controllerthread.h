@@ -29,10 +29,21 @@
 //#include <iterator>
 
 #include "kinematics_4dof.h"
+#include "filtfilt.h"
 
 #include "../icebot_definitions.h"
 #include "../AscensionWidget/3DGAPI/ATC3DG.h"
 #include "gainswidget.h"
+
+struct ModeFlags
+{
+    int coordFrame;
+    int tethered;
+    int instTrackState;
+    int instTrackMode;
+    int EKFstate;
+    int inVivoMode;
+};
 
 class ControllerThread : public QObject
 {
@@ -128,6 +139,7 @@ private:
                                              m_BBfixed_CTorig,
                                              m_BB_SBm,
                                              m_BBfixed_BBmobile,
+                                             m_BBmobile_BT,
                                              m_BBmobile_CT,
                                              m_curTipPos,
                                              m_ISm_INSTR,
