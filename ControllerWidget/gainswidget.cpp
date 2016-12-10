@@ -6,6 +6,7 @@ gainsWidget::gainsWidget(QWidget *parent) :
     ui(new Ui::gainsWidget)
 {
     ui->setupUi(this);
+    this->setWindowTitle("Adjust Gains");
 
     qRegisterMetaType<GainsPYRT>("GainsPYRT");
     qRegisterMetaType<ConvergenceLimits>("ConvergenceLimits");
@@ -33,12 +34,19 @@ void gainsWidget::on_setGainsButton_clicked()
     GainsPYRT gains;
 
     gains.kPitchMin = ui->gainPitchMinSpinbox->value();
+    gains.kPitch = gains.kPitchMin;
     gains.kPitchMax = ui->gainPitchMaxSpinbox->value();
+
     gains.kYawMin = ui->gainYawMinSpinbox->value();
+    gains.kYaw = gains.kYawMin;
     gains.kYawMax = ui->gainYawMaxSpinbox->value();
+
     gains.kRollMin = ui->gainRollMinSpinbox->value();
+    gains.kRoll = gains.kRollMin;
     gains.kRollMax = ui->gainRollMaxSpinbox->value();
+
     gains.kTransMin = ui->gainTransMinSpinbox->value();
+    gains.kTrans = gains.kTransMin;
     gains.kTransMax = ui->gainTransMaxSpinbox->value();
 
     emit setGains(gains);

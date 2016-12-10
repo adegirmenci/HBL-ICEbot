@@ -17,7 +17,13 @@ ControllerThread::ControllerThread(QObject *parent) :
 
     loadConstants();
 
+    // zero initialize
     m_targetPos = m_targetPos.Identity();
+    m_deltaXYZPsiToTarget << 0.0, 0.0, 0.0, 0.0;
+    m_input_AbsXYZ << 0.0, 0.0, 0.0;
+    m_input_RelXYZ << 0.0, 0.0, 0.0;
+    m_input_delPsi = 0.0;
+    m_dXYZPsi << 0.0, 0.0, 0.0, 0.0;
 
     m_mutex = new QMutex(QMutex::Recursive);
 
@@ -130,8 +136,8 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX
 {
     QMutexLocker locker(m_mutex);
 
-    QElapsedTimer elTimer;
-    elTimer.start();
+//    QElapsedTimer elTimer;
+//    elTimer.start();
 
     Q_ASSERT(4 == readings.size());
 
@@ -167,8 +173,8 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX
 
     controlCycle();
 
-    qint64 elNsec = elTimer.nsecsElapsed();
-    qDebug() << "Nsec elapsed:" << elNsec;
+//    qint64 elNsec = elTimer.nsecsElapsed();
+//    qDebug() << "Nsec elapsed:" << elNsec;
 
     //std::cout << m_BB_CT_curTipPos.matrix() << std::endl;
     // display in GUI
@@ -278,22 +284,38 @@ void ControllerThread::updateTaskSpaceCommand(double x, double y, double z, doub
     // update target
     if(isAbsolute)
     {
-        m_deltaXYZPsiToTarget(0) = x - m_BBfixed_CTorig(0,3);
-        m_deltaXYZPsiToTarget(1) = y - m_BBfixed_CTorig(1,3);
-        m_deltaXYZPsiToTarget(2) = z - m_BBfixed_CTorig(2,3);
+        m_input_AbsXYZ(0) = x;
+        m_input_AbsXYZ(1) = y;
+        m_input_AbsXYZ(2) = z;
+        m_input_RelXYZ(0) = 0.0; // TODO: this may be problematic, might want to chage the GUI to have both abs and rel editable at the same time
+        m_input_RelXYZ(1) = 0.0;
+        m_input_RelXYZ(2) = 0.0;
+
+//        m_deltaXYZPsiToTarget(0) = x - m_BBfixed_CTorig(0,3);
+//        m_deltaXYZPsiToTarget(1) = y - m_BBfixed_CTorig(1,3);
+//        m_deltaXYZPsiToTarget(2) = z - m_BBfixed_CTorig(2,3);
     }
     else
     {
-        m_deltaXYZPsiToTarget(0) = x;
-        m_deltaXYZPsiToTarget(1) = y;
-        m_deltaXYZPsiToTarget(2) = z;
+        m_input_RelXYZ(0) = x;
+        m_input_RelXYZ(1) = y;
+        m_input_RelXYZ(2) = z;
+        m_input_AbsXYZ(0) = 0.0; // TODO: this may be problematic, might want to chage the GUI to have both abs and rel editable at the same time
+        m_input_AbsXYZ(1) = 0.0;
+        m_input_AbsXYZ(2) = 0.0;
+
+//        m_deltaXYZPsiToTarget(0) = x;
+//        m_deltaXYZPsiToTarget(1) = y;
+//        m_deltaXYZPsiToTarget(2) = z;
     }
-    m_deltaXYZPsiToTarget(3) = delPsi;
+    m_input_delPsi = delPsi;
+//    m_deltaXYZPsiToTarget(3) = delPsi;
 
     // check limits
 
     // emit event to DataLogger
-    std::cout << "New deltaXYZPsi : " << m_deltaXYZPsiToTarget << std::endl;
+    //std::cout << "New deltaXYZPsi : " << m_deltaXYZPsiToTarget << std::endl;
+    std::cout << "New AbsXYZ RelXYZ DelPsi: " << m_input_AbsXYZ << m_input_RelXYZ << m_input_delPsi << std::endl;
 }
 
 void ControllerThread::resetBB()
@@ -439,98 +461,41 @@ void ControllerThread::setUSangle(double usAngle)
 //                         0,              0, 1, 21.7;
 
     std::cout << "New m_BT_CT:\n" << m_BT_CT.matrix() << std::endl;
-    qDebug() << "US angle updated to" << m_USangle*deg180overPi << "degrees.";
+    qInfo() << "US angle updated to" << m_USangle*deg180overPi << "degrees.";
 }
 
 void ControllerThread::controlCycle()
 {
-    //QMutexLocker locker(m_mutex);
+    //QMutexLocker locker(m_mutex); // already locked by calling function
 
     if(m_isReady && m_keepControlling)
     {
-        // Calculate the angle between the new x-axis and the original x-axis
-        Eigen::Transform<double,3,Eigen::Affine> T_CTorig_CT = m_BBfixed_CTorig.inverse()*m_BB_CT_curTipPos;
-        // This is the total amount of psy that has occurred at the tip since we started
-        double total_psy = atan2(T_CTorig_CT(1,0), T_CTorig_CT(0,0));
-
-        // Existing roll in the catheter handle
-        // Assuming the BB point has rotated about its Z axis, the amount of roll in
-        // the handle is calculated as the angle of rotation about the base z-axis.
-        // Here we calculate the angle between the new x-axis and the original
-        // x-axis.
-        double currGamma = atan2(m_BBfixed_BBmobile(1,0), m_BBfixed_BBmobile(0,0));
-
-        std::cout << "Psy : " << total_psy * deg180overPi << " Gamma : " << currGamma * deg180overPi << std::endl;
-
-        // How much does the cath still need to move?
-        // calculate delta x,y,z,psi
-        Eigen::Vector4d dXYZPsi;
-        dXYZPsi(0) = m_deltaXYZPsiToTarget(0) - (m_BB_CT_curTipPos(0,3) - m_BBfixed_CTorig(0,3));
-        dXYZPsi(1) = m_deltaXYZPsiToTarget(1) - (m_BB_CT_curTipPos(1,3) - m_BBfixed_CTorig(1,3));
-        dXYZPsi(2) = m_deltaXYZPsiToTarget(2) - (m_BB_CT_curTipPos(2,3) - m_BBfixed_CTorig(2,3));
-        dXYZPsi(3) = m_deltaXYZPsiToTarget(3) - total_psy;
-
-        std::cout << "dx : " << dXYZPsi(0) << " dy : " << dXYZPsi(1) << " dz : " << dXYZPsi(2) << " dpsi : " << dXYZPsi(3) * deg180overPi << std::endl;
-
-        // Calculate distance from target
-        double distError = dXYZPsi.segment(0,3).norm();
-        double angleError = dXYZPsi(3);
-
-        // Update gains
-        double kPitch = 0.0, kYaw = 0.0, kRoll = 0.0, kTrans = 0.0;
-
-        if(distError < m_convLimits.posMin)
+        switch(m_modeFlags.coordFrame)
         {
-            kPitch = m_gains.kPitchMin;
-            kYaw = m_gains.kYawMin;
-            kTrans = m_gains.kTransMin;
-        }
-        else if(distError > m_convLimits.posMax)
-        {
-            kPitch = m_gains.kPitchMax;
-            kYaw = m_gains.kYawMax;
-            kTrans = m_gains.kTransMax;
-        }
-        else
-        {
-            double tPos = (distError - m_convLimits.posMin)/(m_convLimits.posMax - m_convLimits.posMin);
-            kPitch = lerp(m_gains.kPitchMin, m_gains.kPitchMax, tPos);
-            kYaw = lerp(m_gains.kYawMin, m_gains.kYawMax, tPos);
-            kTrans = lerp(m_gains.kTransMin, m_gains.kTransMax, tPos);
+        case COORD_FRAME_WORLD:
+            computeCoordFrameWorld();
+            break;
+        case COORD_FRAME_MOBILE:
+            computeCoordFrameMobile();
+            break;
+        default:
+            computeCoordFrameWorld();
+            qCritical() << "Unknown Coord Frame Mode! Defaulting to World";
+            break;
         }
 
-        if(angleError < m_convLimits.angleMin)
-        {
-            kRoll = m_gains.kRollMin;
-        }
-        else if(angleError > m_convLimits.angleMax)
-        {
-            kRoll = m_gains.kRollMax;
-        }
-        else
-        {
-            double tAng = (angleError - m_convLimits.angleMin)/(m_convLimits.angleMax - m_convLimits.angleMin);
-            kRoll = lerp(m_gains.kRollMin, m_gains.kRollMax, tAng);
-        }
-
-        std::cout << "Gains - kR: " << kRoll << " kP: " << kPitch << " kY: " << kYaw << " kT: " << kTrans << std::endl;
-
-
-//        Eigen::Transform<double,3,Eigen::Affine> errorT;
-//        errorT = m_targetPos - m_curTipPos;
-
-        // calculate current gamma based on m_curTipPos and m_BB_SBm
-        //double currGamma = 0.0;
+        // calculate gains
+        updateGains();
 
         // feed into control_icra2016
         Eigen::Matrix<double, 4, 2> jointsCurrAndTarget;
-        jointsCurrAndTarget = m_cathKin.control_icra2016(m_BB_CT_curTipPos, dXYZPsi, currGamma);
+        jointsCurrAndTarget = m_cathKin.control_icra2016(m_BB_CT_curTipPos, m_dXYZPsi, m_currGamma);
 
         Eigen::Vector4d relQCs;  // knob_tgt - knob_curr
-        relQCs(0) = (jointsCurrAndTarget(0,1) - jointsCurrAndTarget(0,0)) * kTrans * 0.001 * EPOS_TRANS_RAD2QC;
-        relQCs(1) = (jointsCurrAndTarget(1,1) - jointsCurrAndTarget(1,0)) * kPitch * EPOS_PITCH_RAD2QC;
-        relQCs(2) = (jointsCurrAndTarget(2,1) - jointsCurrAndTarget(2,0)) * kYaw * EPOS_YAW_RAD2QC;
-        relQCs(3) = (jointsCurrAndTarget(3,1) - jointsCurrAndTarget(3,0)) * kRoll * EPOS_ROLL_RAD2QC;
+        relQCs(0) = (jointsCurrAndTarget(0,1) - jointsCurrAndTarget(0,0)) * m_gains.kTrans * 0.001 * EPOS_TRANS_RAD2QC;
+        relQCs(1) = (jointsCurrAndTarget(1,1) - jointsCurrAndTarget(1,0)) * m_gains.kPitch * EPOS_PITCH_RAD2QC;
+        relQCs(2) = (jointsCurrAndTarget(2,1) - jointsCurrAndTarget(2,0)) * m_gains.kYaw * EPOS_YAW_RAD2QC;
+        relQCs(3) = (jointsCurrAndTarget(3,1) - jointsCurrAndTarget(3,0)) * m_gains.kRoll * EPOS_ROLL_RAD2QC;
 
         // motor commands
         //std::cout << "QCs - T: " << relQCs(0) << " P: " << relQCs(1) << " Y: " << relQCs(2) << " R: " << relQCs(3) << std::endl;
@@ -548,7 +513,7 @@ void ControllerThread::controlCycle()
         targetPos.push_back((long)relQCs(3));
 
         // limit QCs to EPOS velocity limits
-        // TODO : velocity is QCs/s, so we should convert this velocity to QCs/control cycle (= Ascension time = ~6ms)
+        // TODO : velocity is in RPMs, so we should convert this velocity to QCs/control cycle (= Ascension time = ~6ms)
         if(abs(targetPos[0]) > EPOS_VELOCITY[0])
             targetPos[0] = boost::math::copysign(EPOS_VELOCITY[0], targetPos[0]);
         if(abs(targetPos[1]) > EPOS_VELOCITY[1])
@@ -569,6 +534,212 @@ void ControllerThread::controlCycle()
 
         m_numCycles++;
     }
+}
+
+void ControllerThread::computeCoordFrameWorld()
+{
+    // Calculate the angle between the new x-axis and the original x-axis
+    Eigen::Transform<double,3,Eigen::Affine> T_CTorig_CT = m_BBfixed_CTorig.inverse()*m_BB_CT_curTipPos;
+    // This is the total amount of psy that has occurred at the tip since we started
+    double total_psy = atan2(T_CTorig_CT(1,0), T_CTorig_CT(0,0));
+
+    // Existing roll in the catheter handle
+    // Assuming the BB point has rotated about its Z axis, the amount of roll in
+    // the handle is calculated as the angle of rotation about the base z-axis.
+    // Here we calculate the angle between the new x-axis and the original
+    // x-axis.
+    double m_currGamma = atan2(m_BBfixed_BBmobile(1,0), m_BBfixed_BBmobile(0,0));
+
+    std::cout << "Psy : " << total_psy * deg180overPi << " Gamma : " << m_currGamma * deg180overPi << std::endl;
+
+    switch(m_modeFlags.instTrackState)
+    {
+    case INST_TRACK_OFF:
+
+        // How much does the cath still need to move?
+        // calculate delta x,y,z,psi
+        // MATLAB code cycleinput5.m > lines 112-126
+
+        switch(m_modeFlags.tethered)
+        {
+        case MODE_TETHETERED:
+            m_deltaXYZPsiToTarget(0) = m_input_AbsXYZ(0) - m_BBfixed_CTorig(0,3);
+            m_deltaXYZPsiToTarget(1) = m_input_AbsXYZ(1) - m_BBfixed_CTorig(1,3);
+            m_deltaXYZPsiToTarget(2) = m_input_AbsXYZ(2) - m_BBfixed_CTorig(2,3);
+            std::cout << "Running this." << std::endl;
+            break;
+        case MODE_RELATIVE:
+            m_deltaXYZPsiToTarget(0) = m_input_RelXYZ(0);
+            m_deltaXYZPsiToTarget(1) = m_input_RelXYZ(1);
+            m_deltaXYZPsiToTarget(2) = m_input_RelXYZ(2);
+            break;
+        default:
+            m_deltaXYZPsiToTarget(0) = m_input_AbsXYZ(0) - m_BBfixed_CTorig(0,3);
+            m_deltaXYZPsiToTarget(1) = m_input_AbsXYZ(1) - m_BBfixed_CTorig(1,3);
+            m_deltaXYZPsiToTarget(2) = m_input_AbsXYZ(2) - m_BBfixed_CTorig(2,3);
+            qCritical() << "Unknown Mode! Defaulting to tethered.";
+            break;
+        }
+        m_deltaXYZPsiToTarget(3) = m_input_delPsi;
+
+        m_dXYZPsi(0) = m_deltaXYZPsiToTarget(0) - (m_BB_CT_curTipPos(0,3) - m_BBfixed_CTorig(0,3));
+        m_dXYZPsi(1) = m_deltaXYZPsiToTarget(1) - (m_BB_CT_curTipPos(1,3) - m_BBfixed_CTorig(1,3));
+        m_dXYZPsi(2) = m_deltaXYZPsiToTarget(2) - (m_BB_CT_curTipPos(2,3) - m_BBfixed_CTorig(2,3));
+        m_dXYZPsi(3) = m_deltaXYZPsiToTarget(3) - total_psy;
+
+        break;
+    case INST_TRACK_ON:
+        // World, IT
+        switch(m_modeFlags.instTrackMode)
+        {
+        case INST_TRACK_POSITION:
+        // World, IT, Position
+            switch(m_modeFlags.EKFstate)
+            {
+            case EKF_OFF: // World, IT, Position
+                m_dXYZPsi(0) = m_BB_targetPos(0,3) - m_BB_CT_curTipPos(0,3);
+                m_dXYZPsi(1) = m_BB_targetPos(1,3) - m_BB_CT_curTipPos(1,3);
+                m_dXYZPsi(2) = m_BB_targetPos(2,3) - m_BB_CT_curTipPos(2,3);
+                m_dXYZPsi(3) = 0;
+                break;
+            case EKF_ON: // World, IT, Position, EKF
+//                dx = T_BBfixed_Instr_EKF_x - T_BBfixed_CT(1,4);
+//                dy = T_BBfixed_Instr_EKF_y - T_BBfixed_CT(2,4);
+//                dz = T_BBfixed_Instr_EKF_z - T_BBfixed_CT(3,4);
+//                dpsi = 0;
+                // TODO : add EKF info here
+                m_dXYZPsi(0) = m_BB_targetPos(0,3) - m_BB_CT_curTipPos(0,3);
+                m_dXYZPsi(1) = m_BB_targetPos(1,3) - m_BB_CT_curTipPos(1,3);
+                m_dXYZPsi(2) = m_BB_targetPos(2,3) - m_BB_CT_curTipPos(2,3);
+                m_dXYZPsi(3) = 0;
+                break;
+            default:
+                m_dXYZPsi(0) = m_BB_targetPos(0,3) - m_BB_CT_curTipPos(0,3);
+                m_dXYZPsi(1) = m_BB_targetPos(1,3) - m_BB_CT_curTipPos(1,3);
+                m_dXYZPsi(2) = m_BB_targetPos(2,3) - m_BB_CT_curTipPos(2,3);
+                m_dXYZPsi(3) = 0;
+                qCritical() << "Unknown EKFstate! Defaulting to EKF Off.";
+                break;
+            }
+            break;
+        // World, IT, Position ends
+        case INST_TRACK_IMAGER:
+        // World, IT, Imager
+        {
+            Eigen::Vector3d objectXYZ;
+
+            switch(m_modeFlags.EKFstate)
+            {
+            case EKF_OFF: // World, IT, Imager
+                objectXYZ = m_BB_targetPos.matrix().col(3).segment(0,3);
+                break;
+            case EKF_ON: // World, IT, Imager, EKF
+//                object_loc = [T_BBfixed_Instr_EKF_x;
+//                              T_BBfixed_Instr_EKF_y;
+//                              T_BBfixed_Instr_EKF_z];
+                // TODO : add EKF info here
+                objectXYZ = m_BB_targetPos.matrix().col(3).segment(0,3);
+                break;
+            default:
+                objectXYZ = m_BB_targetPos.matrix().col(3).segment(0,3);
+                qCritical() << "Unknown EKFstate! Defaulting to EKF Off.";
+                break;
+            }
+
+            m_dXYZPsi(0) = m_input_AbsXYZ(0) - m_BB_CT_curTipPos(0,3);
+            m_dXYZPsi(1) = m_input_AbsXYZ(1) - m_BB_CT_curTipPos(1,3);
+            m_dXYZPsi(2) = m_input_AbsXYZ(2) - m_BB_CT_curTipPos(2,3);
+            m_dXYZPsi(3) = computeSweep(m_BB_CT_curTipPos, objectXYZ);
+        }
+            break;
+        // World, IT, Imager ends
+        default:
+            break;
+        }
+        break;
+        // World, IT ends
+    default:
+        break;
+    }
+
+    std::cout << "dx : " << m_dXYZPsi(0) << " dy : " << m_dXYZPsi(1) << " dz : " << m_dXYZPsi(2) << " dpsi : " << m_dXYZPsi(3) * deg180overPi << std::endl;
+}
+
+void ControllerThread::computeCoordFrameMobile()
+{
+
+}
+
+double ControllerThread::computeSweep(const Eigen::Transform<double,3,Eigen::Affine> &currT, const Eigen::Vector3d &objXYZ)
+{
+    Eigen::Vector3d currLoc = currT.matrix().col(3).segment(0,3); // current location catheter xyz
+    Eigen::Vector3d y_1 = currT.matrix().col(1).segment(0,3); // normal to the catheter's XZ plane
+    // distance from the current point to the obj
+    double d_obj_cur = (objXYZ - currLoc).norm();
+    // distance from object to the catheter's XZ plane
+    double d_obj_plane = y_1.dot(objXYZ - currLoc) / y_1.norm();
+
+    double ratio = d_obj_plane / d_obj_cur;
+    if(abs(ratio) > 1.0)
+        ratio = ratio / abs(ratio); // otherwise, asin will be invalid
+
+    double psy = 0.0;
+
+    if(d_obj_cur > 0.0001)
+        psy = asin(ratio); // angle between object and the catheter's XZ plane
+
+    return psy;
+}
+
+void ControllerThread::updateGains()
+{
+    // Calculate distance from target
+    double distError = m_dXYZPsi.segment(0,3).norm();
+    double angleError = m_dXYZPsi(3);
+
+    // Update gains
+    double kPitch = 0.0, kYaw = 0.0, kRoll = 0.0, kTrans = 0.0;
+
+    if(distError < m_convLimits.posMin)
+    {
+        kPitch = m_gains.kPitchMin;
+        kYaw = m_gains.kYawMin;
+        kTrans = m_gains.kTransMin;
+    }
+    else if(distError > m_convLimits.posMax)
+    {
+        kPitch = m_gains.kPitchMax;
+        kYaw = m_gains.kYawMax;
+        kTrans = m_gains.kTransMax;
+    }
+    else
+    {
+        double tPos = (distError - m_convLimits.posMin)/(m_convLimits.posMax - m_convLimits.posMin);
+        kPitch = lerp(m_gains.kPitchMin, m_gains.kPitchMax, tPos);
+        kYaw = lerp(m_gains.kYawMin, m_gains.kYawMax, tPos);
+        kTrans = lerp(m_gains.kTransMin, m_gains.kTransMax, tPos);
+    }
+
+    if(angleError < m_convLimits.angleMin)
+    {
+        kRoll = m_gains.kRollMin;
+    }
+    else if(angleError > m_convLimits.angleMax)
+    {
+        kRoll = m_gains.kRollMax;
+    }
+    else
+    {
+        double tAng = (angleError - m_convLimits.angleMin)/(m_convLimits.angleMax - m_convLimits.angleMin);
+        kRoll = lerp(m_gains.kRollMin, m_gains.kRollMax, tAng);
+    }
+
+    m_gains.kRoll = kRoll;
+    m_gains.kPitch = kPitch;
+    m_gains.kYaw = kYaw;
+    m_gains.kTrans = kTrans;
+
+    std::cout << "Gains - kR: " << kRoll << " kP: " << kPitch << " kY: " << kYaw << " kT: " << kTrans << std::endl;
 }
 
 // ----------------

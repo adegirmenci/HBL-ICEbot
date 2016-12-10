@@ -165,7 +165,10 @@ private:
                                              m_currChest;
 
     // delta x,y,z,psi to target
-    Eigen::Vector4d m_deltaXYZPsiToTarget;
+    Eigen::Vector3d m_input_AbsXYZ, m_input_RelXYZ;
+    double m_input_delPsi;
+    Eigen::Vector4d m_dXYZPsi, m_deltaXYZPsiToTarget;
+    double m_currGamma;
 
     // gains
     GainsPYRT m_gains;
@@ -184,6 +187,12 @@ private:
     Kinematics_4DOF m_cathKin;
 
     // --- Private methods ---
+
+    void computeCoordFrameWorld();  // Coord Frame: world
+    void computeCoordFrameMobile(); // Coord Frame: mobile
+    double computeSweep(const Eigen::Transform<double,3,Eigen::Affine> &currT, const Eigen::Vector3d &objXYZ);
+    void updateGains();             // Update gains
+
     std::shared_ptr< std::vector<double> > cycle_recalculate(const std::vector<double> &inputs);
 
     Eigen::Transform<double,3,Eigen::Affine> readTransformFromTxtFile(const QString &path);

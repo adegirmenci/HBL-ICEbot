@@ -9,12 +9,16 @@
 struct GainsPYRT
 {
     double kPitchMin;
+    double kPitch;
     double kPitchMax;
     double kYawMin;
+    double kYaw;
     double kYawMax;
     double kRollMin;
+    double kRoll;
     double kRollMax;
     double kTransMin;
+    double kTrans;
     double kTransMax;
 };
 
