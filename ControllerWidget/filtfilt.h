@@ -13,12 +13,13 @@ class filtfilt
 {
 public:
     filtfilt();
+    ~filtfilt();
 
     // A and B are the coefficients, X is the original data, Y is the output
     void run(std::vector<double> B, std::vector<double> A, const std::vector<double> &X, std::vector<double> &Y);
 
 private:
-    void add_index_range(std::vector<int> &indices, int beg, int end, int inc = 1);
+    void add_index_range(std::vector<int> &indices, int beg, int end, int inc);
 
     void add_index_const(std::vector<int> &indices, int value, size_t numel);
 

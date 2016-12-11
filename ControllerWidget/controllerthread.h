@@ -30,6 +30,7 @@
 
 #include "kinematics_4dof.h"
 #include "filtfilt.h"
+#include "cyclicmodel.h"
 
 #include "../icebot_definitions.h"
 #include "../AscensionWidget/3DGAPI/ATC3DG.h"
@@ -193,7 +194,6 @@ private:
     double computeSweep(const Eigen::Transform<double,3,Eigen::Affine> &currT, const Eigen::Vector3d &objXYZ);
     void updateGains();             // Update gains
 
-    std::shared_ptr< std::vector<double> > cycle_recalculate(const std::vector<double> &inputs);
 
     Eigen::Transform<double,3,Eigen::Affine> readTransformFromTxtFile(const QString &path);
     void loadConstants();

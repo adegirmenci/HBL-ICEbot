@@ -5,6 +5,11 @@ filtfilt::filtfilt()
 
 }
 
+filtfilt::~filtfilt()
+{
+
+}
+
 
 void filtfilt::add_index_range(std::vector<int> &indices, int beg, int end, int inc = 1)
 {

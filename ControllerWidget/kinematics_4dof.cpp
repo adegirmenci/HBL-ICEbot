@@ -6,6 +6,11 @@ Kinematics_4DOF::Kinematics_4DOF(double L, double Rc, double Dknob)
 
 }
 
+Kinematics_4DOF::~Kinematics_4DOF()
+{
+
+}
+
 void Kinematics_4DOF::operator =(const Kinematics_4DOF &Other)
 {
    m_L = Other.m_L;
@@ -74,8 +79,8 @@ Eigen::Vector4d Kinematics_4DOF::inverseKinematics3D(const double xt,
     // an orientation for the US crystal. We deal with this by setting default gamma to zero.
     if( (abs(xt) < 0.000001) && (abs(yt) < 0.000001) )
     {
-        theta = 0; // bending axis 0
-        alpha = 0; // bending angle 0
+        theta = 0.0; // bending axis 0
+        alpha = 0.0; // bending angle 0
         d = zt - m_L; // translation
     }
     else
@@ -93,7 +98,8 @@ Eigen::Vector4d Kinematics_4DOF::inverseKinematics3D(const double xt,
 
         double c = df/m_L; // constant
 
-        bool fZeroSuccess = fZeroAlpha(c, alpha);
+        //bool fZeroSuccess = fZeroAlpha(c, alpha);
+        fZeroAlpha(c, alpha);
 
         d = zt - (m_L*sin(alpha))/alpha; // translation
     }
@@ -106,7 +112,8 @@ Eigen::Vector4d Kinematics_4DOF::inverseKinematics3D(const double xt,
 
     // Check if there is any error between given and calculated final position
     double tip_given = sqrt(pow(xt,2) + pow(yt,2) + pow(zt,2));
-    double tip_calc = sqrt( pow(Tcalc(0,3),2) + pow(Tcalc(1,3),2) + pow(Tcalc(2,3),2) );
+    //double tip_calc = sqrt( pow(Tcalc(0,3),2) + pow(Tcalc(1,3),2) + pow(Tcalc(2,3),2) );
+    double tip_calc = Tcalc.matrix().col(3).segment(0,3).norm();
     double err = (tip_given - tip_calc)/tip_given;
     if(abs(err) > 0.000001)
         printf("BIG ERROR (%f) CHECK PARAMETERS\n", err);
@@ -354,11 +361,11 @@ bool Kinematics_4DOF::fZeroAlpha(const double c, double &alpha)
 {
     // Newton's Method - init
     double a0 = 2*c; // initial guess
-    double a1, y, yprime;
+    double a1 = 0.0, y, yprime;
     bool foundSoln = false;
 
     // Newton's Method - iterate
-    for(size_t i = 0; i < 20; i++)
+    for(size_t i = 0; i < 25; i++)
     {
         y = 1.0 - cos(a0) - a0*c; // function
         yprime = sin(a0) - c;     // 1st derivative

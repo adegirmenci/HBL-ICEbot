@@ -26,6 +26,7 @@ class Kinematics_4DOF
 {
 public:
     Kinematics_4DOF(double L  = 1.0, double Rc = 1.0, double Dknob = 1.0);
+    ~Kinematics_4DOF();
 
     void operator = (const Kinematics_4DOF &Other); // assignment operator definition
 
