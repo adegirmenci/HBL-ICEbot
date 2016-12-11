@@ -14,6 +14,7 @@ ControllerThread::ControllerThread(QObject *parent) :
     m_numCycles = 0;
 
     m_cathKin = Kinematics_4DOF(0.05*1000.0, 0.00135*1000.0, 0.90*0.0254*1000.0);
+//    m_respModel = CyclicModel();
 
     loadConstants();
 

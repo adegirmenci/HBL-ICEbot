@@ -2,16 +2,44 @@
 
 CyclicModel::CyclicModel()
 {
-    m_BBfixed_CT.resize(N_SAMPLES, EigenAffineTransform3d::Identity());
-    m_BBfixed_Instr.resize(N_SAMPLES, EigenAffineTransform3d::Identity());
-    m_BBfixed_BB.resize(N_SAMPLES, EigenAffineTransform3d::Identity());
-    m_Bird4.resize(N_SAMPLES, EigenAffineTransform3d::Identity());
+    std::cout << "--- Initializing CyclicModel." << std::endl;
+
+    EigenAffineTransform3d dummy  = dummy.Identity();
+
+    m_BBfixed_CT.resize(N_SAMPLES, dummy);
+    std::cout << "Initialized m_BBfixed_CT." << std::endl;
+    m_BBfixed_Instr.resize(N_SAMPLES);
+    std::cout << "Initialized m_BBfixed_Instr." << std::endl;
+    m_BBfixed_BB.resize(N_SAMPLES);
+    std::cout << "Initialized m_BBfixed_BB." << std::endl;
+    m_Bird4.resize(N_SAMPLES);
+    std::cout << "Initialized m_Bird4." << std::endl;
     m_timeData.resize(N_SAMPLES, 0.0);
+    std::cout << "Initialized m_timeData." << std::endl;
+
+    m_BBfixed_CT.pop_front();
+    m_BBfixed_CT.push_back(dummy.Identity());
 
     m_numSamples = 0;
 
     m_isTrained = false;
     m_lastTrainingTimestamp = 0.0;
+
+    std::cout << "Initialized CyclicModel. ---" << std::endl;
+
+    //std::vector<double> firCoeff_b = spuce::design_window("hamming", FILTER_ORDER);
+    //std::vector<double> firCoeff_b = spuce::design_fir("maxflat", "LOW_PASS", 51, 1.0, 60.0);
+
+    //FIR lpf (Low_pass (60, 150, FILTER_ORDER));
+    filtfilt lpf;
+    std::vector<double> X,Y;
+    X.resize(300,0.0);
+    lpf.run(lpf.m_B, lpf.m_B, X, Y);
+
+//    spuce::fir<double> mFIR(50);
+
+    for(auto y : Y)
+        std::cout << y << std::endl;
 }
 
 CyclicModel::~CyclicModel()
@@ -19,14 +47,20 @@ CyclicModel::~CyclicModel()
 
 }
 
-void CyclicModel::trainModel(const std::vector<double> data)
+void CyclicModel::operator =(const CyclicModel &Other)
 {
+    m_BBfixed_CT = Other.m_BBfixed_CT;
+    m_BBfixed_Instr = Other.m_BBfixed_Instr;
+    m_BBfixed_BB = Other.m_BBfixed_BB;
+    m_Bird4 = Other.m_Bird4;
 
-}
+    m_timeData = Other.m_timeData;
+    m_breathingSignal = Other.m_breathingSignal;
 
-void CyclicModel::updatePeriod(const double shift)
-{
+    m_numSamples = Other.m_numSamples;
 
+    m_isTrained = Other.m_isTrained;
+    m_lastTrainingTimestamp = Other.m_lastTrainingTimestamp;
 }
 
 void CyclicModel::addObservation(const EigenAffineTransform3d &T_BB_CT_curTipPos,
@@ -61,6 +95,53 @@ void CyclicModel::addObservation(const EigenAffineTransform3d &T_BB_CT_curTipPos
     m_Bird4.push_back(T_Bird4);
 
     m_numSamples++;
+}
+
+void CyclicModel::trainModel(const std::vector<double> data)
+{
+    if(m_numSamples < N_SAMPLES) // not enough samples
+    {
+        std::cerr << "m_numSamples is less than N_SAMPLES!" << std::endl;
+
+        m_isTrained = false;
+    }
+    else if(m_isTrained) // already trained
+    {
+        std::cerr << "Already trained!" << std::endl;
+    }
+    else // train
+    {
+        size_t m = N_HARMONICS; // m = number of sinusoid components
+        // double delta_t = SAMPLE_DELTA_TIME; // Time step for each collected data point
+        size_t N_initpts = m_BBfixed_CT.size(); // number of initialization points
+        size_t filterorder = FILTER_ORDER;
+        size_t edge_effect = EDGE_EFFECT;
+        double breath_expected = BREATH_RATE;
+        double thresh = PEAK_THRESHOLD;
+
+        if(N_initpts <= 2*edge_effect)
+        {
+            std::cerr << "Error: N_initpts < 2*edge_effect!" << std::endl;
+            return;
+        }
+
+        // calculate things from inputs
+        size_t num_states = m*2 + 2;
+        size_t N_filtered = N_initpts - 2*edge_effect;
+
+        // get the lowpass filter coefficients
+        //std::vector<double> filterCoeffs_b = spuce::design_window("hamming", FILTER_ORDER);
+
+
+
+
+        m_isTrained = true;
+    }
+}
+
+void CyclicModel::updatePeriod(const double shift)
+{
+
 }
 
 double CyclicModel::getPrediction(const double timeShift, const std::vector<double> &x_polar, const std::vector<double> &x_rect)

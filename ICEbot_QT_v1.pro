@@ -11,7 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 TARGET = ICEbot_QT_v1
 TEMPLATE = app
 
-CONFIG += c++11
+#CONFIG += c++11
 
 #DEFINES += EIGEN_QT_SUPPORT
 #DEFINES *= QT_USE_QSTRINGBUILDER
@@ -93,6 +93,18 @@ INCLUDEPATH += "D:\\Eigen"
 
 # Boost
 INCLUDEPATH += "D:\\boost_1_61_0"
+
+## KFR
+#INCLUDEPATH += "D:\\kfr-1.0.0\include"
+
+# FIR - Mochima
+INCLUDEPATH += "D:\\firMochima"
+
+# Spuce
+#INCLUDEPATH += "D:\\spuceDSPlibrary"
+
+#LIBS += -L"D:\\spuceDSPlibrary\\lib\\Win32\\Release" \
+#    -lspuce
 
 win32 {
     INCLUDEPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/include

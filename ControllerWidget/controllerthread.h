@@ -171,6 +171,9 @@ private:
     Eigen::Vector4d m_dXYZPsi, m_deltaXYZPsiToTarget;
     double m_currGamma;
 
+    // Respiration Model
+    CyclicModel m_respModel;
+
     // gains
     GainsPYRT m_gains;
     // convergence limits

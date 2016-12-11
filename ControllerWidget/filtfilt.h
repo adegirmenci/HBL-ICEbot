@@ -6,6 +6,16 @@
 #include <iostream>
 #include <Eigen/Dense>
 
+
+//#include <spuce/filters/design_window.h>
+//#include <spuce/filters/design_fir.h>
+//#include <spuce/typedefs.h>
+//#include <spuce/filters/fir_coeff.h>
+//#include <spuce/filters/window.h>
+//#include <spuce/filters/fir.h>
+
+//#include <FIR.h>
+
 // Adapted from:
 // http://stackoverflow.com/questions/17675053/matlabs-filtfilt-algorithm/27270420#27270420
 
@@ -17,6 +27,8 @@ public:
 
     // A and B are the coefficients, X is the original data, Y is the output
     void run(std::vector<double> B, std::vector<double> A, const std::vector<double> &X, std::vector<double> &Y);
+
+    std::vector<double> m_A, m_B;
 
 private:
     void add_index_range(std::vector<int> &indices, int beg, int end, int inc);
@@ -33,6 +45,7 @@ private:
     }
 
     void filter(std::vector<double> B, std::vector<double> A, const std::vector<double> &X, std::vector<double> &Y, std::vector<double> &Zi);
+
 };
 
 #endif // FILTFILT_H

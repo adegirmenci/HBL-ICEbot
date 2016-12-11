@@ -2,12 +2,15 @@
 #define CYCLICMODEL_H
 
 #include <vector>
-#include <deque>
+//#include <deque>
 #include <algorithm>
 #include <iostream>
 #include <memory>
 #include <limits>
 #include <Eigen/Dense>
+#include <Eigen/StdDeque>
+
+#include "filtfilt.h"
 
 #define N_HARMONICS 4              // NUM_HARM
 #define N_STATES 10                // NUM_STATES
@@ -19,12 +22,16 @@
 #define PEAK_THRESHOLD 0.80        // For peak detection
 
 typedef Eigen::Transform<double,3,Eigen::Affine> EigenAffineTransform3d;
+// in order to use deque with Eigen Transform, we need this typedef
+typedef std::deque< EigenAffineTransform3d, Eigen::aligned_allocator<EigenAffineTransform3d> > EigenDequeAffineTform3d;
 
 class CyclicModel
 {
 public:
     CyclicModel();
     ~CyclicModel();
+
+    void operator = (const CyclicModel &Other);
 
     void addObservation(const EigenAffineTransform3d &T_BB_CT_curTipPos,
                         const EigenAffineTransform3d &T_BB_targetPos,
@@ -40,7 +47,7 @@ public:
 
     // Accessors
     const size_t getNumSamples() { return m_numSamples; }
-    const bool isTrained() { return isTrained; }
+    const bool isTrained() { return m_isTrained; }
 
 private:
     void retrainModel();
@@ -48,10 +55,11 @@ private:
     std::shared_ptr< std::vector<double> > cycle_recalculate(const std::vector<double> &inputs);
 
     // data members
-    std::deque< EigenAffineTransform3d > m_BBfixed_CT,    // this stores all of the incoming CT points
-                                         m_BBfixed_Instr, // this stores all of the incoming instr_x points
-                                         m_BBfixed_BB,    // this stores all of the incoming BB points
-                                         m_Bird4;         // this stores all of the incoming 4th EM sensor points
+    // in order to use deque with Eigen Transform, we need the typedef above
+    EigenDequeAffineTform3d m_BBfixed_CT,    // this stores all of the incoming CT points
+                            m_BBfixed_Instr, // this stores all of the incoming instr_x points
+                            m_BBfixed_BB,    // this stores all of the incoming BB points
+                            m_Bird4;         // this stores all of the incoming 4th EM sensor points
 
     std::deque<double> m_timeData, m_breathingSignal; // stores time, and data to transfer to period updater
 
@@ -60,6 +68,8 @@ private:
     bool m_isTrained;
     double m_lastTrainingTimestamp;
 
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 #endif // CYCLICMODEL_H
