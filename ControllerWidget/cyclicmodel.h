@@ -9,6 +9,13 @@
 #include <limits>
 #include <Eigen/Dense>
 #include <Eigen/StdDeque>
+#include <QString>
+#include <QDir>
+#include <QFile>
+#include <QDataStream>
+#include <QTextStream>
+#include <QDebug>
+#include <QElapsedTimer>
 
 #include "filtfilt.h"
 
@@ -48,6 +55,11 @@ public:
     // Accessors
     const size_t getNumSamples() { return m_numSamples; }
     const bool isTrained() { return m_isTrained; }
+
+    // testing function - external data load and save
+    void loadData(QString filename, std::vector<double> &X);
+    void saveFilteredData(QString filenam, const std::vector<double> &Y);
+    void testLPF();
 
 private:
     void retrainModel();

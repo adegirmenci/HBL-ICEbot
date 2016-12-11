@@ -8,11 +8,11 @@ CyclicModel::CyclicModel()
 
     m_BBfixed_CT.resize(N_SAMPLES, dummy);
     std::cout << "Initialized m_BBfixed_CT." << std::endl;
-    m_BBfixed_Instr.resize(N_SAMPLES);
+    m_BBfixed_Instr.resize(N_SAMPLES, dummy);
     std::cout << "Initialized m_BBfixed_Instr." << std::endl;
-    m_BBfixed_BB.resize(N_SAMPLES);
+    m_BBfixed_BB.resize(N_SAMPLES, dummy);
     std::cout << "Initialized m_BBfixed_BB." << std::endl;
-    m_Bird4.resize(N_SAMPLES);
+    m_Bird4.resize(N_SAMPLES, dummy);
     std::cout << "Initialized m_Bird4." << std::endl;
     m_timeData.resize(N_SAMPLES, 0.0);
     std::cout << "Initialized m_timeData." << std::endl;
@@ -27,19 +27,12 @@ CyclicModel::CyclicModel()
 
     std::cout << "Initialized CyclicModel. ---" << std::endl;
 
-    //std::vector<double> firCoeff_b = spuce::design_window("hamming", FILTER_ORDER);
-    //std::vector<double> firCoeff_b = spuce::design_fir("maxflat", "LOW_PASS", 51, 1.0, 60.0);
-
-    //FIR lpf (Low_pass (60, 150, FILTER_ORDER));
-    filtfilt lpf;
-    std::vector<double> X,Y;
-    X.resize(300,0.0);
-    lpf.run(lpf.m_B, lpf.m_B, X, Y);
-
+    // SPUCE library - not used
+//std::vector<double> firCoeff_b = spuce::design_window("hamming", FILTER_ORDER);
+//std::vector<double> firCoeff_b = spuce::design_fir("maxflat", "LOW_PASS", 51, 1.0, 60.0);
 //    spuce::fir<double> mFIR(50);
-
-    for(auto y : Y)
-        std::cout << y << std::endl;
+//    for(auto y : Y)
+//        std::cout << y << std::endl;
 }
 
 CyclicModel::~CyclicModel()
@@ -342,4 +335,68 @@ std::shared_ptr< std::vector<double> > CyclicModel::cycle_recalculate(const std:
 //    qDebug() << "Nsec elapsed:" << elNsec;
 
     return outputs;
+}
+
+void CyclicModel::loadData(QString filename, std::vector<double> &X)
+{
+    // check if the directory exists
+    QFile inFile(filename);
+
+    if( inFile.open(QIODevice::ReadOnly) )
+        qDebug() << "Opened inFile" << filename;
+
+    QTextStream in(&inFile);
+
+    double dummy;
+    while(!in.atEnd())
+    {
+        in >> dummy;
+        X.push_back(dummy);
+    }
+    qDebug() << "Read" << X.size() << "points.";
+}
+
+void CyclicModel::saveFilteredData(QString filename, const std::vector<double> &Y)
+{
+    QFile outFile(filename);
+
+    if( outFile.open(QIODevice::WriteOnly) )
+        qDebug() << "Opened outFile" << filename;
+
+    QTextStream out(&outFile);
+
+    for(size_t i = 0; i < Y.size(); i++)
+        out << QString::number(Y[i], 'f', 4) << "\n";
+
+    qDebug() << "Wrote" << Y.size() << "points.";
+}
+
+void CyclicModel::testLPF()
+{
+    //FIR lpf (Low_pass (60, 150, FILTER_ORDER));
+    QString inputFile("D:\\Dropbox\\Harvard\\ICEbot share\\Current working directory\\2016-12-11 Testing Cpp FiltFilt\\data_to_filter_x.txt");
+    QString outputFile("D:\\Dropbox\\Harvard\\ICEbot share\\Current working directory\\2016-12-11 Testing Cpp FiltFilt\\filtered_data_x_Cpp.txt");
+
+    filtfilt lpf;
+    std::vector<double> X,Y;
+
+    loadData(inputFile, X);
+    X.pop_back(); // delete the last 0
+
+    for(auto x : X)
+        std::cout << x << std::endl;
+
+    QElapsedTimer elTimer;
+    elTimer.start();
+
+    lpf.run(X, Y);
+    lpf.run(X, Y);
+    lpf.run(X, Y);
+    lpf.run(X, Y);
+    lpf.run(X, Y);
+
+    qint64 elNsec = elTimer.nsecsElapsed();
+    qDebug() << "\nNsec elapsed:" << elNsec;
+
+    saveFilteredData(outputFile, Y);
 }

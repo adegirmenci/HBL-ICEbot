@@ -26,11 +26,15 @@ public:
     ~filtfilt();
 
     // A and B are the coefficients, X is the original data, Y is the output
-    void run(std::vector<double> B, std::vector<double> A, const std::vector<double> &X, std::vector<double> &Y);
+    void run(const std::vector<double> &X, std::vector<double> &Y);
+
+    void setFilterCoefficients(const std::vector<double> &B, const std::vector<double> &A);
 
     std::vector<double> m_A, m_B;
 
 private:
+    void updateFilterParameters();
+
     void add_index_range(std::vector<int> &indices, int beg, int end, int inc);
 
     void add_index_const(std::vector<int> &indices, int value, size_t numel);
@@ -44,7 +48,15 @@ private:
         return std::max_element(vec.begin(), vec.end())[0];
     }
 
-    void filter(std::vector<double> B, std::vector<double> A, const std::vector<double> &X, std::vector<double> &Y, std::vector<double> &Zi);
+    void filter(const std::vector<double> &X, std::vector<double> &Y, std::vector<double> &Zi);
+
+    int m_na;
+    int m_nb;
+    int m_nfilt;
+    int m_nfact;
+    std::vector<int> m_rows, m_cols;
+    std::vector<double> m_data;
+    Eigen::MatrixXd m_zzi;
 
 };
 

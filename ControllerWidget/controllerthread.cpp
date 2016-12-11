@@ -82,6 +82,8 @@ void ControllerThread::setEpoch(const QDateTime &epoch)
 void ControllerThread::printThreadID()
 {
     qDebug() << QTime::currentTime() << "Worker Thread ID: " << reinterpret_cast<int>(QThread::currentThreadId());
+
+    m_respModel.testLPF();
 }
 
 // THIS FUNCTION SHOULD NOT BE USED AT ALL
