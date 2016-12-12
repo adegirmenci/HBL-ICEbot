@@ -20,19 +20,29 @@ filtfilt::filtfilt()
 //           0.00319013679531822,           0.00279642405272151,           0.00264726249703924};
 
     // From MATLAB : m_B = fir1(50,(120/60/2)/(42.7350/2),'low'); // order 50, 100 bpm, 42.7350 Hz sampling
-    m_B = {-0.000569727095790538,       -0.000460005562187752,        -0.000341437553206024,        -0.000165785763108122,
-           0.000123143497281698,         0.000586219883270480,         0.00128516073718559,          0.00227837404637298,
-           0.00361672040102945,          0.00533945551423732,          0.00747061259853524,          0.0100160653579639,
-           0.0129614783838126,           0.0162713041615132,           0.0198889274205894,           0.0237379916329247,
-           0.0277248730484729,           0.0317421989856768,           0.0356732434065773,           0.0393969780822734,
-           0.0427935153555936,           0.0457496513584374,           0.0481642083490973,           0.0499528823717932,
-           0.0510523273876564,           0.0514232479879954,           0.0510523273876564,           0.0499528823717932,
-           0.0481642083490973,           0.0457496513584374,           0.0427935153555936,           0.0393969780822734,
-           0.0356732434065773,           0.0317421989856768,           0.0277248730484729,           0.0237379916329247,
-           0.0198889274205894,           0.0162713041615132,           0.0129614783838126,           0.0100160653579639,
-           0.00747061259853524,          0.00533945551423732,          0.00361672040102945,          0.00227837404637298,
-           0.00128516073718559,          0.000586219883270480,         0.000123143497281698,        -0.000165785763108122,
-           -0.000341437553206024,       -0.000460005562187752,        -0.000569727095790538};
+//    m_B = {-0.000569727095790538,       -0.000460005562187752,        -0.000341437553206024,        -0.000165785763108122,
+//           0.000123143497281698,         0.000586219883270480,         0.00128516073718559,          0.00227837404637298,
+//           0.00361672040102945,          0.00533945551423732,          0.00747061259853524,          0.0100160653579639,
+//           0.0129614783838126,           0.0162713041615132,           0.0198889274205894,           0.0237379916329247,
+//           0.0277248730484729,           0.0317421989856768,           0.0356732434065773,           0.0393969780822734,
+//           0.0427935153555936,           0.0457496513584374,           0.0481642083490973,           0.0499528823717932,
+//           0.0510523273876564,           0.0514232479879954,           0.0510523273876564,           0.0499528823717932,
+//           0.0481642083490973,           0.0457496513584374,           0.0427935153555936,           0.0393969780822734,
+//           0.0356732434065773,           0.0317421989856768,           0.0277248730484729,           0.0237379916329247,
+//           0.0198889274205894,           0.0162713041615132,           0.0129614783838126,           0.0100160653579639,
+//           0.00747061259853524,          0.00533945551423732,          0.00361672040102945,          0.00227837404637298,
+//           0.00128516073718559,          0.000586219883270480,         0.000123143497281698,        -0.000165785763108122,
+//           -0.000341437553206024,       -0.000460005562187752,        -0.000569727095790538};
+
+    size_t filterOrder = 51; // must be odd!
+    double deltaT = 0.0234;
+    double samplingFreq = 1.0/deltaT;
+    double heartRate = 120.0;
+    double band = (heartRate/60./2.)/(samplingFreq/2.);
+
+    m_B = FIR_LPF_LeastSquares(filterOrder, band);
+    for(auto x : m_B)
+        std::cout << x << std::endl;
 
     updateFilterParameters();
 }
@@ -40,67 +50,6 @@ filtfilt::filtfilt()
 filtfilt::~filtfilt()
 {
 
-}
-
-
-void filtfilt::add_index_range(std::vector<int> &indices, int beg, int end, int inc = 1)
-{
-    for (int i = beg; i <= end; i += inc)
-    {
-       indices.push_back(i);
-    }
-}
-
-void filtfilt::add_index_const(std::vector<int> &indices, int value, size_t numel)
-{
-    while (numel--)
-    {
-        indices.push_back(value);
-    }
-}
-
-void filtfilt::append_vector(std::vector<double> &vec, const std::vector<double> &tail)
-{
-    vec.insert(vec.end(), tail.begin(), tail.end());
-}
-
-std::vector<double> filtfilt::subvector_reverse(const std::vector<double> &vec, int idx_end, int idx_start)
-{
-    std::vector<double> result(&vec[idx_start], &vec[idx_end+1]);
-    std::reverse(result.begin(), result.end());
-    return result;
-}
-
-void filtfilt::filter(const std::vector<double> &X, std::vector<double> &Y, std::vector<double> &Zi)
-{
-    size_t input_size = X.size();
-    //size_t filter_order = std::max(m_A.size(), m_B.size());
-    size_t filter_order = m_nfilt;
-//    m_B.resize(filter_order, 0);
-//    m_A.resize(filter_order, 0);
-    Zi.resize(filter_order, 0);
-    Y.resize(input_size);
-
-    const double *x = &X[0];
-    const double *b = &m_B[0];
-    const double *a = &m_A[0];
-    double *z = &Zi[0];
-    double *y = &Y[0];
-
-    for (size_t i = 0; i < input_size; ++i)
-    {
-        size_t order = filter_order - 1;
-        while (order)
-        {
-            if (i >= order)
-            {
-                z[order - 1] = b[order] * x[i - order] - a[order] * y[i - order] + z[order];
-            }
-            --order;
-        }
-        y[i] = b[0] * x[i] + z[0];
-    }
-    Zi.resize(filter_order - 1);
 }
 
 void filtfilt::run(const std::vector<double> &X, std::vector<double> &Y)
@@ -141,6 +90,38 @@ void filtfilt::run(const std::vector<double> &X, std::vector<double> &Y)
     std::transform(m_zzi.data(), m_zzi.data() + m_zzi.size(), zi.begin(), [y0](double val){ return val*y0; });
     filter(signal2, signal1, zi);
     Y = subvector_reverse(signal1, signal1.size() - m_nfact - 1, m_nfact);
+}
+
+void filtfilt::filter(const std::vector<double> &X, std::vector<double> &Y, std::vector<double> &Zi)
+{
+    size_t input_size = X.size();
+    //size_t filter_order = std::max(m_A.size(), m_B.size());
+    size_t filter_order = m_nfilt;
+//    m_B.resize(filter_order, 0);
+//    m_A.resize(filter_order, 0);
+    Zi.resize(filter_order, 0);
+    Y.resize(input_size);
+
+    const double *x = &X[0];
+    const double *b = &m_B[0];
+    const double *a = &m_A[0];
+    double *z = &Zi[0];
+    double *y = &Y[0];
+
+    for (size_t i = 0; i < input_size; ++i)
+    {
+        size_t order = filter_order - 1;
+        while (order)
+        {
+            if (i >= order)
+            {
+                z[order - 1] = b[order] * x[i - order] - a[order] * y[i - order] + z[order];
+            }
+            --order;
+        }
+        y[i] = b[0] * x[i] + z[0];
+    }
+    Zi.resize(filter_order - 1);
 }
 
 void filtfilt::setFilterCoefficients(const std::vector<double> &B, const std::vector<double> &A)
@@ -227,4 +208,173 @@ void filtfilt::updateFilterParameters()
         std::transform(m_A.begin(), m_A.end(), m_A.begin(), [a0](double v) { return v / a0; });
         std::transform(m_B.begin(), m_B.end(), m_B.begin(), [a0](double v) { return v / a0; });
     }
+}
+
+void filtfilt::add_index_range(std::vector<int> &indices, int beg, int end, int inc)
+{
+    for (int i = beg; i <= end; i += inc)
+    {
+       indices.push_back(i);
+    }
+}
+
+void filtfilt::add_index_const(std::vector<int> &indices, int value, size_t numel)
+{
+    while (numel--)
+    {
+        indices.push_back(value);
+    }
+}
+
+void filtfilt::append_vector(std::vector<double> &vec, const std::vector<double> &tail)
+{
+    vec.insert(vec.end(), tail.begin(), tail.end());
+}
+
+std::vector<double> filtfilt::subvector_reverse(const std::vector<double> &vec, int idx_end, int idx_start)
+{
+    std::vector<double> result(&vec[idx_start], &vec[idx_end+1]);
+    std::reverse(result.begin(), result.end());
+    return result;
+}
+
+// L should be odd
+std::vector<double> filtfilt::FIR_LPF_LeastSquares(size_t L, const double deltaT)
+{
+    if(deltaT > 1.0)
+        std::cerr << "deltaT is too large, sample faster!!!" << std::endl;
+
+    std::vector<double> F = {0.0, deltaT/2.0, deltaT/2.0, 0.5},
+                        dF = {deltaT/2.0, 0.0, 0.5 - deltaT/2.0},
+                        M = {1,1,0,0},
+                        W = {1,1};
+
+    // size_t fullBand = 1, constantWeights = 1;
+
+    size_t N = L;
+    L = (N-1)/2;
+
+    //  k=m=(0:L); // Type-I
+    double b0 = 0.0;
+    std::vector<double> b(L, 0.0);
+    std::vector<size_t> m(L+1), k(L);
+
+    for(size_t i = 0; i < m.size(); i++)
+        m[i] = i;
+    for(size_t i = 0; i < k.size(); i++)
+        k[i] = m[i+1];
+
+    for(size_t s = 0; s < 3; s += 2)
+    {
+        // m=(M(s+1)-M(s))/(F(s+1)-F(s));    %  slope
+        // b1=M(s)-m*F(s);                   %  y-intercept
+
+        //double m_ = (M[s+1] - M[s])/(F[s+1] - F[s]);
+        double b1 = M[s];// - m_*F[s];
+
+        //b0 = b0 + (b1*(F(s+1)-F(s)) + m/2*(F(s+1)*F(s+1)-F(s)*F(s)))* abs(W((s+1)/2)^2) ;
+        //b0 += ( b1*(F[s+1]-F[s]) + m_/2.0*(F[s+1]*F[s+1]-F[s]*F[s]) );//* pow(W[(s+1)/2],2); W = 1 anyways
+        b0 += b1*(F[s+1]-F[s]);
+
+        //b = b+(m/(4*pi*pi)*(cos(2*pi*k*F(s+1))-cos(2*pi*k*F(s)))./(k.*k))...
+        //            * abs(W((s+1)/2)^2);
+        //b = b + (F(s+1)*(m*F(s+1)+b1)*sinc(2*k*F(s+1)) ...
+        //    - F(s)*(m*F(s)+b1)*sinc(2*k*F(s))) ...
+        //    * abs(W((s+1)/2)^2);
+        // sinc(x) = sin(pi*x)/(pi*x); ->> (sin(pi*2.0*k[i]*F[s+1])/(pi*2.0*k[i]*F[s+1]))
+
+        for(size_t i = 0; i < b.size(); i++)
+        {
+            double sinc_ = boost::math::sinc_pi(pi*2.0*k[i]*F[s+1]);
+            //b[i] += (m_/(4.0*pi*pi)*(cos(2.0*pi*k[i]*F[s+1])-cos(2.0*pi*k[i]*F[s]))/(1.0*k[i]*k[i]));//* pow(W[(s+1)/2],2);
+
+            //b[i] += (F[s+1]*(m_*F[s+1]+b1)*sinc_ - F[s]*(m_*F[s]+b1)*sinc_);// * pow(W[(s+1)/2],2);
+            b[i] += (F[s+1]*b1*sinc_ - F[s]*b1*sinc_);
+        }
+    }
+
+    b.insert(b.begin(),b0);
+
+    // a=(W(1)^2)*4*b;
+    std::vector<double> a(b.size());
+    for(size_t i = 0; i < a.size(); i++)
+    {
+        //a[i] = 4.0*b[i];
+        a[i] = 2.0*b[i];
+    }
+    //a[0] /= 2.0;
+
+    // h=[a(L+1:-1:2)/2; a(1); a(2:L+1)/2].';
+    std::vector<double> h;// size N
+    h.insert(h.end(), a.rbegin(), a.rend());
+    h.insert(h.end(), a.begin()+1, a.end());
+
+    // return h;
+
+
+//    b = hh.*Wind(:)';
+//    a = 1;
+
+    // generate the Hamming window coefficients
+    std::vector<double> Wind = genHammingWindow(N);
+
+    // reuse b
+    b.clear(); b.resize(N);
+
+    for(size_t i = 0; i < b.size(); i++)
+    {
+        b[i] = h[i] * Wind[i];
+    }
+
+    // scale filter
+    // b = b / sum(b);
+    double sumb = std::accumulate(b.begin(),b.end(),0.0);
+
+    for(size_t i = 0; i < b.size(); i++)
+    {
+        b[i] /= sumb;
+    }
+
+    return b;
+}
+
+std::vector<double> filtfilt::genHammingWindow(const size_t L)
+{
+    std::vector<double> w;
+
+    if(L % 2 > 0)
+    {        
+        // Odd length window
+        size_t half = (L+1)/2;
+        w = calcWindow(half, L);
+    }
+    else
+    {
+        // Even length window
+        size_t half = L/2;
+        w = calcWindow(half, L);
+    }
+
+    return w;
+}
+
+std::vector<double> filtfilt::calcWindow(size_t m, size_t n)
+{
+    // x = (0:m-1)'/(n-1);
+    double x = 0.0;
+    std::vector<double> w;
+
+    w.resize(m);
+
+    // compute coefficients of the Hamming windows
+    for(size_t i = 0; i < m; i++)
+    {
+        x = i/(n-1.0); // between 0.00 and 0.50
+        w[i] = 0.54 - 0.46*cos(2*pi*x);
+    }
+
+    // w = [w; w(end-1:-1:1)]; // make symmetric
+    w.insert(w.end(), w.rbegin()+1, w.rend());
+
+    return w;
 }

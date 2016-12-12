@@ -122,8 +122,6 @@ void CyclicModel::trainModel(const std::vector<double> data)
         size_t num_states = m*2 + 2;
         size_t N_filtered = N_initpts - 2*edge_effect;
 
-        // get the lowpass filter coefficients
-        //std::vector<double> filterCoeffs_b = spuce::design_window("hamming", FILTER_ORDER);
 
 
 
@@ -383,8 +381,8 @@ void CyclicModel::testLPF()
     loadData(inputFile, X);
     X.pop_back(); // delete the last 0
 
-    for(auto x : X)
-        std::cout << x << std::endl;
+//    for(auto x : X)
+//        std::cout << x << std::endl;
 
     QElapsedTimer elTimer;
     elTimer.start();
