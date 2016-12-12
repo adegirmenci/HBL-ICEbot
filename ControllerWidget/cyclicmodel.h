@@ -8,7 +8,8 @@
 #include <memory>
 #include <limits>
 #include <Eigen/Dense>
-#include <Eigen/StdDeque>
+#include <Eigen/SVD>
+#include <Eigen/Geometry>
 #include <QString>
 #include <QDir>
 #include <QFile>
@@ -21,16 +22,10 @@
 
 #define N_HARMONICS 4              // NUM_HARM
 #define N_STATES 10                // NUM_STATES
-#define SAMPLE_DELTA_TIME 0.005992 // SAMPLE_TIME
 #define N_SAMPLES 4000             // CYCLE_DATA_SIZE
 #define EDGE_EFFECT 35             // EDGE_EFFECT
-#define FILTER_ORDER 50            // FILTERORDER
 #define BREATH_RATE 7.5            // BREATHRATE
 #define PEAK_THRESHOLD 0.80        // For peak detection
-
-typedef Eigen::Transform<double,3,Eigen::Affine> EigenAffineTransform3d;
-// in order to use deque with Eigen Transform, we need this typedef
-typedef std::deque< EigenAffineTransform3d, Eigen::aligned_allocator<EigenAffineTransform3d> > EigenDequeAffineTform3d;
 
 class CyclicModel
 {
@@ -58,20 +53,46 @@ public:
 
     // testing function - external data load and save
     void loadData(QString filename, std::vector<double> &X);
-    void saveFilteredData(QString filenam, const std::vector<double> &Y);
+    void load4x4Data(QString filename, EigenDequeVector7d &X);
+    void saveFilteredData(QString filename, const std::vector<double> &Y);
+    void save4x4FilteredData(QString filename, const EigenDequeVector7d &Y);
     void testLPF();
 
 private:
     void retrainModel();
 
+    void peakDetector();
+
     std::shared_ptr< std::vector<double> > cycle_recalculate(const std::vector<double> &inputs);
 
     // data members
+
+    // Low Pass Filter
+    filtfilt m_LowPassFilter;
+
     // in order to use deque with Eigen Transform, we need the typedef above
-    EigenDequeAffineTform3d m_BBfixed_CT,    // this stores all of the incoming CT points
-                            m_BBfixed_Instr, // this stores all of the incoming instr_x points
-                            m_BBfixed_BB,    // this stores all of the incoming BB points
-                            m_Bird4;         // this stores all of the incoming 4th EM sensor points
+//    EigenDequeAffineTform3d m_BBfixed_CT,    // this stores all of the incoming CT points
+//                            m_BBfixed_Instr, // this stores all of the incoming instr_x points
+//                            m_BBfixed_BB,    // this stores all of the incoming BB points
+//                            m_Bird4;         // this stores all of the incoming 4th EM sensor points
+
+    // x,y,z,xaxis,yaxis,zaxis,angle
+    EigenDequeVector7d m_BBfixed_CT,    // this stores all of the incoming CT points
+                       m_BBfixed_Instr, // this stores all of the incoming instr_x points
+                       m_BBfixed_BB,    // this stores all of the incoming BB points
+                       m_Bird4;         // this stores all of the incoming 4th EM sensor points
+
+    // x,y,z,xaxis,yaxis,zaxis,angle
+    EigenDequeVector7d m_BBfixed_CT_filtered,
+                       m_BBfixed_BB_filtered,
+                       m_Bird4_filtered;
+    // rectangular and polar components
+    EigenDequeVector7d m_BBfixed_CT_rectangular,
+                       m_BBfixed_BB_rectangular,
+                       m_Bird4_rectangular;
+    EigenDequeVector7d m_BBfixed_CT_polar,
+                       m_BBfixed_BB_polar,
+                       m_Bird4_polar;
 
     std::deque<double> m_timeData, m_breathingSignal; // stores time, and data to transfer to period updater
 

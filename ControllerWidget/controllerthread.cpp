@@ -35,16 +35,16 @@ ControllerThread::ControllerThread(QObject *parent) :
 
 ControllerThread::~ControllerThread()
 {
-    std::cout << "FwdKin\n" << m_cathKin.forwardKinematics(1,0.1,0.1,0).matrix() << std::endl;
+//    std::cout << "FwdKin\n" << m_cathKin.forwardKinematics(1,0.1,0.1,0).matrix() << std::endl;
 
-    std::cout << "Jacobian\n" << m_cathKin.JacobianNumeric(1,0.1,0.1,0).matrix() << std::endl;
+//    std::cout << "Jacobian\n" << m_cathKin.JacobianNumeric(1,0.1,0.1,0).matrix() << std::endl;
 
-    std::cout << "InvKin3D\n" << m_cathKin.inverseKinematics3D(5,5,12,0.1) << std::endl;
+//    std::cout << "InvKin3D\n" << m_cathKin.inverseKinematics3D(5,5,12,0.1) << std::endl;
 
-    Eigen::Transform<double, 3, Eigen::Affine> T_in(Eigen::Matrix<double, 4, 4>::Identity());
-    std::cout << "T_in\n" << T_in.matrix() << std::endl;
-    Eigen::Vector4d configIn(0.0010, 0.0001, 0.0001, 0);
-    std::cout << "control_icra2016\n" << m_cathKin.control_icra2016(T_in, configIn, 0.0) << std::endl;
+//    Eigen::Transform<double, 3, Eigen::Affine> T_in(Eigen::Matrix<double, 4, 4>::Identity());
+//    std::cout << "T_in\n" << T_in.matrix() << std::endl;
+//    Eigen::Vector4d configIn(0.0010, 0.0001, 0.0001, 0);
+//    std::cout << "control_icra2016\n" << m_cathKin.control_icra2016(T_in, configIn, 0.0) << std::endl;
 
     qDebug() << "Ending ControllerThread - ID: " << reinterpret_cast<int>(QThread::currentThreadId()) << ".";
 
@@ -471,6 +471,9 @@ void ControllerThread::controlCycle()
 {
     //QMutexLocker locker(m_mutex); // already locked by calling function
 
+    // TODO : should we check if the resp model is collecting training data here?
+    // this way, all other control code will be bypassed
+
     if(m_isReady && m_keepControlling)
     {
         switch(m_modeFlags.coordFrame)
@@ -494,14 +497,12 @@ void ControllerThread::controlCycle()
         Eigen::Matrix<double, 4, 2> jointsCurrAndTarget;
         jointsCurrAndTarget = m_cathKin.control_icra2016(m_BB_CT_curTipPos, m_dXYZPsi, m_currGamma);
 
+        // get relative motor counts
         Eigen::Vector4d relQCs;  // knob_tgt - knob_curr
         relQCs(0) = (jointsCurrAndTarget(0,1) - jointsCurrAndTarget(0,0)) * m_gains.kTrans * 0.001 * EPOS_TRANS_RAD2QC;
         relQCs(1) = (jointsCurrAndTarget(1,1) - jointsCurrAndTarget(1,0)) * m_gains.kPitch * EPOS_PITCH_RAD2QC;
         relQCs(2) = (jointsCurrAndTarget(2,1) - jointsCurrAndTarget(2,0)) * m_gains.kYaw * EPOS_YAW_RAD2QC;
         relQCs(3) = (jointsCurrAndTarget(3,1) - jointsCurrAndTarget(3,0)) * m_gains.kRoll * EPOS_ROLL_RAD2QC;
-
-        // motor commands
-        //std::cout << "QCs - T: " << relQCs(0) << " P: " << relQCs(1) << " Y: " << relQCs(2) << " R: " << relQCs(3) << std::endl;
 
         // check if QCs are finite
         if( !(isfinite(relQCs(0)) && isfinite(relQCs(1)) && isfinite(relQCs(2)) && isfinite(relQCs(3))) )
@@ -526,7 +527,7 @@ void ControllerThread::controlCycle()
         if(abs(targetPos[3]) > EPOS_VELOCITY[3])
             targetPos[3] = boost::math::copysign(EPOS_VELOCITY[3], targetPos[3]);
 
-        std::cout << "QCs - T: " << targetPos[0] << " P: " << targetPos[1] << " Y: " << targetPos[2] << " R: " << targetPos[3] << std::endl;
+        printf("QCs - T: %ld P: %ld Y: %ld R: %ld\n", targetPos[0], targetPos[1], targetPos[2], targetPos[3]);
 
         // TODO : check if the EPOS Servo Loop is active, if not, don't send commands
         emit setEPOSservoTargetPos(targetPos, false); //relative
@@ -553,7 +554,7 @@ void ControllerThread::computeCoordFrameWorld()
     // x-axis.
     double m_currGamma = atan2(m_BBfixed_BBmobile(1,0), m_BBfixed_BBmobile(0,0));
 
-    std::cout << "Psy : " << total_psy * deg180overPi << " Gamma : " << m_currGamma * deg180overPi << std::endl;
+    printf("Psy : %.3f Gamma : %.3f\n", total_psy * deg180overPi, m_currGamma * deg180overPi);
 
     switch(m_modeFlags.instTrackState)
     {
@@ -665,7 +666,7 @@ void ControllerThread::computeCoordFrameWorld()
         break;
     }
 
-    std::cout << "dx : " << m_dXYZPsi(0) << " dy : " << m_dXYZPsi(1) << " dz : " << m_dXYZPsi(2) << " dpsi : " << m_dXYZPsi(3) * deg180overPi << std::endl;
+    printf("dx : %.3f dy : %.3f dz : %.3f dpsi : %.3f\n", m_dXYZPsi(0), m_dXYZPsi(1), m_dXYZPsi(2), m_dXYZPsi(3)* deg180overPi);
 }
 
 void ControllerThread::computeCoordFrameMobile()

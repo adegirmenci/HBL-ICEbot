@@ -2,30 +2,33 @@
 
 CyclicModel::CyclicModel()
 {
-    std::cout << "--- Initializing CyclicModel." << std::endl;
+    m_BBfixed_CT   .resize(N_SAMPLES, EigenVector7d::Identity());
+    m_BBfixed_Instr.resize(N_SAMPLES, EigenVector7d::Identity());
+    m_BBfixed_BB   .resize(N_SAMPLES, EigenVector7d::Identity());
+    m_Bird4        .resize(N_SAMPLES, EigenVector7d::Identity());
+    m_timeData     .resize(N_SAMPLES, 0.0);
 
-    EigenAffineTransform3d dummy  = dummy.Identity();
+    m_BBfixed_CT_filtered.resize(N_SAMPLES, EigenVector7d::Zero());
+    m_BBfixed_BB_filtered.resize(N_SAMPLES, EigenVector7d::Zero());
+    m_Bird4_filtered     .resize(N_SAMPLES, EigenVector7d::Zero());
 
-    m_BBfixed_CT.resize(N_SAMPLES, dummy);
-    std::cout << "Initialized m_BBfixed_CT." << std::endl;
-    m_BBfixed_Instr.resize(N_SAMPLES, dummy);
-    std::cout << "Initialized m_BBfixed_Instr." << std::endl;
-    m_BBfixed_BB.resize(N_SAMPLES, dummy);
-    std::cout << "Initialized m_BBfixed_BB." << std::endl;
-    m_Bird4.resize(N_SAMPLES, dummy);
-    std::cout << "Initialized m_Bird4." << std::endl;
-    m_timeData.resize(N_SAMPLES, 0.0);
-    std::cout << "Initialized m_timeData." << std::endl;
+    m_BBfixed_CT_rectangular.resize(N_SAMPLES, EigenVector7d::Zero());
+    m_BBfixed_BB_rectangular.resize(N_SAMPLES, EigenVector7d::Zero());
+    m_Bird4_rectangular     .resize(N_SAMPLES, EigenVector7d::Zero());
 
-    m_BBfixed_CT.pop_front();
-    m_BBfixed_CT.push_back(dummy.Identity());
+    m_BBfixed_CT_polar.resize(N_SAMPLES, EigenVector7d::Zero());
+    m_BBfixed_BB_polar.resize(N_SAMPLES, EigenVector7d::Zero());
+    m_Bird4_polar     .resize(N_SAMPLES, EigenVector7d::Zero());
+
+//    m_BBfixed_CT.pop_front();
+//    m_BBfixed_CT.push_back(EigenAffineTransform3d::Identity());
 
     m_numSamples = 0;
 
     m_isTrained = false;
     m_lastTrainingTimestamp = 0.0;
 
-    std::cout << "Initialized CyclicModel. ---" << std::endl;
+    std::cout << "--- Initialized CyclicModel. ---" << std::endl;
 
     // SPUCE library - not used
 //std::vector<double> firCoeff_b = spuce::design_window("hamming", FILTER_ORDER);
@@ -42,10 +45,24 @@ CyclicModel::~CyclicModel()
 
 void CyclicModel::operator =(const CyclicModel &Other)
 {
-    m_BBfixed_CT = Other.m_BBfixed_CT;
+    m_BBfixed_CT    = Other.m_BBfixed_CT;
     m_BBfixed_Instr = Other.m_BBfixed_Instr;
-    m_BBfixed_BB = Other.m_BBfixed_BB;
-    m_Bird4 = Other.m_Bird4;
+    m_BBfixed_BB    = Other.m_BBfixed_BB;
+    m_Bird4         = Other.m_Bird4;
+
+    m_BBfixed_CT_filtered = Other.m_BBfixed_CT_filtered;
+    m_BBfixed_BB_filtered = Other.m_BBfixed_BB_filtered;
+    m_Bird4_filtered      = Other.m_Bird4_filtered;
+
+    m_BBfixed_CT_rectangular = Other.m_BBfixed_CT_rectangular;
+    m_BBfixed_BB_rectangular = Other.m_BBfixed_BB_rectangular;
+    m_Bird4_rectangular      = Other.m_Bird4_rectangular;
+
+    m_BBfixed_CT_polar = Other.m_BBfixed_CT_polar;
+    m_BBfixed_BB_polar = Other.m_BBfixed_BB_polar;
+    m_Bird4_polar      = Other.m_Bird4_polar;
+
+    // m_LowPassFilter = Other.m_LowPassFilter;
 
     m_timeData = Other.m_timeData;
     m_breathingSignal = Other.m_breathingSignal;
@@ -74,6 +91,7 @@ void CyclicModel::addObservation(const EigenAffineTransform3d &T_BB_CT_curTipPos
     m_BBfixed_Instr.pop_front();
     m_BBfixed_BB.pop_front();
     m_Bird4.pop_front();
+    m_timeData.pop_front();
 
     // local_BB_Box * local_Box_BBmobile = em_base; // T_BB_Box * T_Box_BBmobile = T_BBfixed_BBmobile
     // BBfixed_CT.insert(BBfixed_CT.end(), em_tip, em_tip+16);
@@ -81,11 +99,34 @@ void CyclicModel::addObservation(const EigenAffineTransform3d &T_BB_CT_curTipPos
     // BBfixed_BB.insert(BBfixed_BB.end(), em_base, em_base+16);
     // Bird4.insert(Bird4.end(), local_Bird4, local_Bird4+16);
 
+    EigenAffineTransform3d T_BB_BBm = T_BB_Box * T_Box_BBmobile;
+
+    // axis angle
+    Eigen::AngleAxisd tempEA_CT  (T_BB_CT_curTipPos.rotation()),
+                      tempEA_Inst(T_BB_targetPos.rotation()),
+                      tempEA_BB  (T_BB_BBm.rotation()),
+                      tempEA_Bird(T_Bird4.rotation());
+
+    EigenVector7d tempCT, tempInst, tempBB, tempBird4;
+
+    tempCT << T_BB_CT_curTipPos(0,3), T_BB_CT_curTipPos(1,3), T_BB_CT_curTipPos(2,3),
+              tempEA_CT.axis()(0), tempEA_CT.axis()(1), tempEA_CT.axis()(2), tempEA_CT.angle();
+
+    tempInst << T_BB_targetPos(0,3), T_BB_targetPos(1,3), T_BB_targetPos(2,3),
+              tempEA_Inst.axis()(0), tempEA_Inst.axis()(1), tempEA_Inst.axis()(2), tempEA_Inst.angle();
+
+    tempBB << T_BB_BBm(0,3), T_BB_BBm(1,3), T_BB_BBm(2,3),
+              tempEA_BB.axis()(0), tempEA_BB.axis()(1), tempEA_BB.axis()(2), tempEA_BB.angle();
+
+    tempBird4 << T_Bird4(0,3), T_Bird4(1,3), T_Bird4(2,3),
+              tempEA_Bird.axis()(0), tempEA_Bird.axis()(1), tempEA_Bird.axis()(2), tempEA_Bird.angle();
+
     // push newest readings
-    m_BBfixed_CT.push_back(T_BB_CT_curTipPos);
-    m_BBfixed_Instr.push_back(T_BB_targetPos);
-    m_BBfixed_BB.push_back(T_BB_Box * T_Box_BBmobile);
-    m_Bird4.push_back(T_Bird4);
+    m_BBfixed_CT.push_back(tempCT);
+    m_BBfixed_Instr.push_back(tempInst);
+    m_BBfixed_BB.push_back(tempBB);
+    m_Bird4.push_back(tempBird4);
+    m_timeData.push_back(sampleTime);
 
     m_numSamples++;
 }
@@ -122,9 +163,23 @@ void CyclicModel::trainModel(const std::vector<double> data)
         size_t num_states = m*2 + 2;
         size_t N_filtered = N_initpts - 2*edge_effect;
 
+        // low pass filter the data
 
+        m_LowPassFilter.run(m_BBfixed_CT, m_BBfixed_CT_filtered);
+        //m_LowPassFilter.run(m_BBfixed_Instr, m_BBfixed_Instr_filtered);
+        m_LowPassFilter.run(m_BBfixed_BB, m_BBfixed_BB_filtered);
+        m_LowPassFilter.run(m_Bird4, m_Bird4_filtered);
 
+        // TODO : peak detection
+        // Use peak detection to look at the filtered data and find the period
 
+        // % In vivo version has an error checker to make sure the breathing period is
+        // % between 4 - 5.5 seconds
+
+        // omega_0 = 2*pi*1/period; % 2*pi*breathing frequency (rad/sec)
+
+        // Step 1. z = Ax + noise.  Assemble A and z.  Use rectangular fourier series.
+        // use <<< cycle_recalculate >>> here
 
         m_isTrained = true;
     }
@@ -159,6 +214,11 @@ double CyclicModel::getPrediction(const double timeShift, const std::vector<doub
 }
 
 void CyclicModel::retrainModel()
+{
+
+}
+
+void CyclicModel::peakDetector()
 {
 
 }
@@ -354,6 +414,52 @@ void CyclicModel::loadData(QString filename, std::vector<double> &X)
     qDebug() << "Read" << X.size() << "points.";
 }
 
+void CyclicModel::load4x4Data(QString filename, EigenDequeVector7d &X)
+{
+    // check if the directory exists
+    QFile inFile(filename);
+
+    if( inFile.open(QIODevice::ReadOnly) )
+        qDebug() << "Opened inFile" << filename;
+
+    QTextStream in(&inFile);
+
+    double dummy;
+    EigenAffineTransform3d tempT;
+
+    while(!in.atEnd())
+    {
+        for(size_t i = 0; i < 4; i++)
+        {
+            for(size_t j = 0; j < 4; j++)
+            {
+                if(in.atEnd())
+                {
+                    qDebug() << "Early termination!" << filename;
+                    return;
+                }
+
+                in >> dummy;
+
+                if(i < 3)
+                    tempT(i,j) = dummy;
+            }
+        }
+
+        // axis angle
+        EigenVector7d temp7d;
+        Eigen::AngleAxisd tempEA(tempT.rotation());
+
+        temp7d << tempT(0,3), tempT(1,3), tempT(2,3),
+                  tempEA.axis()(0), tempEA.axis()(1), tempEA.axis()(2), tempEA.angle();
+
+        // push newest readings
+        X.push_back(temp7d);
+
+    }
+    qDebug() << "Read" << X.size() << "points.";
+}
+
 void CyclicModel::saveFilteredData(QString filename, const std::vector<double> &Y)
 {
     QFile outFile(filename);
@@ -365,6 +471,29 @@ void CyclicModel::saveFilteredData(QString filename, const std::vector<double> &
 
     for(size_t i = 0; i < Y.size(); i++)
         out << QString::number(Y[i], 'f', 4) << "\n";
+
+    qDebug() << "Wrote" << Y.size() << "points.";
+}
+
+void CyclicModel::save4x4FilteredData(QString filename, const EigenDequeVector7d &Y)
+{
+    QFile outFile(filename);
+
+    if( outFile.open(QIODevice::WriteOnly) )
+        qDebug() << "Opened outFile" << filename;
+
+    QTextStream out(&outFile);
+
+    for(size_t i = 0; i < Y.size(); i++)
+    {
+        out << QString::number(Y[i](0), 'f', 4) << " "
+            << QString::number(Y[i](1), 'f', 4) << " "
+            << QString::number(Y[i](2), 'f', 4) << " "
+            << QString::number(Y[i](3), 'f', 4) << " "
+            << QString::number(Y[i](4), 'f', 4) << " "
+            << QString::number(Y[i](5), 'f', 4) << " "
+            << QString::number(Y[i](6), 'f', 4) << "\n";
+    }
 
     qDebug() << "Wrote" << Y.size() << "points.";
 }
@@ -397,4 +526,22 @@ void CyclicModel::testLPF()
     qDebug() << "\nNsec elapsed:" << elNsec;
 
     saveFilteredData(outputFile, Y);
+
+    // Test 7 axis filtering
+    QString inputFile7d("D:\\Dropbox\\Harvard\\ICEbot share\\Current working directory\\2016-12-11 Testing Cpp FiltFilt\\data_to_filter.txt");
+    QString outputFile7d("D:\\Dropbox\\Harvard\\ICEbot share\\Current working directory\\2016-12-11 Testing Cpp FiltFilt\\filtered_data_Cpp.txt");
+
+    EigenDequeVector7d X_7d, Y_7d;
+
+    load4x4Data(inputFile7d, X_7d);
+
+    elTimer.restart();
+
+    lpf.run(X_7d, Y_7d);
+
+    elNsec = elTimer.nsecsElapsed();
+    qDebug() << "\n>>> 7d Nsec elapsed:" << elNsec;
+
+    save4x4FilteredData(outputFile7d, Y_7d);
+
 }
