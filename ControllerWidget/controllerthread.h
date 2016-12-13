@@ -111,6 +111,7 @@ public slots:
     void setUSangle(double usAngle);
 
     void initializeRespModel();
+    void updateFutureSamples(int n);
 
 private slots:
     void controlCycle(); // on a timer

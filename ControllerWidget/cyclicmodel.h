@@ -48,17 +48,17 @@ public:
 
     // update the period
     void updatePeriod(const double period);
-
-    // get a prediction
-    double getPrediction(const double timeShift,
-                         const EigenVectorPolar &x_polar,
-                         const EigenVectorRectangular &x_rect);
+    void updateNfutureSamples(int n) { m_nFutureSamples = n; }
 
     // Accessors
     const size_t getNumSamples() { return m_numSamples; }
     const bool isTrained() { return m_isTrained; }
 
     void setInVivo(const bool isInVivo);
+
+    EigenVector7d getT_BBfixed_CT_des() { return m_BBfixed_CT_des; }
+    EigenVector7d getT_BBfixed_CTtraj_future_des() { return m_BBfixed_CTtraj_future_des; }
+    EigenVector7d getT_BBfixed_BB_des() { return m_BBfixed_BB_des; }
 
     // testing function - external data load and save
     void loadData(QString filename, std::vector<double> &X);
@@ -78,6 +78,15 @@ private:
     void filterNewObservations();
 
     double peakDetector(const bool runForInit);
+    void peakDetectorForBreathModel();
+
+    double getPrediction(const double timeShift,
+                         const EigenVectorPolar &x_polar,
+                         const EigenVectorRectangular &x_rect);
+    void getPrediction7Axis(const double timeShift,
+                            const EigenMatrixPolar &x_polar,
+                            const EigenMatrixRectangular &x_rect,
+                            EigenVector7d &X_des);
 
     void cycle_recalculate(const EigenMatrixFiltered &z_init,
                            EigenMatrixRectangular &x_rect,
@@ -115,7 +124,8 @@ private:
                        m_BBfixed_BB_filtered;  // this remains constant after initialization
     // for the chest tracker, we only the need the x (benchtop) or -z (in vivo) axis of this
     EigenVectorFiltered m_Bird4_filtered,      // this remains constant after initialization
-                        m_Bird4_filtered_new;  // most recent filtered chest tracker data
+                        m_Bird4_filtered_new,  // most recent filtered chest tracker data
+                        m_breathSignalFromModel;
 
     // ***CURRENT*** RECTANGULAR COMPONENTS
     EigenMatrixRectangular m_BBfixed_CT_rectangular, // 7 components: x,y,z,xaxis,yaxis,zaxis,angle
@@ -127,9 +137,19 @@ private:
                      m_BBfixed_BB_polar; // 7 components: x,y,z,xaxis,yaxis,zaxis,angle
     EigenVectorPolar m_Bird4_polar;      // 1 component : x (benchtop) or -z (in vivo)
 
+    // MODEL-BASED ESTIMATES OF CURRENT AND FUTURE POSITIONS
+    EigenVector7d m_BBfixed_CT_des,
+                  m_BBfixed_CTtraj_future_des,
+                  m_BBfixed_BB_des;
+
     // TIME DATA
     std::vector<double> m_timeData_init, // stores the time vector for the model initialization observations
                         m_timeData_new;  // stores time for the most recent observations
+
+    // PEAK DATA - MEAN OF THE LEFT AND RIGHT
+    std::vector<double> m_respPeakMean, m_breathSignalPeakMean;
+
+    size_t m_nFutureSamples; // how much into the future should we look?
 
     double m_omega0; // frequency
 

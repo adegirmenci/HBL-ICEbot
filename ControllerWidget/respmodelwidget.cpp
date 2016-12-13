@@ -29,3 +29,8 @@ void respModelWidget::closeEvent(QCloseEvent *event)
     emit closeRespModelWindow();
     event->accept();
 }
+
+void respModelWidget::on_futureSamplesSpinBox_valueChanged(int arg1)
+{
+
+}

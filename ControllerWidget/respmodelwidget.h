@@ -22,10 +22,14 @@ signals:
 
     void initializeRespModel();
 
+    void newFutureSamplesValue(int n);
+
 private slots:
     void on_closeButton_clicked();
 
     void on_initializeButton_clicked();
+
+    void on_futureSamplesSpinBox_valueChanged(int arg1);
 
 private:
     Ui::respModelWidget *ui;

@@ -476,6 +476,14 @@ void ControllerThread::initializeRespModel()
     // show a counter of how many samples were collected
 }
 
+void ControllerThread::updateFutureSamples(int n)
+{
+    if(n >= EDGE_EFFECT)
+        m_respModel.updateNfutureSamples(n);
+    else
+        qDebug() << "updateFutureSamples: n < EDGE_EFFECT";
+}
+
 void ControllerThread::controlCycle()
 {
     //QMutexLocker locker(m_mutex); // already locked by calling function
@@ -561,7 +569,7 @@ void ControllerThread::computeCoordFrameWorld()
     // the handle is calculated as the angle of rotation about the base z-axis.
     // Here we calculate the angle between the new x-axis and the original
     // x-axis.
-    double m_currGamma = atan2(m_BBfixed_BBmobile(1,0), m_BBfixed_BBmobile(0,0));
+    m_currGamma = atan2(m_BBfixed_BBmobile(1,0), m_BBfixed_BBmobile(0,0));
 
     printf("Psy : %.3f Gamma : %.3f\n", total_psy * deg180overPi, m_currGamma * deg180overPi);
 
@@ -680,6 +688,72 @@ void ControllerThread::computeCoordFrameWorld()
 
 void ControllerThread::computeCoordFrameMobile()
 {
+    //% Use models to reconstruct one 4x4 matrix at this time point
+//    % Tip
+//    T_BBfixed_CTtraj(1:3,1:3) = convert_eaa_3x3(reshape(BBfixed_CTtraj_model(4:7),1,4));
+//    T_BBfixed_CTtraj(1,4) = BBfixed_CTtraj_model(1);
+//    T_BBfixed_CTtraj(2,4) = BBfixed_CTtraj_model(2);
+//    T_BBfixed_CTtraj(3,4) = BBfixed_CTtraj_model(3);
+//    T_BBfixed_CTtraj(4,1:4) = [0 0 0 1];
+
+    EigenVector7d CT_des = m_respModel.getT_BBfixed_CT_des();
+    EigenVector7d CT_future_des = m_respModel.getT_BBfixed_CTtraj_future_des();
+    EigenVector7d BB_des = m_respModel.getT_BBfixed_BB_des();
+
+    Eigen::AngleAxis<double> rotCTdes(CT_des(6), Eigen::Vector3d(CT_des(3),CT_des(4),CT_des(5)));
+    Eigen::Translation3d transCTdes(CT_des(0),CT_des(1),CT_des(2));
+    EigenAffineTransform3d T_BBfixed_CT_des = transCTdes * rotCTdes;
+
+    Eigen::AngleAxis<double> rotCTtraj(CT_future_des(6), Eigen::Vector3d(CT_future_des(3),CT_future_des(4),CT_future_des(5)));
+    Eigen::Translation3d transCTtraj(CT_future_des(0),CT_future_des(1),CT_future_des(2));
+    EigenAffineTransform3d T_BBfixed_CTtraj_future_des = transCTtraj * rotCTtraj;
+
+    Eigen::AngleAxis<double> rotBBdes(BB_des(6), Eigen::Vector3d(BB_des(3),BB_des(4),BB_des(5)));
+    Eigen::Translation3d transBBdes(BB_des(0),BB_des(1),BB_des(2));
+    EigenAffineTransform3d T_BBfixed_BB_des = transBBdes * rotBBdes;
+
+    //% Rotation about the z-axis of the catheter tip.
+    //    % Here we calculate the angle between the current x-axis and the
+    //    % pure-breathing x-axis.
+    //    T_CTtraj_CT=inv(T_BBfixed_CTtraj)*T_BBfixed_CT;
+
+    EigenAffineTransform3d T_CTtraj_CT = T_BBfixed_CT_des.inverse() * m_BB_CT_curTipPos;
+
+    //    % This is the total amount of psy that has occurred at the tip compared
+    //    % with pure breathing
+    //    total_psy=atan2(T_CTtraj_CT(2,1),T_CTtraj_CT(1,1));
+
+    double total_psy = atan2(T_CTtraj_CT(1,0), T_CTtraj_CT(0,0));
+
+    //% Existing roll in the catheter handle, from Base_Roll which was a separate
+    //    % function but is now incorporated into here
+    //    T_BBtraj_BBmob = inv(T_BBfixed_BBtraj) * T_BBfixed_BBmob;
+    //    % Assuming the BB point has rotated about its Z axis, the amount of roll in
+    //    % the handle is calculated as the angle of rotation about the base z-axis.
+    //    % Here we calculate the angle between the new x-axis and the trajectory
+    //    % x-axis.
+    //    gamma=atan2(T_BBtraj_BBmob(2,1),T_BBtraj_BBmob(1,1));
+
+    EigenAffineTransform3d T_BBtraj_BBmob = T_BBfixed_BB_des.inverse() * m_BBfixed_BBmobile;
+
+    m_currGamma = atan2(T_BBtraj_BBmob(1,0), T_BBtraj_BBmob(0,0));
+
+    printf("Psy : %.3f Gamma : %.3f\n", total_psy * deg180overPi, m_currGamma * deg180overPi);
+
+    //% Get BT w.r.t. mobile BB, rather than fixed BB
+    //        T_BBmob_BT = inv(T_BBfixed_BBmob)*T_BBfixed_CT*inv(T_BT_CT);
+
+    EigenAffineTransform3d T_BBmob_BT = m_BBfixed_BBmobile.inverse() * m_BBfixed_CTorig * m_BT_CT.inverse();
+
+    //% Initialize even if EKF is off
+    //    T_BBfixed_CT_future = zeros(1,16);
+
+    EigenAffineTransform3d T_BBfixed_CT_future = EigenAffineTransform3d::Identity();
+
+
+
+
+    // TODO : complete transfer from MATLAB
 
 }
 

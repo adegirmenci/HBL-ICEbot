@@ -43,20 +43,23 @@ void CyclicModel::resetModel()
     m_BBfixed_BB_filtered = EigenMatrixFiltered::Zero(N_FILTERED,7); // this remains constant after initialization
     m_Bird4_filtered      = EigenVectorFiltered::Zero(N_FILTERED); // this remains constant after initialization
     m_Bird4_filtered_new  = EigenVectorFiltered::Zero(N_FILTERED); // most recent filtered chest tracker data
+    m_breathSignalFromModel = EigenVectorFiltered::Zero(N_FILTERED);
 
     // ***CURRENT*** RECTANGULAR COMPONENTS
-    m_BBfixed_CT_rectangular = EigenMatrixRectangular::Zero(N_FILTERED,N_RECT); // 7 components: x,y,z,xaxis,yaxis,zaxis,angle
-    m_BBfixed_BB_rectangular = EigenMatrixRectangular::Zero(N_FILTERED,N_RECT); // 7 components: x,y,z,xaxis,yaxis,zaxis,angle
-    m_Bird4_rectangular      = EigenVectorRectangular::Zero(N_FILTERED); // 1 component : x (benchtop) or -z (in vivo)
+    m_BBfixed_CT_rectangular = EigenMatrixRectangular::Zero(N_RECT,7); // 7 components: x,y,z,xaxis,yaxis,zaxis,angle
+    m_BBfixed_BB_rectangular = EigenMatrixRectangular::Zero(N_RECT,7); // 7 components: x,y,z,xaxis,yaxis,zaxis,angle
+    m_Bird4_rectangular      = EigenVectorRectangular::Zero(N_RECT); // 1 component : x (benchtop) or -z (in vivo)
 
     // ***CURRENT*** POLAR COMPONENTS
-    m_BBfixed_CT_polar = EigenMatrixPolar::Zero(N_FILTERED,N_POLAR); // 7 components: x,y,z,xaxis,yaxis,zaxis,angle
-    m_BBfixed_BB_polar = EigenMatrixPolar::Zero(N_FILTERED,N_POLAR); // 7 components: x,y,z,xaxis,yaxis,zaxis,angle
-    m_Bird4_polar      = EigenVectorPolar::Zero(N_FILTERED); // 1 component : x (benchtop) or -z (in vivo)
+    m_BBfixed_CT_polar = EigenMatrixPolar::Zero(N_POLAR,7); // 7 components: x,y,z,xaxis,yaxis,zaxis,angle
+    m_BBfixed_BB_polar = EigenMatrixPolar::Zero(N_POLAR,7); // 7 components: x,y,z,xaxis,yaxis,zaxis,angle
+    m_Bird4_polar      = EigenVectorPolar::Zero(N_POLAR); // 1 component : x (benchtop) or -z (in vivo)
 
     // TIME DATA
     m_timeData_init.reserve(N_SAMPLES);    // stores the time vector for the model initialization observations
     m_timeData_new .resize(N_SAMPLES, 0.0); // stores time for the most recent observations
+
+    m_nFutureSamples = 35;
 
     m_omega0 = 0.0; // frequency
 
@@ -154,10 +157,7 @@ void CyclicModel::addObservation(const EigenAffineTransform3d &T_Bird4, const do
 
         m_numSamples++;
 
-        // low pass filter the data
-        filterNewObservations();
-
-        updatePeriod( peakDetector(false) );
+        retrainModel();
     }
     else
     {
@@ -180,23 +180,19 @@ void CyclicModel::trainModel()
     }
     else // train
     {
-        size_t m = N_HARMONICS; // m = number of sinusoid components
+        // size_t m = N_HARMONICS; // m = number of sinusoid components
         // double delta_t = SAMPLE_DELTA_TIME; // Time step for each collected data point
         size_t N_initpts = m_BBfixed_CT.size(); // number of initialization points
-        size_t filterorder = FILTER_ORDER;
-        size_t edge_effect = EDGE_EFFECT;
-        double breath_expected = BREATH_RATE;
-        double thresh = PEAK_THRESHOLD;
 
-        if(N_initpts <= 2*edge_effect)
+        if(N_initpts <= 2*EDGE_EFFECT)
         {
             std::cerr << "Error: N_initpts < 2*edge_effect!" << std::endl;
             return;
         }
 
         // calculate things from inputs
-        size_t num_states = N_STATES;
-        size_t N_filtered = N_initpts - 2*edge_effect;
+        // size_t num_states = N_STATES;
+        // size_t N_filtered = N_initpts - 2*EDGE_EFFECT;
 
         // low pass filter the data
         filterTrainingData();
@@ -204,10 +200,7 @@ void CyclicModel::trainModel()
         // Use peak detection to look at the filtered data and find the period
         updatePeriod( peakDetector(true) ); // run for init
 
-
-
-        // Step 1. z = Ax + noise.  Assemble A and z.  Use rectangular fourier series.
-        // use <<< cycle_recalculate >>> here
+        // Get Fourier decomposition
 
         // TODO : should compare if the column by column computation is slower than the whole matrix approach
 //        Eigen::VectorXd z_init_x = m_BBfixed_CT_filtered.col(0);
@@ -218,7 +211,6 @@ void CyclicModel::trainModel()
 //        Eigen::VectorXd z_init_zaxis = m_BBfixed_CT_filtered.col(5);
 //        Eigen::VectorXd z_init_angle = m_BBfixed_CT_filtered.col(6);
 
-        // get components for m_BBfixed_CT
         cycle_recalculate(m_BBfixed_CT_filtered, m_BBfixed_CT_rectangular, m_BBfixed_CT_polar);
         cycle_recalculate(m_BBfixed_BB_filtered, m_BBfixed_BB_rectangular, m_BBfixed_BB_polar);
         cycle_recalculate(m_Bird4_filtered, m_Bird4_rectangular, m_Bird4_polar);
@@ -229,6 +221,10 @@ void CyclicModel::trainModel()
         //                                                               //
         // ************************************************************* //
 
+        m_Bird4_new = m_Bird4; // deep copy
+        m_timeData_new = m_timeData_init; // deep copy
+
+        // training is done!
         m_isTrained = true;
     }
 }
@@ -242,6 +238,62 @@ void CyclicModel::retrainModel()
     }
     else
     {
+        // low pass filter the data
+        filterNewObservations();
+
+        // calculate expected values from model
+//        // first copy the time list into an array
+//        copy(time_data_current.begin(),time_data_current.end(),&time_data_current_array[0]);
+//        // then put the time array into the loop
+//        for (int i=0; i<cycle_data_size; i++){
+//            t_minus_t_begin=time_data_current_array[i]-t_begin;
+
+//            if (m_flag_invivo_mode == 0){
+//                breathing_signal_value = cycle_model_predict(t_minus_t_begin, local_model_rect, local_model_polar);
+//            }
+//            else{
+//                breathing_signal_value = -1*cycle_model_predict(t_minus_t_begin, local_model_rect, local_model_polar);
+//            }
+
+//            breathing_signal_model.push_back(breathing_signal_value);
+//        }
+
+        // update the prediction of m_breathSignalFromModel
+        double t_minus_t_begin;
+        for(size_t i = 0; i < N_FILTERED; i++)
+        {
+            t_minus_t_begin = m_timeData_new[i+EDGE_EFFECT] - m_timeData_init[0];
+
+            if(m_isInVivo)
+            {
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                // FIXME : do we need to differentiate b/w in vivo and benchtop?
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                m_breathSignalFromModel(i) = -1.0*getPrediction(t_minus_t_begin, m_Bird4_polar, m_Bird4_rectangular);
+                // WE'RE NOT SURE IF THIS -1.0 IS SUPPOSED TO BE HERE !!!!!!!!!!
+            }
+            else
+            {
+
+                m_breathSignalFromModel(i) = getPrediction(t_minus_t_begin, m_Bird4_polar, m_Bird4_rectangular);
+            }
+        }
+
+        // update period / freq
+        updatePeriod( peakDetector(false) );
+
+        // update Fourier components
+        cycle_recalculate(m_BBfixed_CT_filtered, m_BBfixed_CT_rectangular, m_BBfixed_CT_polar);
+        cycle_recalculate(m_BBfixed_BB_filtered, m_BBfixed_BB_rectangular, m_BBfixed_BB_polar);
+        cycle_recalculate(m_Bird4_filtered, m_Bird4_rectangular, m_Bird4_polar);
+
+        // get predictions based on the models
+        double t0 = m_timeData_new.back();
+        double t1 = t0; // + 0.0; fudge factor may be needed?
+        double t2 = (m_nFutureSamples - EDGE_EFFECT)*SAMPLE_DELTA_TIME;
+        getPrediction7Axis(t1, m_BBfixed_CT_polar, m_BBfixed_CT_rectangular, m_BBfixed_CT_des);
+        getPrediction7Axis(t2, m_BBfixed_CT_polar, m_BBfixed_CT_rectangular, m_BBfixed_CTtraj_future_des);
+        getPrediction7Axis(t1, m_BBfixed_BB_polar, m_BBfixed_BB_rectangular, m_BBfixed_BB_des);
 
     }
 }
@@ -273,6 +325,30 @@ double CyclicModel::getPrediction(const double timeShift, const EigenVectorPolar
     }
 
     return x_des ;
+}
+
+void CyclicModel::getPrediction7Axis(const double timeShift, const EigenMatrixPolar &x_polar, const EigenMatrixRectangular &x_rect, EigenVector7d &X_des)
+{
+    // Make sure the time coming in is already (t1[j] - t_begin)
+
+    if(m_isTrained)
+    {
+        X_des = EigenVector7d::Zero();
+
+        for(size_t j = 0; j < X_des.size(); j++)
+        {
+            for (size_t i = 0; i < N_HARMONICS; i++)
+            {
+                X_des(j) = X_des(j) + x_polar(i+1,j) * sin( (i+1.0)*x_polar(N_HARMONICS+1,j)*timeShift + atan2( x_rect(i+N_HARMONICS+1,j), x_rect(i+1,j) ) );
+            }
+            X_des(j) = X_des(j) + x_polar(0,j);
+        }
+    }
+    else
+    {
+        //X_des = EigenVector7d::Zero();
+        X_des = EigenVector7d::Constant(std::numeric_limits<double>::quiet_NaN());
+    }
 }
 
 void CyclicModel::setInVivo(const bool isInVivo)
@@ -405,17 +481,14 @@ double CyclicModel::peakDetector(const bool runForInit)
 
     if(runForInit)
     {
-        // TODO : save the original peaks
-
-
+        // save the original peaks
+        //m_respPeakMean = mean;
 
         // In vivo version has an error checker to make sure the breathing period is
         // between 4 - 5.5 seconds
         if(m_isInVivo)
-        {
-            if( period < (BREATH_RATE*0.9) )
-                period = BREATH_RATE;
-            else if( period > (BREATH_RATE*1.1) )
+        {   // clamp
+            if( (period < (BREATH_RATE*0.9)) || (period > (BREATH_RATE*1.1)) )
                 period = BREATH_RATE;
         }
     }
@@ -423,7 +496,7 @@ double CyclicModel::peakDetector(const bool runForInit)
     {
         double period_old = 2.0*pi/m_omega0;
 
-        // TODO : Get the time difference between peaks
+        // Get the time difference between peaks
 //        % All of these steps account for the fact that there could be multiple
 //        % peaks detected for the model or for the measured values. We need to find
 //        % the smallest absolute value peak time difference, but then preserve the
@@ -439,28 +512,123 @@ double CyclicModel::peakDetector(const bool runForInit)
 //        [~,idx2]=min(abs(time_diff));
 //        min_time_diff=time_diff(idx2);
 
-        double period_new ;
-        //double period_new = period_old*(1.0 - min_time_diff/(tops_peak_times_means_meas(1)-t_begin1));
+        peakDetectorForBreathModel(); // filter the breathing signal
+        m_respPeakMean = m_breathSignalPeakMean;
 
-        if(m_isInVivo)
+        Eigen::MatrixXd peakTimeDiff = Eigen::MatrixXd::Zero(m_respPeakMean.size(), mean.size());
+        Eigen::VectorXd timeDiff = Eigen::VectorXd::Zero(mean.size());
+        double minTimeDiff;
+
+        for(size_t iMeanModel = 0; iMeanModel < m_respPeakMean.size(); iMeanModel++)
         {
-            if( period_new < (BREATH_RATE*0.9) )
-                period_new = period_old;
-            else if( period > (BREATH_RATE*1.1) )
+            for(size_t jMeanMeas = 0; jMeanMeas < mean.size(); jMeanMeas++)
+            {
+                peakTimeDiff(iMeanModel,jMeanMeas) = m_respPeakMean[iMeanModel] - mean[jMeanMeas];
+            }
+            Eigen::VectorXd::Index maxIdx;
+            peakTimeDiff.row(iMeanModel).cwiseAbs().maxCoeff(&maxIdx);
+            timeDiff[iMeanModel] = peakTimeDiff(iMeanModel,maxIdx);
+        }
+        Eigen::VectorXd::Index minIdx;
+        timeDiff.cwiseAbs().minCoeff(&minIdx);
+        minTimeDiff = timeDiff[minIdx];
+
+        double period_new = period_old*(1.0 - minTimeDiff/(mean[0]-m_timeData_init[0]));
+
+        if(m_isInVivo) // in vivo mode
+        {
+            if( (period_new < (BREATH_RATE*0.9)) || (period > (BREATH_RATE*1.1)) )
                 period_new = period_old;
         }
-        else
+        else // benchtop mode
         {
-            if( period_new < (BREATH_RATE*0.9) )
-                period_new = BREATH_RATE;
-            else if( period_new > (BREATH_RATE*1.1) )
-                period_new = BREATH_RATE;
+            if( (period_new < (period_old*0.9)) || (period > (period_old*1.1)) )
+                period_new = period_old;
         }
 
         period = period_new;
     }
 
     return period;
+}
+
+void CyclicModel::peakDetectorForBreathModel()
+{
+    // look at m_breathSignalFromModel
+    auto maxBird = m_breathSignalFromModel.maxCoeff();
+    auto minBird = m_breathSignalFromModel.minCoeff();
+    double diffBird = maxBird - minBird;
+    double thresh = minBird + diffBird * PEAK_THRESHOLD;
+
+    // find indices that are greater than thresh
+    std::vector<size_t> peakIdx; // container for indices
+    auto it = std::find_if(m_breathSignalFromModel.data(), m_breathSignalFromModel.data() + m_breathSignalFromModel.size(),
+                           [thresh](double i){return i > thresh;});
+    while (it != (m_breathSignalFromModel.data() + m_breathSignalFromModel.size()) ) {
+       peakIdx.emplace_back(std::distance(m_breathSignalFromModel.data(), it));
+       it = std::find_if(std::next(it), m_breathSignalFromModel.data() + m_breathSignalFromModel.size(),
+                         [thresh](double i){return i > thresh;});
+    }
+
+    // get the timestamp at peaks
+
+    std::vector<double> peaksTime; peaksTime.reserve(peakIdx.size());
+    // read m_timeData_new
+    for(auto it = peakIdx.begin(); it != peakIdx.end(); ++it){
+        peaksTime.emplace_back(m_timeData_new[*it + EDGE_EFFECT]);
+    }
+
+    // take the difference of time stamps
+    std::vector<double> peaksTdiff; peaksTdiff.reserve(peaksTime.size() - 1);
+    std::transform(peaksTime.begin()+1,peaksTime.end(),
+                   peaksTime.begin(),std::back_inserter(peaksTdiff),std::minus<double>());
+
+    // find time differences larger than 1 seconds
+    double largeTimeGap = 1000.0; // milliseconds
+    std::vector<size_t> peakGapsIdx; // container for indices
+    auto it2 = std::find_if(std::begin(peaksTdiff), std::end(peaksTdiff),
+                            [largeTimeGap](double i){return i > largeTimeGap;});
+    while (it2 != std::end(peaksTdiff)) {
+       peakGapsIdx.emplace_back(std::distance(std::begin(peaksTdiff), it2));
+       it2 = std::find_if(std::next(it2), std::end(peaksTdiff),
+                          [largeTimeGap](double i){return i > largeTimeGap;});
+    }
+
+    // we better have peaks
+    if(peakGapsIdx.size() < 1)
+        printf("PeakDetector is in trouble!\n");
+
+    std::vector<double> peakTimesRight, peakTimesLeft;
+    peakTimesLeft.emplace_back(peaksTime.front());
+    for(auto it3 = peakGapsIdx.begin(); it3 != peakGapsIdx.end(); ++it3){
+        peakTimesRight.emplace_back(peaksTime[*it3]);
+        peakTimesLeft.emplace_back(peaksTime[1 + *it3]);
+    }
+    peakTimesRight.emplace_back(peaksTime.back());
+
+    if( m_breathSignalFromModel.head(1)[0] > thresh )
+    {
+        peakTimesRight.erase(peakTimesRight.begin());
+        peakTimesLeft.erase(peakTimesLeft.begin());
+    }
+    if( m_breathSignalFromModel.tail(1)[0] > thresh )
+    {
+        peakTimesRight.pop_back();
+        peakTimesLeft.pop_back();
+    }
+
+    // better not be empty
+    if(peakTimesLeft.size() < 1)
+        std::printf("PeakDetector is in trouble 2!\n");
+
+    // tops_peak_times_means = mean([tops_peak_times_right tops_peak_times_left],2);
+    std::vector<double> mean; mean.reserve(peakTimesRight.size());
+    std::transform(peakTimesRight.begin(), peakTimesRight.end(),
+                   peakTimesLeft.begin(), std::back_inserter(mean),
+                   [](double l, double r){ return (l+r)/2.0; });
+
+
+    m_breathSignalPeakMean = mean;
 }
 
 void CyclicModel::cycle_recalculate(const EigenMatrixFiltered &z_init,
