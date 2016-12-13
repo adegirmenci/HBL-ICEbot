@@ -47,7 +47,7 @@ public:
                         const double sampleTime);
 
     // update the period
-    void updatePeriod(const double shift);
+    void updatePeriod(const double period);
 
     // get a prediction
     double getPrediction(const double timeShift,
@@ -79,8 +79,12 @@ private:
 
     double peakDetector(const bool runForInit);
 
-    void cycle_recalculate(const std::vector<double> &inputs);
-
+    void cycle_recalculate(const EigenMatrixFiltered &z_init,
+                           EigenMatrixRectangular &x_rect,
+                           EigenMatrixPolar &x_polar);
+    void cycle_recalculate(const EigenVectorFiltered &z_init,
+                           EigenVectorRectangular &x_rect,
+                           EigenVectorPolar &x_polar);
     // data members
 
     // Low Pass Filter

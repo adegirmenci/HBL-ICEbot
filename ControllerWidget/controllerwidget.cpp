@@ -4,7 +4,8 @@
 ControllerWidget::ControllerWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ControllerWidget),
-    gainWidget(new gainsWidget)
+    gainWidget(new gainsWidget),
+    m_respModelWidget(new respModelWidget)
 {
     ui->setupUi(this);
 
@@ -42,6 +43,10 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
     connect(gainWidget, SIGNAL(setGains(GainsPYRT)), m_worker, SLOT(setGains(GainsPYRT)));
     connect(gainWidget, SIGNAL(setLimits(ConvergenceLimits)), m_worker, SLOT(setLimits(ConvergenceLimits)));
 
+    // Resp Model Widget
+    connect(m_respModelWidget, SIGNAL(closeRespModelWindow()), this, SLOT(on_respModelButton_clicked()));
+    connect(m_respModelWidget, SIGNAL(initializeRespModel()), m_worker, SLOT(initializeRespModel()));
+
     // Initalize gains and limits to defaults
     gainWidget->on_setGainsButton_clicked();
     gainWidget->on_setLimitsButton_clicked();
@@ -64,8 +69,10 @@ ControllerWidget::~ControllerWidget()
     qDebug() << "Controller thread quit.";
 
     gainWidget->close();
+    m_respModelWidget->close();
 
     delete gainWidget;
+    delete m_respModelWidget;
     delete ui;
 }
 
@@ -310,4 +317,19 @@ void ControllerWidget::on_setUSangleButton_clicked()
     double usAngle = ui->usAngleSpinBox->value();
 
     emit updateUSangle(usAngle);
+}
+
+void ControllerWidget::on_respModelButton_clicked()
+{
+    if(m_respModelWidget->isHidden())
+    {
+        ui->respModelButton->setText("Close RespModel Win");
+        m_respModelWidget->show();
+        m_respModelWidget->raise();
+    }
+    else
+    {
+        ui->respModelButton->setText("Respiration Model");
+        m_respModelWidget->close();
+    }
 }

@@ -6,6 +6,7 @@
 
 #include "controllerthread.h"
 #include "gainswidget.h"
+#include "respmodelwidget.h"
 
 namespace Ui {
 class ControllerWidget;
@@ -64,10 +65,13 @@ private slots:
 
     void on_setUSangleButton_clicked();
 
+    void on_respModelButton_clicked();
+
 private:
     Ui::ControllerWidget *ui;
 
     gainsWidget *gainWidget;
+    respModelWidget *m_respModelWidget;
 
     QThread m_thread; // Controller Thread will live in here
 };

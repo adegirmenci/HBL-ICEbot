@@ -110,6 +110,8 @@ public slots:
     void setModeFlags(ModeFlags flags);
     void setUSangle(double usAngle);
 
+    void initializeRespModel();
+
 private slots:
     void controlCycle(); // on a timer
 

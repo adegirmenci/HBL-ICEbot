@@ -43,7 +43,8 @@ SOURCES += main.cpp\
     SceneVizWidget/usentity.cpp \
     ControllerWidget/gainswidget.cpp \
     ControllerWidget/filtfilt.cpp \
-    ControllerWidget/cyclicmodel.cpp
+    ControllerWidget/cyclicmodel.cpp \
+    ControllerWidget/respmodelwidget.cpp
 
 HEADERS  += icebot_gui.h \
     OmniWidget/omni.h \
@@ -72,7 +73,8 @@ HEADERS  += icebot_gui.h \
     SceneVizWidget/usentity.h \
     ControllerWidget/gainswidget.h \
     ControllerWidget/filtfilt.h \
-    ControllerWidget/cyclicmodel.h
+    ControllerWidget/cyclicmodel.h \
+    ControllerWidget/respmodelwidget.h
 
 FORMS    += icebot_gui.ui \
     OmniWidget/omni.ui \
@@ -84,7 +86,8 @@ FORMS    += icebot_gui.ui \
     SceneVizWidget/scenevizwidget.ui \
     FrameClientWidget/frameclientwidget.ui \
     ControllerWidget/controllerwidget.ui \
-    ControllerWidget/gainswidget.ui
+    ControllerWidget/gainswidget.ui \
+    ControllerWidget/respmodelwidget.ui
 
 RC_FILE = ICEbotGUI.rc
 

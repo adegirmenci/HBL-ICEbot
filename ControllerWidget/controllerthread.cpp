@@ -467,6 +467,15 @@ void ControllerThread::setUSangle(double usAngle)
     qInfo() << "US angle updated to" << m_USangle*deg180overPi << "degrees.";
 }
 
+void ControllerThread::initializeRespModel()
+{
+    // TODO : start sending data to m_respModel
+
+    // this should also disable the initialize button in the GUI
+
+    // show a counter of how many samples were collected
+}
+
 void ControllerThread::controlCycle()
 {
     //QMutexLocker locker(m_mutex); // already locked by calling function
