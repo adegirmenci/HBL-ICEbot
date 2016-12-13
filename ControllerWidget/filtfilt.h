@@ -6,15 +6,16 @@
 #include <iostream>
 #include <numeric>
 #include <Eigen/Dense>
-#include <Eigen/StdDeque>
+#include <Eigen/StdVector>
+#include <memory>
+
+#include <QElapsedTimer>
 
 #include <boost/math/special_functions/sinc.hpp>
 
 #include "kinematics_4dof.h" // for pi
 
-#define FILTER_ORDER 50            // FILTERORDER
-#define SAMPLE_DELTA_TIME 0.005992 // SAMPLE_TIME
-#define HEART_RATE 120             // HEARTRATE
+#include "../icebot_definitions.h"
 
 //#include <spuce/filters/design_window.h>
 //#include <spuce/filters/design_fir.h>
@@ -28,11 +29,27 @@
 // Adapted from:
 // http://stackoverflow.com/questions/17675053/matlabs-filtfilt-algorithm/27270420#27270420
 
+// Mainly for CycleModel
+//typedef Eigen::Matrix< double, Eigen::Dynamic , 1> EigenVectorFiltered;
+//typedef Eigen::Matrix< double, Eigen::Dynamic , 7> EigenMatrixFiltered;
+typedef Eigen::VectorXd EigenVectorFiltered;
+typedef Eigen::MatrixXd EigenMatrixFiltered;
+
+typedef Eigen::Matrix< double, N_POLAR , 1> EigenVectorPolar;
+typedef Eigen::Matrix< double, N_POLAR , 7> EigenMatrixPolar;
+
+typedef Eigen::Matrix< double, N_RECT , 1> EigenVectorRectangular;
+typedef Eigen::Matrix< double, N_RECT , 7> EigenMatrixRectangular;
+
+// Affine Transform
 typedef Eigen::Transform<double,3,Eigen::Affine>    EigenAffineTransform3d;
 typedef             Eigen::Matrix<double, 7 , 1>    EigenVector7d;
-// in order to use deque with Eigen Transform, we need this typedef
-typedef std::deque< EigenAffineTransform3d, Eigen::aligned_allocator<EigenAffineTransform3d> > EigenDequeAffineTform3d;
-typedef std::deque<          EigenVector7d,          Eigen::aligned_allocator<EigenVector7d> > EigenDequeVector7d;
+
+// in order to use vector with Eigen Transform, we need this typedef
+typedef std::vector< EigenAffineTransform3d, Eigen::aligned_allocator<EigenAffineTransform3d> > EigenStdVecAffineTform3d;
+typedef std::vector<          EigenVector7d,          Eigen::aligned_allocator<EigenVector7d> > EigenStdVecVector7d;
+// most efficient would be to use shared_ptr
+typedef std::vector< std::shared_ptr<EigenVector7d> > EigenStdVecSharedPtrVector7d;
 
 class filtfilt
 {
@@ -42,8 +59,9 @@ public:
 
     // X is the original data, Y is the output
     void run(const std::vector<double> &X, std::vector<double> &Y);
-    //void run(const std::deque<double> &X, std::deque<double> &Y);
-    void run(const EigenDequeVector7d &X, EigenDequeVector7d &Y);
+    void run(const std::vector<double> &X, EigenVectorFiltered &Y);
+    void run(const EigenStdVecVector7d &X, EigenStdVecVector7d &Y);
+    void run(const EigenStdVecVector7d &X, EigenMatrixFiltered &Y);
 
     // TODO : add function to change the heartrate, sampling freq, and maybe filter order
     void setFilterCoefficients(const std::vector<double> &B, const std::vector<double> &A);
@@ -53,17 +71,19 @@ private:
 
     // helper functions
     void filter(const std::vector<double> &X, std::vector<double> &Y, std::vector<double> &Zi);
-    void filter(const EigenDequeVector7d &X, EigenDequeVector7d &Y, EigenDequeVector7d &Zi);
+    void filter(const EigenStdVecVector7d &X, EigenStdVecVector7d &Y, EigenStdVecVector7d &Zi);
 
     void add_index_range(std::vector<int> &indices, int beg, int end, int inc = 1);
 
     void add_index_const(std::vector<int> &indices, int value, size_t numel);
 
     void append_vector(std::vector<double> &vec, const std::vector<double> &tail);
-    void append_vector(EigenDequeVector7d &vec, const EigenDequeVector7d &tail);
+    void append_vector(EigenStdVecVector7d &vec, const EigenStdVecVector7d &tail);
 
     std::vector<double> subvector_reverse(const std::vector<double> &vec, int idx_end, int idx_start);
-    EigenDequeVector7d subvector_reverseEig(const EigenDequeVector7d &vec, int idx_end, int idx_start);
+    EigenStdVecVector7d subvector_reverseEig(const EigenStdVecVector7d &vec, int idx_end, int idx_start);
+    void subvector_reverseEig(const std::vector<double> &vec, int idx_end, int idx_start, EigenVectorFiltered &Y);
+    void subvector_reverseEig(const EigenStdVecVector7d &vec, int idx_end, int idx_start, EigenMatrixFiltered &Y);
 
     inline int max_val(const std::vector<int>& vec)
     {
@@ -83,7 +103,7 @@ private:
     int m_nfact;
     std::vector<int> m_rows, m_cols;
     std::vector<double> m_data;
-    Eigen::MatrixXd m_zzi;
+    std::shared_ptr<Eigen::MatrixXd> m_zzi;
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };

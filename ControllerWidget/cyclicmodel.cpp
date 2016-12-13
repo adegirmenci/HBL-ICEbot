@@ -2,40 +2,9 @@
 
 CyclicModel::CyclicModel()
 {
-    m_BBfixed_CT   .resize(N_SAMPLES, EigenVector7d::Identity());
-    m_BBfixed_Instr.resize(N_SAMPLES, EigenVector7d::Identity());
-    m_BBfixed_BB   .resize(N_SAMPLES, EigenVector7d::Identity());
-    m_Bird4        .resize(N_SAMPLES, EigenVector7d::Identity());
-    m_timeData     .resize(N_SAMPLES, 0.0);
-
-    m_BBfixed_CT_filtered.resize(N_SAMPLES, EigenVector7d::Zero());
-    m_BBfixed_BB_filtered.resize(N_SAMPLES, EigenVector7d::Zero());
-    m_Bird4_filtered     .resize(N_SAMPLES, EigenVector7d::Zero());
-
-    m_BBfixed_CT_rectangular.resize(N_SAMPLES, EigenVector7d::Zero());
-    m_BBfixed_BB_rectangular.resize(N_SAMPLES, EigenVector7d::Zero());
-    m_Bird4_rectangular     .resize(N_SAMPLES, EigenVector7d::Zero());
-
-    m_BBfixed_CT_polar.resize(N_SAMPLES, EigenVector7d::Zero());
-    m_BBfixed_BB_polar.resize(N_SAMPLES, EigenVector7d::Zero());
-    m_Bird4_polar     .resize(N_SAMPLES, EigenVector7d::Zero());
-
-//    m_BBfixed_CT.pop_front();
-//    m_BBfixed_CT.push_back(EigenAffineTransform3d::Identity());
-
-    m_numSamples = 0;
-
-    m_isTrained = false;
-    m_lastTrainingTimestamp = 0.0;
+    resetModel();
 
     std::cout << "--- Initialized CyclicModel. ---" << std::endl;
-
-    // SPUCE library - not used
-//std::vector<double> firCoeff_b = spuce::design_window("hamming", FILTER_ORDER);
-//std::vector<double> firCoeff_b = spuce::design_fir("maxflat", "LOW_PASS", 51, 1.0, 60.0);
-//    spuce::fir<double> mFIR(50);
-//    for(auto y : Y)
-//        std::cout << y << std::endl;
 }
 
 CyclicModel::~CyclicModel()
@@ -43,42 +12,70 @@ CyclicModel::~CyclicModel()
 
 }
 
-void CyclicModel::operator =(const CyclicModel &Other)
+void CyclicModel::resetModel()
 {
-    m_BBfixed_CT    = Other.m_BBfixed_CT;
-    m_BBfixed_Instr = Other.m_BBfixed_Instr;
-    m_BBfixed_BB    = Other.m_BBfixed_BB;
-    m_Bird4         = Other.m_Bird4;
+    // ------------------ EMPTY BUFFERS ------------------ //
 
-    m_BBfixed_CT_filtered = Other.m_BBfixed_CT_filtered;
-    m_BBfixed_BB_filtered = Other.m_BBfixed_BB_filtered;
-    m_Bird4_filtered      = Other.m_Bird4_filtered;
+    // UNFILTERED DATA
+    m_BBfixed_CT   .clear();
+    m_BBfixed_Instr.clear();
+    m_BBfixed_BB   .clear();
 
-    m_BBfixed_CT_rectangular = Other.m_BBfixed_CT_rectangular;
-    m_BBfixed_BB_rectangular = Other.m_BBfixed_BB_rectangular;
-    m_Bird4_rectangular      = Other.m_Bird4_rectangular;
+    m_Bird4    .clear();
+    m_Bird4_new.clear();
 
-    m_BBfixed_CT_polar = Other.m_BBfixed_CT_polar;
-    m_BBfixed_BB_polar = Other.m_BBfixed_BB_polar;
-    m_Bird4_polar      = Other.m_Bird4_polar;
+    // TIME DATA
+    m_timeData_init.clear();
+    m_timeData_new .clear();
 
-    // m_LowPassFilter = Other.m_LowPassFilter;
+    // ------------------ INIT BUFFERS ------------------ //
 
-    m_timeData = Other.m_timeData;
-    m_breathingSignal = Other.m_breathingSignal;
+    // UNFILTERED DATA
+    m_BBfixed_CT   .reserve(N_SAMPLES); // this stores all of the incoming CT points
+    m_BBfixed_Instr.reserve(N_SAMPLES); // this stores all of the incoming instr_x points
+    m_BBfixed_BB   .reserve(N_SAMPLES); // this stores all of the incoming BB points
+//    m_BBfixed_CT   .resize(7, std::vector<double>()); // this stores all of the incoming CT points
+//    m_BBfixed_Instr.resize(7, std::vector<double>()); // this stores all of the incoming instr_x points
+//    m_BBfixed_BB   .resize(7, std::vector<double>()); // this stores all of the incoming BB points
 
-    m_numSamples = Other.m_numSamples;
+    m_Bird4    .reserve(N_SAMPLES);     // this remains constant after initialization
+    m_Bird4_new.resize(N_SAMPLES, 0.0); // most recent chest tracker data
 
-    m_isTrained = Other.m_isTrained;
-    m_lastTrainingTimestamp = Other.m_lastTrainingTimestamp;
+    // FILTERED DATA
+    m_BBfixed_CT_filtered = EigenMatrixFiltered::Zero(N_FILTERED,7); // this remains constant after initialization
+    m_BBfixed_BB_filtered = EigenMatrixFiltered::Zero(N_FILTERED,7); // this remains constant after initialization
+    m_Bird4_filtered      = EigenVectorFiltered::Zero(N_FILTERED); // this remains constant after initialization
+    m_Bird4_filtered_new  = EigenVectorFiltered::Zero(N_FILTERED); // most recent filtered chest tracker data
+
+    // ***CURRENT*** RECTANGULAR COMPONENTS
+    m_BBfixed_CT_rectangular = EigenMatrixRectangular::Zero(); // 7 components: x,y,z,xaxis,yaxis,zaxis,angle
+    m_BBfixed_BB_rectangular = EigenMatrixRectangular::Zero(); // 7 components: x,y,z,xaxis,yaxis,zaxis,angle
+    m_Bird4_rectangular      = EigenVectorRectangular::Zero(); // 1 component : x (benchtop) or -z (in vivo)
+
+    // ***CURRENT*** POLAR COMPONENTS
+    m_BBfixed_CT_polar = EigenMatrixPolar::Zero(); // 7 components: x,y,z,xaxis,yaxis,zaxis,angle
+    m_BBfixed_BB_polar = EigenMatrixPolar::Zero(); // 7 components: x,y,z,xaxis,yaxis,zaxis,angle
+    m_Bird4_polar      = EigenVectorPolar::Zero(); // 1 component : x (benchtop) or -z (in vivo)
+
+    // TIME DATA
+    m_timeData_init.reserve(N_SAMPLES);    // stores the time vector for the model initialization observations
+    m_timeData_new .resize(N_SAMPLES, 0.0); // stores time for the most recent observations
+
+    m_omega0 = 0.0; // frequency
+
+    m_numSamples = 0; // number of observations added IN TOTAL
+
+    m_isTrained = false; // is the model trained
+    m_lastTrainingTimestamp = 0.0; // when last training was performed
+    m_isInVivo = false; // are we in IN VIVO mode
 }
 
-void CyclicModel::addObservation(const EigenAffineTransform3d &T_BB_CT_curTipPos,
-                                 const EigenAffineTransform3d &T_BB_targetPos,
-                                 const EigenAffineTransform3d &T_Box_BBmobile,
-                                 const EigenAffineTransform3d &T_BB_Box,
-                                 const EigenAffineTransform3d &T_Bird4,
-                                 const double sampleTime)
+void CyclicModel::addTrainingObservation(const EigenAffineTransform3d &T_BB_CT_curTipPos,
+                                         const EigenAffineTransform3d &T_BB_targetPos,
+                                         const EigenAffineTransform3d &T_Box_BBmobile,
+                                         const EigenAffineTransform3d &T_BB_Box,
+                                         const EigenAffineTransform3d &T_Bird4,
+                                         const double sampleTime)
 {
     // em_tip = m_BB_CT_curTipPos          // m_BB_CT_curTipPos is the current CT point w.r.t. BBfixed
     // em_instr = m_BB_targetPos           // m_BB_targetPos   is the current INST point w.r.t. BBfixed
@@ -86,52 +83,98 @@ void CyclicModel::addObservation(const EigenAffineTransform3d &T_BB_CT_curTipPos
     // local_BB_Box = m_BB_Box             // m_BB_Box         is the current Box point w.r.t. BBfixed
     // local_Bird4 = m_Bird4               // 4th EM tracker
 
-    // pop oldest readings
-    m_BBfixed_CT.pop_front();
-    m_BBfixed_Instr.pop_front();
-    m_BBfixed_BB.pop_front();
-    m_Bird4.pop_front();
-    m_timeData.pop_front();
-
     // local_BB_Box * local_Box_BBmobile = em_base; // T_BB_Box * T_Box_BBmobile = T_BBfixed_BBmobile
     // BBfixed_CT.insert(BBfixed_CT.end(), em_tip, em_tip+16);
     // BBfixed_Instr.insert(BBfixed_Instr.end(), em_instr, em_instr+16);
     // BBfixed_BB.insert(BBfixed_BB.end(), em_base, em_base+16);
     // Bird4.insert(Bird4.end(), local_Bird4, local_Bird4+16);
 
-    EigenAffineTransform3d T_BB_BBm = T_BB_Box * T_Box_BBmobile;
+    if( m_numSamples < N_SAMPLES)
+    {
+        EigenAffineTransform3d T_BB_BBm = T_BB_Box * T_Box_BBmobile;
 
-    // axis angle
-    Eigen::AngleAxisd tempEA_CT  (T_BB_CT_curTipPos.rotation()),
-                      tempEA_Inst(T_BB_targetPos.rotation()),
-                      tempEA_BB  (T_BB_BBm.rotation()),
-                      tempEA_Bird(T_Bird4.rotation());
+        // axis angle
+        Eigen::AngleAxisd tempEA_CT  (T_BB_CT_curTipPos.rotation()),
+                          tempEA_Inst(T_BB_targetPos.rotation()),
+                          tempEA_BB  (T_BB_BBm.rotation()); //, tempEA_Bird(T_Bird4.rotation());
 
-    EigenVector7d tempCT, tempInst, tempBB, tempBird4;
+        // Create 7d Eigen::Vectors to hold the x,y,z,xaxis,yaxis,zaxis,angle
+        EigenVector7d tempCT, tempInst, tempBB;
 
-    tempCT << T_BB_CT_curTipPos(0,3), T_BB_CT_curTipPos(1,3), T_BB_CT_curTipPos(2,3),
-              tempEA_CT.axis()(0), tempEA_CT.axis()(1), tempEA_CT.axis()(2), tempEA_CT.angle();
+        tempCT << T_BB_CT_curTipPos(0,3), T_BB_CT_curTipPos(1,3), T_BB_CT_curTipPos(2,3),
+                  tempEA_CT.axis()(0), tempEA_CT.axis()(1), tempEA_CT.axis()(2), tempEA_CT.angle();
 
-    tempInst << T_BB_targetPos(0,3), T_BB_targetPos(1,3), T_BB_targetPos(2,3),
-              tempEA_Inst.axis()(0), tempEA_Inst.axis()(1), tempEA_Inst.axis()(2), tempEA_Inst.angle();
+        tempInst << T_BB_targetPos(0,3), T_BB_targetPos(1,3), T_BB_targetPos(2,3),
+                  tempEA_Inst.axis()(0), tempEA_Inst.axis()(1), tempEA_Inst.axis()(2), tempEA_Inst.angle();
 
-    tempBB << T_BB_BBm(0,3), T_BB_BBm(1,3), T_BB_BBm(2,3),
-              tempEA_BB.axis()(0), tempEA_BB.axis()(1), tempEA_BB.axis()(2), tempEA_BB.angle();
+        tempBB << T_BB_BBm(0,3), T_BB_BBm(1,3), T_BB_BBm(2,3),
+                  tempEA_BB.axis()(0), tempEA_BB.axis()(1), tempEA_BB.axis()(2), tempEA_BB.angle();
 
-    tempBird4 << T_Bird4(0,3), T_Bird4(1,3), T_Bird4(2,3),
-              tempEA_Bird.axis()(0), tempEA_Bird.axis()(1), tempEA_Bird.axis()(2), tempEA_Bird.angle();
+        double tempBird4;
+        if(m_isInVivo)
+            tempBird4 = -T_Bird4(2,3); // -z axis of the EM tracker (in vivo)
+        else
+            tempBird4 = T_Bird4(0,3); //  x axis of the EM tracker (benchtop)
 
-    // push newest readings
-    m_BBfixed_CT.push_back(tempCT);
-    m_BBfixed_Instr.push_back(tempInst);
-    m_BBfixed_BB.push_back(tempBB);
-    m_Bird4.push_back(tempBird4);
-    m_timeData.push_back(sampleTime);
+        // push newest readings
+        m_BBfixed_CT.push_back(tempCT);
+        m_BBfixed_Instr.push_back(tempInst);
+        m_BBfixed_BB.push_back(tempBB);
+        m_Bird4.push_back(tempBird4);
+        m_timeData_init.push_back(sampleTime);
+//        for(size_t i = 0; i<7; i++)
+//        {
+//            m_BBfixed_CT[i].push_back(tempCT(i));
+//            m_BBfixed_Instr[i].push_back(tempInst(i));
+//            m_BBfixed_BB[i].push_back(tempBB(i));
+//        }
+//        m_Bird4.push_back(tempBird4);
+//        m_timeData_init.push_back(sampleTime);
 
-    m_numSamples++;
+        m_numSamples++;
+    }
+    else
+    {
+        printf("Already have enough training points!\n");
+        printf("I'll forgive you and fix this.\n");
+
+        printf("Train model and call addObservation.\n");
+        trainModel();
+        addObservation(T_Bird4, sampleTime);
+    }
 }
 
-void CyclicModel::trainModel(const std::vector<double> data)
+void CyclicModel::addObservation(const EigenAffineTransform3d &T_Bird4, const double sampleTime)
+{
+    if(m_isTrained)
+    {
+
+        // erase oldest observation
+        m_Bird4_new   .erase(m_Bird4_new.begin());
+        m_timeData_new.erase(m_timeData_new.begin());
+
+        double tempBird4;
+        if(m_isInVivo)
+            tempBird4 = -T_Bird4(2,3); // -z axis of the EM tracker (in vivo)
+        else
+            tempBird4 = T_Bird4(0,3); //  x axis of the EM tracker (benchtop)
+
+        // add new observation
+        m_Bird4_new.push_back(tempBird4);
+        m_timeData_new.push_back(sampleTime);
+
+        m_numSamples++;
+
+        updatePeriod( peakDetector(false) );
+    }
+    else
+    {
+        printf("Not trained yet!\n");
+        printf("FATAL ERROR!!!\n"); // becuase we lost this data
+    }
+}
+
+void CyclicModel::trainModel()
 {
     if(m_numSamples < N_SAMPLES) // not enough samples
     {
@@ -160,26 +203,26 @@ void CyclicModel::trainModel(const std::vector<double> data)
         }
 
         // calculate things from inputs
-        size_t num_states = m*2 + 2;
+        size_t num_states = N_STATES;
         size_t N_filtered = N_initpts - 2*edge_effect;
 
         // low pass filter the data
+        filterTrainingData();
 
-        m_LowPassFilter.run(m_BBfixed_CT, m_BBfixed_CT_filtered);
-        //m_LowPassFilter.run(m_BBfixed_Instr, m_BBfixed_Instr_filtered);
-        m_LowPassFilter.run(m_BBfixed_BB, m_BBfixed_BB_filtered);
-        m_LowPassFilter.run(m_Bird4, m_Bird4_filtered);
-
-        // TODO : peak detection
         // Use peak detection to look at the filtered data and find the period
-
-        // % In vivo version has an error checker to make sure the breathing period is
-        // % between 4 - 5.5 seconds
+        double period = peakDetector(true); // run for init
 
         // omega_0 = 2*pi*1/period; % 2*pi*breathing frequency (rad/sec)
+        m_omega0 = 2.0*pi/period;
 
         // Step 1. z = Ax + noise.  Assemble A and z.  Use rectangular fourier series.
         // use <<< cycle_recalculate >>> here
+
+        // ************************************************************* //
+        //                                                               //
+        // copy all of the init data over to the containers for new data //
+        //                                                               //
+        // ************************************************************* //
 
         m_isTrained = true;
     }
@@ -190,7 +233,7 @@ void CyclicModel::updatePeriod(const double shift)
 
 }
 
-double CyclicModel::getPrediction(const double timeShift, const std::vector<double> &x_polar, const std::vector<double> &x_rect)
+double CyclicModel::getPrediction(const double timeShift, const EigenVectorPolar &x_polar, const EigenVectorRectangular &x_rect)
 {
     // Make sure the time coming in is already (t1[j] - t_begin)
     double x_des;
@@ -213,29 +256,165 @@ double CyclicModel::getPrediction(const double timeShift, const std::vector<doub
     return x_des ;
 }
 
+void CyclicModel::setInVivo(const bool isInVivo)
+{
+    if( (!m_isTrained) && (m_numSamples == 0) )
+        m_isInVivo = isInVivo;
+    else
+        printf("Can't modify mode now!");
+}
+
 void CyclicModel::retrainModel()
 {
 
 }
 
-void CyclicModel::peakDetector()
+void CyclicModel::filterTrainingData()
+{
+    m_LowPassFilter.run(m_BBfixed_CT, m_BBfixed_CT_filtered);
+    //m_LowPassFilter.run(m_BBfixed_Instr, m_BBfixed_Instr_filtered);
+    m_LowPassFilter.run(m_BBfixed_BB, m_BBfixed_BB_filtered);
+    m_LowPassFilter.run(m_Bird4, m_Bird4_filtered);
+
+//    //m_BBfixed_CT_filtered = EigenMatrixFiltered::Zero(N_FILTERED,7);
+
+//    EigenVectorFiltered temp;
+//    for(size_t i = 0; i<7; i++)
+//    {
+//        m_LowPassFilter.run(m_BBfixed_CT[i], temp);
+//        m_BBfixed_CT_filtered.col(i) = temp;
+//        m_LowPassFilter.run(m_BBfixed_BB[i], temp);
+//        m_BBfixed_BB_filtered.col(i) = temp;
+//    }
+//    m_LowPassFilter.run(m_Bird4, m_Bird4_filtered);
+}
+
+void CyclicModel::filterNewObservations()
 {
 
 }
 
-std::shared_ptr< std::vector<double> > CyclicModel::cycle_recalculate(const std::vector<double> &inputs)
+double CyclicModel::peakDetector(const bool runForInit)
 {
-    //    std::ifstream is("inputs.txt");
-    //    std::istream_iterator<double> start(is), end;
-    //    std::vector<double> inputs(start, end);
-    //    qDebug() << "Read " << inputs.size() << " numbers";
+    // look at Bird4
+    // EigenVectorFiltered::Index maxRow, maxCol, minRow, minCol;
+    auto maxBird = m_Bird4_filtered.maxCoeff();//(&maxRow, &maxCol);
+    auto minBird = m_Bird4_filtered.minCoeff();
+    double diffBird = maxBird - minBird;
+    double thresh = minBird + diffBird * PEAK_THRESHOLD;
 
-    //    std::shared_ptr< std::vector<double> > outputs = cycle_recalculate(inputs);
+    // find indices that are greater than thresh
+    std::vector<size_t> peakIdx; // container for indices
+    auto it = std::find_if(m_Bird4_filtered.data(), m_Bird4_filtered.data() + m_Bird4_filtered.size(),
+                           [thresh](double i){return i > thresh;});
+    while (it != (m_Bird4_filtered.data() + m_Bird4_filtered.size()) ) {
+       peakIdx.emplace_back(std::distance(m_Bird4_filtered.data(), it));
+       it = std::find_if(std::next(it), m_Bird4_filtered.data() + m_Bird4_filtered.size(),
+                         [thresh](double i){return i > thresh;});
+    }
 
-    //    std::ofstream output_file("outputs.txt");
-    //    std::ostream_iterator<double> output_iterator(output_file, "\n");
-    //    std::copy(outputs->begin(), outputs->end(), output_iterator);
+    // get the timestamp at peaks
+    std::vector<double> peaksTime; peaksTime.reserve(peakIdx.size());
+    if(runForInit){
+        for(auto it = peakIdx.begin(); it != peakIdx.end(); ++it){
+            peaksTime.emplace_back(m_timeData_init[*it]);
+        }
+    }
+    else{
+        for(auto it = peakIdx.begin(); it != peakIdx.end(); ++it){
+            peaksTime.emplace_back(m_timeData_new[*it]);
+        }
+    }
 
+    // take the difference of time stamps
+    std::vector<double> peaksTdiff; peaksTdiff.reserve(peaksTime.size() - 1);
+    std::transform(peaksTime.begin()+1,peaksTime.end(),
+                   peaksTime.begin(),std::back_inserter(peaksTdiff),std::minus<double>());
+
+    // find time differences larger than 1 seconds
+    double largeTimeGap = 1000.0; // milliseconds
+    std::vector<size_t> peakGapsIdx; // container for indices
+    auto it2 = std::find_if(std::begin(peaksTdiff), std::end(peaksTdiff),
+                            [largeTimeGap](double i){return i > largeTimeGap;});
+    while (it2 != std::end(peaksTdiff)) {
+       peakGapsIdx.emplace_back(std::distance(std::begin(peaksTdiff), it2));
+       it2 = std::find_if(std::next(it2), std::end(peaksTdiff),
+                          [largeTimeGap](double i){return i > largeTimeGap;});
+    }
+
+    // we better have peaks
+    if(peakGapsIdx.size() < 1)
+        printf("PeakDetector is in trouble!\n");
+
+    std::vector<double> peakTimesRight, peakTimesLeft;
+    peakTimesLeft.emplace_back(peaksTime.front());
+    for(auto it3 = peakGapsIdx.begin(); it3 != peakGapsIdx.end(); ++it3){
+        peakTimesRight.emplace_back(peaksTime[*it3]);
+        peakTimesLeft.emplace_back(peaksTime[1 + *it3]);
+    }
+    peakTimesRight.emplace_back(peaksTime.back());
+
+//    if peak_detect_me(1) > tops_thresh
+//        tops_peak_times_right(1)=[];
+//        tops_peak_times_left(1)=[];
+//    end
+//    if peak_detect_me(end) > tops_thresh
+//        tops_peak_times_right(end)=[];
+//        tops_peak_times_left(end)=[];
+//    end
+    if( m_Bird4_filtered.head(1)[0] > thresh )
+    {
+        peakTimesRight.erase(peakTimesRight.begin());
+        peakTimesLeft.erase(peakTimesLeft.begin());
+    }
+    if( m_Bird4_filtered.tail(1)[0] > thresh )
+    {
+        peakTimesRight.pop_back();
+        peakTimesLeft.pop_back();
+    }
+
+    // better not be empty
+    if(peakTimesLeft.size() < 1)
+        std::printf("PeakDetector is in trouble 2!\n");
+
+    // tops_peak_times_means = mean([tops_peak_times_right tops_peak_times_left],2);
+    std::vector<double> mean; mean.reserve(peakTimesRight.size());
+    std::transform(peakTimesRight.begin(), peakTimesRight.end(),
+                   peakTimesLeft.begin(), std::back_inserter(mean),
+                   [](double l, double r){ return (l+r)/2.0; });
+
+//    if length(tops_peak_times_means)>1
+//        tops_peak_times_diffs = tops_peak_times_means(2:end)-tops_peak_times_means(1:(end-1));
+//        period=mean(tops_peak_times_diffs);
+//    else
+//        period=breath_expected;
+//    end
+    double period = 0.0;
+
+    if(mean.size() > 1)
+    {
+        period = std::accumulate(mean.begin(),mean.end(),0.0) / (double)mean.size();
+    }
+    else
+    {
+        period = mean[0];
+    }
+
+    // In vivo version has an error checker to make sure the breathing period is
+    // between 4 - 5.5 seconds
+    if(m_isInVivo)
+    {
+        if( period < (BREATH_RATE*0.9) )
+            period = BREATH_RATE;
+        else if( period > (BREATH_RATE*1.1) )
+            period = BREATH_RATE;
+    }
+
+    return period;
+}
+
+void CyclicModel::cycle_recalculate(const std::vector<double> &inputs)
+{
 //    QElapsedTimer elTimer;
 //    elTimer.start();
 
@@ -244,15 +423,15 @@ std::shared_ptr< std::vector<double> > CyclicModel::cycle_recalculate(const std:
     std::vector<double>::const_iterator iter = inputs.begin();
 
     // get all of the constants
-    int m = static_cast<int>(*iter); ++iter; // m = number of sinusoid components
-    double delta_t = *iter; ++iter; // Time step for each collected data point
-    int N_initpts = static_cast<int>(*iter); ++iter;  // number of initialization points
-    int edge_effect = static_cast<int>(*iter); ++iter;
-    double omega_0 = *iter; ++iter;
+    size_t m = N_HARMONICS; // m = number of sinusoid components
+    double delta_t = SAMPLE_DELTA_TIME; // Time step for each collected data point
+    size_t N_initpts = N_SAMPLES;  // number of initialization points
+    size_t edge_effect = EDGE_EFFECT;
+    double omega_0 = m_omega0;
 
     // calculate things from inputs
-    int num_states = m * 2 + 2;
-    int N_filtered = N_initpts - 2 * edge_effect;
+    size_t num_states = m * 2 + 2;
+    size_t N_filtered = N_initpts - 2 * edge_effect;
 
     // parse the already low pass filtered data
     Eigen::Map<Eigen::VectorXd> z_init_x(iter._Ptr, N_filtered); std::advance(iter, N_filtered); // Initialize with the previously lowpass filtered data
@@ -391,8 +570,6 @@ std::shared_ptr< std::vector<double> > CyclicModel::cycle_recalculate(const std:
 //    qint64 elNsec = elTimer.nsecsElapsed();
 
 //    qDebug() << "Nsec elapsed:" << elNsec;
-
-    return outputs;
 }
 
 void CyclicModel::loadData(QString filename, std::vector<double> &X)
@@ -414,7 +591,7 @@ void CyclicModel::loadData(QString filename, std::vector<double> &X)
     qDebug() << "Read" << X.size() << "points.";
 }
 
-void CyclicModel::load4x4Data(QString filename, EigenDequeVector7d &X)
+void CyclicModel::load4x4Data(QString filename, EigenStdVecVector7d &X)
 {
     // check if the directory exists
     QFile inFile(filename);
@@ -460,6 +637,57 @@ void CyclicModel::load4x4Data(QString filename, EigenDequeVector7d &X)
     qDebug() << "Read" << X.size() << "points.";
 }
 
+void CyclicModel::load4x4Data(QString filename, std::vector<std::vector<double> > &X)
+{
+    // check if the directory exists
+    QFile inFile(filename);
+
+    if( inFile.open(QIODevice::ReadOnly) )
+        qDebug() << "Opened inFile" << filename;
+
+    QTextStream in(&inFile);
+
+    double dummy;
+    EigenAffineTransform3d tempT;
+
+    X.clear();
+    X.resize(7,std::vector<double>());
+
+    while(!in.atEnd())
+    {
+        for(size_t i = 0; i < 4; i++)
+        {
+            for(size_t j = 0; j < 4; j++)
+            {
+                if(in.atEnd())
+                {
+                    qDebug() << "Early termination!" << filename;
+                    return;
+                }
+
+                in >> dummy;
+
+                if(i < 3)
+                    tempT(i,j) = dummy;
+            }
+        }
+
+        // axis angle
+        EigenVector7d temp7d;
+        Eigen::AngleAxisd tempEA(tempT.rotation());
+
+        // push newest readings
+        X[0].push_back(tempT(0,3));
+        X[1].push_back(tempT(1,3));
+        X[2].push_back(tempT(2,3));
+        X[3].push_back(tempEA.axis()(0));
+        X[4].push_back(tempEA.axis()(1));
+        X[5].push_back(tempEA.axis()(2));
+        X[6].push_back(tempEA.angle());
+    }
+    qDebug() << "Read" << X.size() << "points.";
+}
+
 void CyclicModel::saveFilteredData(QString filename, const std::vector<double> &Y)
 {
     QFile outFile(filename);
@@ -475,7 +703,22 @@ void CyclicModel::saveFilteredData(QString filename, const std::vector<double> &
     qDebug() << "Wrote" << Y.size() << "points.";
 }
 
-void CyclicModel::save4x4FilteredData(QString filename, const EigenDequeVector7d &Y)
+void CyclicModel::saveFilteredData(QString filename, const EigenVectorFiltered &Y)
+{
+    QFile outFile(filename);
+
+    if( outFile.open(QIODevice::WriteOnly) )
+        qDebug() << "Opened outFile" << filename;
+
+    QTextStream out(&outFile);
+
+    for(size_t i = 0; i < Y.size(); i++)
+        out << QString::number(Y[i], 'f', 4) << "\n";
+
+    qDebug() << "Wrote" << Y.size() << "points.";
+}
+
+void CyclicModel::save4x4FilteredData(QString filename, const EigenStdVecVector7d &Y)
 {
     QFile outFile(filename);
 
@@ -496,6 +739,29 @@ void CyclicModel::save4x4FilteredData(QString filename, const EigenDequeVector7d
     }
 
     qDebug() << "Wrote" << Y.size() << "points.";
+}
+
+void CyclicModel::save4x4FilteredData(QString filename, const EigenMatrixFiltered &Y)
+{
+    QFile outFile(filename);
+
+    if( outFile.open(QIODevice::WriteOnly) )
+        qDebug() << "Opened outFile" << filename;
+
+    QTextStream out(&outFile);
+
+    for(size_t i = 0; i < Y.rows(); i++)
+    {
+        out << QString::number(Y(i,0), 'f', 4) << " "
+            << QString::number(Y(i,1), 'f', 4) << " "
+            << QString::number(Y(i,2), 'f', 4) << " "
+            << QString::number(Y(i,3), 'f', 4) << " "
+            << QString::number(Y(i,4), 'f', 4) << " "
+            << QString::number(Y(i,5), 'f', 4) << " "
+            << QString::number(Y(i,6), 'f', 4) << "\n";
+    }
+
+    qDebug() << "Wrote" << Y.rows() << "points.";
 }
 
 void CyclicModel::testLPF()
@@ -523,25 +789,69 @@ void CyclicModel::testLPF()
     lpf.run(X, Y);
 
     qint64 elNsec = elTimer.nsecsElapsed();
-    qDebug() << "\nNsec elapsed:" << elNsec;
+    qDebug() << "\nNsec elapsed:" << elNsec/5;
 
     saveFilteredData(outputFile, Y);
+
+    // test  run(const std::vector<double> &X, EigenVectorFiltered &Y);
+    EigenVectorFiltered Y2;
+
+    elTimer.restart();
+
+    lpf.run(X, Y2);
+    lpf.run(X, Y2);
+    lpf.run(X, Y2);
+    lpf.run(X, Y2);
+    lpf.run(X, Y2);
+
+    elNsec = elTimer.nsecsElapsed();
+    qDebug() << "\n>>> EigenVectorFiltered Nsec elapsed:" << elNsec/5;
+
+    //saveFilteredData(outputFile, Y2);
 
     // Test 7 axis filtering
     QString inputFile7d("D:\\Dropbox\\Harvard\\ICEbot share\\Current working directory\\2016-12-11 Testing Cpp FiltFilt\\data_to_filter.txt");
     QString outputFile7d("D:\\Dropbox\\Harvard\\ICEbot share\\Current working directory\\2016-12-11 Testing Cpp FiltFilt\\filtered_data_Cpp.txt");
 
-    EigenDequeVector7d X_7d, Y_7d;
-
-    load4x4Data(inputFile7d, X_7d);
+    EigenStdVecVector7d X_7dv, Y_7dv;
+    load4x4Data(inputFile7d, X_7dv);
 
     elTimer.restart();
 
-    lpf.run(X_7d, Y_7d);
+    lpf.run(X_7dv, Y_7dv);
 
     elNsec = elTimer.nsecsElapsed();
     qDebug() << "\n>>> 7d Nsec elapsed:" << elNsec;
 
-    save4x4FilteredData(outputFile7d, Y_7d);
+    //save4x4FilteredData(outputFile7d, Y_7dv);
 
+    // test  run(const std::vector<double> &X, EigenVectorFiltered &Y);
+    EigenMatrixFiltered Y3;
+
+    elTimer.restart();
+
+    lpf.run(X_7dv, Y3);
+
+    elNsec = elTimer.nsecsElapsed();
+    qDebug() << "\n>>> EigenMatrixFiltered Nsec elapsed:" << elNsec;
+
+    save4x4FilteredData(outputFile7d, Y3);
+
+    //
+    std::vector<std::vector<double>> Xvv;
+    load4x4Data(inputFile7d, Xvv);
+
+    elTimer.restart();
+
+    EigenVectorFiltered temp;
+    for(size_t i = 0; i<7; i++)
+    {
+        lpf.run(Xvv[i], temp);
+        Y3.col(i) = temp;
+    }
+
+    elNsec = elTimer.nsecsElapsed();
+    qDebug() << "\n>>> std::vector<std::vector<double>> Nsec elapsed:" << elNsec;
+
+    //save4x4FilteredData(outputFile7d, Y3);
 }

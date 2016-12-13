@@ -39,6 +39,8 @@ filtfilt::filtfilt()
     double samplingFreq = 1.0/deltaT;
     double band = (HEART_RATE/60./2.)/(samplingFreq/2.);
 
+    m_zzi = std::allocate_shared< Eigen::MatrixXd >( Eigen::aligned_allocator<Eigen::MatrixXd>() );
+
     m_B = FIR_LPF_LeastSquares(filterOrder, band);
 //    for(auto x : m_B)
 //        std::cout << x << std::endl;
@@ -77,20 +79,20 @@ void filtfilt::run(const std::vector<double> &X, std::vector<double> &Y)
     append_vector(signal1, X);
     append_vector(signal1, rightpad);
 
-    zi.resize(m_zzi.size());
+    zi.resize(m_zzi->size());
 
     // Do the forward and backward filtering
     y0 = signal1[0];
-    std::transform(m_zzi.data(), m_zzi.data() + m_zzi.size(), zi.begin(), [y0](double val){ return val*y0; });
+    std::transform(m_zzi->data(), m_zzi->data() + m_zzi->size(), zi.begin(), [y0](double val){ return val*y0; });
     filter(signal1, signal2, zi);
     std::reverse(signal2.begin(), signal2.end());
     y0 = signal2[0];
-    std::transform(m_zzi.data(), m_zzi.data() + m_zzi.size(), zi.begin(), [y0](double val){ return val*y0; });
+    std::transform(m_zzi->data(), m_zzi->data() + m_zzi->size(), zi.begin(), [y0](double val){ return val*y0; });
     filter(signal2, signal1, zi);
     Y = subvector_reverse(signal1, signal1.size() - m_nfact - 1, m_nfact);
 }
 
-void filtfilt::run(const EigenDequeVector7d &X, EigenDequeVector7d &Y)
+void filtfilt::run(const std::vector<double> &X, EigenVectorFiltered &Y)
 {
     int len = X.size();     // length of input
 
@@ -100,33 +102,111 @@ void filtfilt::run(const EigenDequeVector7d &X, EigenDequeVector7d &Y)
         return;
     }
 
-    EigenDequeVector7d leftpad = subvector_reverseEig(X, m_nfact, 1);
-    EigenVector7d _2x0 = 2 * X[0];
+    std::vector<double> leftpad = subvector_reverse(X, m_nfact, 1);
+    double _2x0 = 2 * X[0];
+    std::transform(leftpad.begin(), leftpad.end(), leftpad.begin(), [_2x0](double val) {return _2x0 - val; });
+
+    std::vector<double> rightpad = subvector_reverse(X, len - 2, len - m_nfact - 1);
+    double _2xl = 2 * X[len-1];
+    std::transform(rightpad.begin(), rightpad.end(), rightpad.begin(), [_2xl](double val) {return _2xl - val; });
+
+    double y0;
+    std::vector<double> signal1, signal2, zi;
+
+    signal1.reserve(leftpad.size() + X.size() + rightpad.size());
+    append_vector(signal1, leftpad);
+    append_vector(signal1, X);
+    append_vector(signal1, rightpad);
+
+    zi.resize(m_zzi->size());
+
+    // Do the forward and backward filtering
+    y0 = signal1[0];
+    std::transform(m_zzi->data(), m_zzi->data() + m_zzi->size(), zi.begin(), [y0](double val){ return val*y0; });
+    filter(signal1, signal2, zi);
+    std::reverse(signal2.begin(), signal2.end());
+    y0 = signal2[0];
+    std::transform(m_zzi->data(), m_zzi->data() + m_zzi->size(), zi.begin(), [y0](double val){ return val*y0; });
+    filter(signal2, signal1, zi);
+    subvector_reverseEig(signal1, signal1.size() - m_nfact - 1 - EDGE_EFFECT, m_nfact + EDGE_EFFECT, Y);
+}
+
+void filtfilt::run(const EigenStdVecVector7d &X, EigenStdVecVector7d &Y)
+{
+    int len = X.size();     // length of input
+
+    if (len <= m_nfact)
+    {
+        std::cerr << "Input data too short! Data must have length more than 3 times filter order." << std::endl;
+        return;
+    }
+
+    EigenStdVecVector7d leftpad = subvector_reverseEig(X, m_nfact, 1);
+    EigenVector7d _2x0 = X[0] * 2.0;
     std::transform(leftpad.begin(), leftpad.end(), leftpad.begin(), [_2x0](EigenVector7d val) {return _2x0 - val; });
 
-    EigenDequeVector7d rightpad = subvector_reverseEig(X, len - 2, len - m_nfact - 1);
-    EigenVector7d _2xl = 2 * X[len-1];
+    EigenStdVecVector7d rightpad = subvector_reverseEig(X, len - 2, len - m_nfact - 1);
+    EigenVector7d _2xl = X[len-1] * 2.0;
     std::transform(rightpad.begin(), rightpad.end(), rightpad.begin(), [_2xl](EigenVector7d val) {return _2xl - val; });
 
     EigenVector7d y0;
-    EigenDequeVector7d signal1, signal2, zi;
+    EigenStdVecVector7d signal1, signal2, zi;
 
     // signal1.reserve(leftpad.size() + X.size() + rightpad.size());
     append_vector(signal1, leftpad);
     append_vector(signal1, X);
     append_vector(signal1, rightpad);
 
-    zi.resize(m_zzi.size());
+    zi.resize(m_zzi->size());
 
     // Do the forward and backward filtering
     y0 = signal1[0];
-    std::transform(m_zzi.data(), m_zzi.data() + m_zzi.size(), zi.begin(), [y0](double val){ return y0 * val; });
+    std::transform(m_zzi->data(), m_zzi->data() + m_zzi->size(), zi.begin(), [y0](double val){ return y0 * val; });
     filter(signal1, signal2, zi);
     std::reverse(signal2.begin(), signal2.end());
     y0 = signal2[0];
-    std::transform(m_zzi.data(), m_zzi.data() + m_zzi.size(), zi.begin(), [y0](double val){ return y0 * val; });
+    std::transform(m_zzi->data(), m_zzi->data() + m_zzi->size(), zi.begin(), [y0](double val){ return y0 * val; });
     filter(signal2, signal1, zi);
     Y = subvector_reverseEig(signal1, signal1.size() - m_nfact - 1, m_nfact);
+}
+
+void filtfilt::run(const EigenStdVecVector7d &X, EigenMatrixFiltered &Y)
+{
+    int len = X.size();     // length of input , should be equal to N_INPUTS
+
+    if (len <= m_nfact)
+    {
+        std::cerr << "Input data too short! Data must have length more than 3 times filter order." << std::endl;
+        return;
+    }
+
+    EigenStdVecVector7d leftpad = subvector_reverseEig(X, m_nfact, 1);
+    EigenVector7d _2x0 = X[0] * 2.0;
+    std::transform(leftpad.begin(), leftpad.end(), leftpad.begin(), [_2x0](EigenVector7d val) {return _2x0 - val; });
+
+    EigenStdVecVector7d rightpad = subvector_reverseEig(X, len - 2, len - m_nfact - 1);
+    EigenVector7d _2xl = X[len-1] * 2.0;
+    std::transform(rightpad.begin(), rightpad.end(), rightpad.begin(), [_2xl](EigenVector7d val) {return _2xl - val; });
+
+    EigenVector7d y0;
+    EigenStdVecVector7d signal1, signal2, zi;
+
+    // signal1.reserve(leftpad.size() + X.size() + rightpad.size());
+    append_vector(signal1, leftpad);
+    append_vector(signal1, X);
+    append_vector(signal1, rightpad);
+
+    zi.resize(m_zzi->size());
+
+    // Do the forward and backward filtering
+    y0 = signal1[0];
+    std::transform(m_zzi->data(), m_zzi->data() + m_zzi->size(), zi.begin(), [y0](double val){ return y0 * val; });
+    filter(signal1, signal2, zi);
+    std::reverse(signal2.begin(), signal2.end());
+    y0 = signal2[0];
+    std::transform(m_zzi->data(), m_zzi->data() + m_zzi->size(), zi.begin(), [y0](double val){ return y0 * val; });
+    filter(signal2, signal1, zi);
+    subvector_reverseEig(signal1, signal1.size() - m_nfact - EDGE_EFFECT - 1, m_nfact + EDGE_EFFECT, Y);
 }
 
 void filtfilt::filter(const std::vector<double> &X, std::vector<double> &Y, std::vector<double> &Zi)
@@ -145,6 +225,9 @@ void filtfilt::filter(const std::vector<double> &X, std::vector<double> &Y, std:
     double *z = &Zi[0];
     double *y = &Y[0];
 
+    QElapsedTimer elTimer;
+    elTimer.start();
+
     for (size_t i = 0; i < input_size; ++i)
     {
         size_t order = filter_order - 1;
@@ -159,9 +242,12 @@ void filtfilt::filter(const std::vector<double> &X, std::vector<double> &Y, std:
         y[i] = b[0] * x[i] + z[0];
     }
     Zi.resize(filter_order - 1);
+
+    qint64 elNsec = elTimer.nsecsElapsed();
+    std::cout << "\nNsec elapsed:" << elNsec << std::endl;
 }
 
-void filtfilt::filter(const EigenDequeVector7d &X, EigenDequeVector7d &Y, EigenDequeVector7d &Zi)
+void filtfilt::filter(const EigenStdVecVector7d &X, EigenStdVecVector7d &Y, EigenStdVecVector7d &Zi)
 {
     size_t input_size = X.size();
     //size_t filter_order = std::max(m_A.size(), m_B.size());
@@ -177,20 +263,28 @@ void filtfilt::filter(const EigenDequeVector7d &X, EigenDequeVector7d &Y, EigenD
 //    EigenVector7d *z = &Zi[0];
 //    EigenVector7d *y = &Y[0];
 
+    QElapsedTimer elTimer;
+    elTimer.start();
+
     for (size_t i = 0; i < input_size; ++i)
     {
         size_t order = filter_order - 1;
+        // if(i < order)
+        //    order = i; // may lead to tiny tiny speedup
         while (order)
         {
             if (i >= order)
             {
-                Zi[order - 1] = X[i - order] * b[order] - Y[i - order] * a[order] + Zi[order];
+                Zi[order - 1] = (X[i - order] * b[order] - Y[i - order] * a[order] + Zi[order]).eval();
             }
             --order;
         }
         Y[i] = X[i] * b[0] + Zi[0];
     }
     Zi.resize(filter_order - 1);
+
+    qint64 elNsec = elTimer.nsecsElapsed();
+    std::cout << "\nNsec elapsed:" << elNsec << std::endl;
 }
 
 void filtfilt::setFilterCoefficients(const std::vector<double> &B, const std::vector<double> &A)
@@ -253,7 +347,7 @@ void filtfilt::updateFilterParameters()
     }
     auto bb = Eigen::VectorXd::Map(m_B.data(), m_B.size());
     auto aa = Eigen::VectorXd::Map(m_A.data(), m_A.size());
-    m_zzi = (sp.inverse() * (bb.segment(1, m_nfilt - 1) - (bb(0) * aa.segment(1, m_nfilt - 1))));
+    (*m_zzi) = (sp.inverse() * (bb.segment(1, m_nfilt - 1) - (bb(0) * aa.segment(1, m_nfilt - 1))));
 
 
 
@@ -300,7 +394,7 @@ void filtfilt::append_vector(std::vector<double> &vec, const std::vector<double>
     vec.insert(vec.end(), tail.begin(), tail.end());
 }
 
-void filtfilt::append_vector(EigenDequeVector7d &vec, const EigenDequeVector7d &tail)
+void filtfilt::append_vector(EigenStdVecVector7d &vec, const EigenStdVecVector7d &tail)
 {
     vec.insert(vec.end(), tail.begin(), tail.end());
 }
@@ -312,11 +406,30 @@ std::vector<double> filtfilt::subvector_reverse(const std::vector<double> &vec, 
     return result;
 }
 
-EigenDequeVector7d filtfilt::subvector_reverseEig(const EigenDequeVector7d &vec, int idx_end, int idx_start)
+EigenStdVecVector7d filtfilt::subvector_reverseEig(const EigenStdVecVector7d &vec, int idx_end, int idx_start)
 {
-    EigenDequeVector7d result(vec.begin()+idx_start, vec.begin()+idx_end+1);
+    EigenStdVecVector7d result(&vec[idx_start], &vec[idx_end+1]);
     std::reverse(result.begin(), result.end());
     return result;
+}
+
+void filtfilt::subvector_reverseEig(const std::vector<double> &vec, int idx_end, int idx_start,
+                                    EigenVectorFiltered &Y)
+{
+    Eigen::Map<const EigenVectorFiltered> temp(&vec[idx_start], idx_end - idx_start + 1);
+    Y = temp.reverse();
+}
+
+void filtfilt::subvector_reverseEig(const EigenStdVecVector7d &vec, int idx_end, int idx_start,
+                                    EigenMatrixFiltered &Y)
+{
+    Y = EigenMatrixFiltered::Zero(idx_end - idx_start + 1, 7);
+
+    for(size_t i = 0; i < (idx_end - idx_start + 1); i++)
+    {
+        Y.row(i) = vec[idx_end - i];
+    }
+
 }
 
 // L should be odd

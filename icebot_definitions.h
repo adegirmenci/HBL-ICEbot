@@ -337,6 +337,23 @@ enum IN_VIVO_MODE
 
 static const int CONTROLLER_LOOP_TIMER_MSEC = 1;
 
+// *************************
+// ******  FILTERING  ******
+// *************************
+
+#define FILTER_ORDER      50                        // LPF filter order
+#define SAMPLE_DELTA_TIME 0.005992                  // delta time b/w EM readings
+#define HEART_RATE        120                       // animal heartrate
+#define N_HARMONICS       4                         // number of Fourier decomp harmonics
+#define N_STATES          N_HARMONICS*2 + 2         // number of states
+#define N_RECT            N_STATES - 1              // NUM_STATES of Rectangular components
+#define N_POLAR           N_STATES                  // NUM_STATES of Polar components
+#define N_SAMPLES         4000                      // CYCLE_DATA_SIZE
+#define EDGE_EFFECT       35                        // extent of edge effects
+#define N_FILTERED        N_SAMPLES - 2*EDGE_EFFECT // Filtered data length
+#define BREATH_RATE       7.5                       // respiration period (seconds)
+#define PEAK_THRESHOLD    0.80                      // For peak detection
+
 // ***********************
 // ***** DATA LOGGER *****
 // ***********************
