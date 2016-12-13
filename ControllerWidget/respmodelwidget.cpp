@@ -32,5 +32,5 @@ void respModelWidget::closeEvent(QCloseEvent *event)
 
 void respModelWidget::on_futureSamplesSpinBox_valueChanged(int arg1)
 {
-
+    emit newFutureSamplesValue(arg1);
 }

@@ -751,10 +751,127 @@ void ControllerThread::computeCoordFrameMobile()
     EigenAffineTransform3d T_BBfixed_CT_future = EigenAffineTransform3d::Identity();
 
 
+    switch(m_modeFlags.instTrackState)
+    {
+    case INST_TRACK_OFF:
 
+        switch(m_modeFlags.tethered)
+        {
+        case MODE_TETHETERED:
+            // TODO : % **** this is not implemented correctly right now
+            //            % If the cath is tethered to a point... fix this later
+            //            % Right now I'm just copying the relative case over here in case I
+            //            % hit the wrong button by accident
+            m_dXYZPsi(0) = m_input_AbsXYZ(0) + T_BBfixed_CT_des(0,3) - m_BB_CT_curTipPos(0,3);
+            m_dXYZPsi(1) = m_input_AbsXYZ(1) + T_BBfixed_CT_des(1,3) - m_BB_CT_curTipPos(1,3);
+            m_dXYZPsi(2) = m_input_AbsXYZ(2) + T_BBfixed_CT_des(2,3) - m_BB_CT_curTipPos(2,3);
+            m_dXYZPsi(3) = m_input_delPsi - total_psy;
+            break;
+        case MODE_RELATIVE:
+            //% If the cath is being told to do relative adjustments then that's
+            //            % like adding the relative adjustments to the Traj point. Then I
+            //            % just take the difference between where I am now and the relative
+            //            % change from the Traj point.
+            //            dx = inputbox_delt_x + T_BBfixed_CTtraj(1,4) - T_BBfixed_CT(1,4);
+            //            dy = inputbox_delt_y + T_BBfixed_CTtraj(2,4) - T_BBfixed_CT(2,4);
+            //            dz = inputbox_delt_z + T_BBfixed_CTtraj(3,4) - T_BBfixed_CT(3,4);
+            //            dpsi = inputbox_delt_psi - total_psy;
 
-    // TODO : complete transfer from MATLAB
+            m_dXYZPsi(0) = m_input_AbsXYZ(0) + T_BBfixed_CT_des(0,3) - m_BB_CT_curTipPos(0,3);
+            m_dXYZPsi(1) = m_input_AbsXYZ(1) + T_BBfixed_CT_des(1,3) - m_BB_CT_curTipPos(1,3);
+            m_dXYZPsi(2) = m_input_AbsXYZ(2) + T_BBfixed_CT_des(2,3) - m_BB_CT_curTipPos(2,3);
+            m_dXYZPsi(3) = m_input_delPsi - total_psy;
 
+            break;
+        default:
+            qCritical() << "Unknown Mode! MOBILE - INST_TRACK_OFF.";
+            break;
+        }
+
+        break;
+    case INST_TRACK_ON: // Mobile, IT then
+
+        switch(m_modeFlags.instTrackMode)
+        {
+        case INST_TRACK_POSITION:
+        // Mobile, IT, Position
+            switch(m_modeFlags.EKFstate)
+            {
+            case EKF_OFF: // Mobile, IT, Position
+                m_dXYZPsi(0) = m_BB_targetPos(0,3) - m_BB_CT_curTipPos(0,3);
+                m_dXYZPsi(1) = m_BB_targetPos(1,3) - m_BB_CT_curTipPos(1,3);
+                m_dXYZPsi(2) = m_BB_targetPos(2,3) - m_BB_CT_curTipPos(2,3);
+                m_dXYZPsi(3) = 0.0;
+                break;
+            case EKF_ON: // Mobile, IT, Position, EKF
+                T_BBfixed_CT_future = T_BBfixed_CTtraj_future_des * T_CTtraj_CT;
+//                dx = T_BBfixed_Instr_EKF_x - T_BBfixed_CT_future(1,4);
+//                dy = T_BBfixed_Instr_EKF_y - T_BBfixed_CT_future(2,4);
+//                dz = T_BBfixed_Instr_EKF_z - T_BBfixed_CT_future(3,4);
+//                dpsi = 0;
+                // TODO : add EKF info here
+                // this is doing inst track with predicted CT
+                m_dXYZPsi(0) = m_BB_targetPos(0,3) - T_BBfixed_CT_future(0,3);
+                m_dXYZPsi(1) = m_BB_targetPos(1,3) - T_BBfixed_CT_future(1,3);
+                m_dXYZPsi(2) = m_BB_targetPos(2,3) - T_BBfixed_CT_future(2,3);
+                m_dXYZPsi(3) = 0;
+                break;
+            default:
+                m_dXYZPsi(0) = m_BB_targetPos(0,3) - m_BB_CT_curTipPos(0,3);
+                m_dXYZPsi(1) = m_BB_targetPos(1,3) - m_BB_CT_curTipPos(1,3);
+                m_dXYZPsi(2) = m_BB_targetPos(2,3) - m_BB_CT_curTipPos(2,3);
+                m_dXYZPsi(3) = 0.0;
+                qCritical() << "Unknown EKFstate! Mobile, IT, Position.";
+                break;
+            }
+            break;
+        // Mobile, IT, Position ends
+        case INST_TRACK_IMAGER:
+        // Mobile, IT, Imager
+        {
+            Eigen::Vector3d objectXYZ;
+
+            switch(m_modeFlags.EKFstate)
+            {
+            case EKF_OFF: // Mobile, IT, Imager
+                objectXYZ = m_BB_targetPos.matrix().col(3).segment(0,3);
+                m_dXYZPsi(3) = computeSweep(m_BB_CT_curTipPos, objectXYZ);
+                break;
+            case EKF_ON: // Mobile, IT, Imager, EKF
+                // % Take future CT traj point and transform by the same
+                // % matrix that transforms from current CT traj to current
+                // % CT. This is the best estimate that we can get of where
+                // % the CT will be in the future.
+                T_BBfixed_CT_future = T_BBfixed_CTtraj_future_des * T_CTtraj_CT;
+//                object_loc = [T_BBfixed_Instr_EKF_x;
+//                              T_BBfixed_Instr_EKF_y;
+//                              T_BBfixed_Instr_EKF_z];
+                // TODO: add Kalman here
+                objectXYZ = m_BB_targetPos.matrix().col(3).segment(0,3);
+                m_dXYZPsi(3) = computeSweep(T_BBfixed_CT_future, objectXYZ);
+                break;
+            default:
+                objectXYZ = m_BB_targetPos.matrix().col(3).segment(0,3);
+                m_dXYZPsi(3) = computeSweep(m_BB_CT_curTipPos, objectXYZ);
+                qCritical() << "Unknown EKFstate! Defaulting to EKF Off.";
+                break;
+            }
+
+            m_dXYZPsi(0) = T_BBfixed_CT_des(0,3) - m_BB_CT_curTipPos(0,3);
+            m_dXYZPsi(1) = T_BBfixed_CT_des(1,3) - m_BB_CT_curTipPos(1,3);
+            m_dXYZPsi(2) = T_BBfixed_CT_des(2,3) - m_BB_CT_curTipPos(2,3);
+        }
+            break;
+        // Mobile, IT, Imager ends
+        default:
+            qCritical() << "Unknown! Mobile, IT.";
+            break;
+        }
+
+        break;
+    default:
+        break;
+    }
 }
 
 double ControllerThread::computeSweep(const Eigen::Transform<double,3,Eigen::Affine> &currT, const Eigen::Vector3d &objXYZ)
