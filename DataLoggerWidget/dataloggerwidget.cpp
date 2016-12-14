@@ -34,6 +34,7 @@ DataLoggerWidget::DataLoggerWidget(QWidget *parent) :
     m_statusList.push_back(ui->LogStatusLabel);
     m_statusList.push_back(ui->ErrorStatusLabel);
     m_statusList.push_back(ui->NotesStatusLabel);
+    m_statusList.push_back(ui->ControlStatusLabel);
 
     m_fileNameList.push_back(ui->EMpathLineEdit);
     m_fileNameList.push_back(ui->ECGpathLineEdit);
@@ -42,6 +43,7 @@ DataLoggerWidget::DataLoggerWidget(QWidget *parent) :
     m_fileNameList.push_back(ui->LogPathLineEdit);
     m_fileNameList.push_back(ui->ErrorPathLineEdit);
     m_fileNameList.push_back(ui->NotesPathLineEdit);
+    m_fileNameList.push_back(ui->ControlPathLineEdit);
 
     m_checkBoxList.push_back(ui->EMcheckBox);
     m_checkBoxList.push_back(ui->ECGcheckBox);
@@ -50,6 +52,7 @@ DataLoggerWidget::DataLoggerWidget(QWidget *parent) :
     m_checkBoxList.push_back(ui->LogCheckBox);
     m_checkBoxList.push_back(ui->ErrorCheckBox);
     m_checkBoxList.push_back(ui->NotesCheckBox);
+    m_checkBoxList.push_back(ui->ControlCheckBox);
 
     m_writeCount.resize(DATALOG_NUM_FILES, 0);
 }

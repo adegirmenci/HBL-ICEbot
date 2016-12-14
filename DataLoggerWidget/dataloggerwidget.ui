@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>490</width>
-    <height>418</height>
+    <height>430</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -74,7 +74,7 @@
      <x>10</x>
      <y>50</y>
      <width>361</width>
-     <height>213</height>
+     <height>241</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -85,19 +85,6 @@
       </property>
       <property name="text">
        <string>Log File</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="0">
-     <widget class="QCheckBox" name="FrmGrabCheckBox">
-      <property name="layoutDirection">
-       <enum>Qt::RightToLeft</enum>
-      </property>
-      <property name="text">
-       <string>FrmGrab File</string>
       </property>
       <property name="checked">
        <bool>true</bool>
@@ -117,6 +104,19 @@
       </property>
      </widget>
     </item>
+    <item row="4" column="0">
+     <widget class="QCheckBox" name="FrmGrabCheckBox">
+      <property name="layoutDirection">
+       <enum>Qt::RightToLeft</enum>
+      </property>
+      <property name="text">
+       <string>FrmGrab File</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
     <item row="2" column="0">
      <widget class="QCheckBox" name="ECGcheckBox">
       <property name="layoutDirection">
@@ -130,46 +130,10 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="0">
-     <widget class="QCheckBox" name="EPOScheckBox">
-      <property name="layoutDirection">
-       <enum>Qt::RightToLeft</enum>
-      </property>
-      <property name="text">
-       <string>EPOS File</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="0">
-     <widget class="QCheckBox" name="ErrorCheckBox">
-      <property name="layoutDirection">
-       <enum>Qt::RightToLeft</enum>
-      </property>
-      <property name="text">
-       <string>Error File</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
     <item row="3" column="1">
      <widget class="QLineEdit" name="EPOSpathLineEdit">
       <property name="text">
        <string>EPOS.txt</string>
-      </property>
-      <property name="clearButtonEnabled">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1">
-     <widget class="QLineEdit" name="ECGpathLineEdit">
-      <property name="text">
-       <string>ECG.txt</string>
       </property>
       <property name="clearButtonEnabled">
        <bool>false</bool>
@@ -189,6 +153,19 @@
       </property>
      </widget>
     </item>
+    <item row="3" column="0">
+     <widget class="QCheckBox" name="EPOScheckBox">
+      <property name="layoutDirection">
+       <enum>Qt::RightToLeft</enum>
+      </property>
+      <property name="text">
+       <string>EPOS File</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
     <item row="4" column="1">
      <widget class="QLineEdit" name="FrmGrabPathLineEdit">
       <property name="text">
@@ -199,13 +176,26 @@
       </property>
      </widget>
     </item>
-    <item row="6" column="1">
-     <widget class="QLineEdit" name="ErrorPathLineEdit">
+    <item row="2" column="1">
+     <widget class="QLineEdit" name="ECGpathLineEdit">
       <property name="text">
-       <string>Error.txt</string>
+       <string>ECG.txt</string>
       </property>
       <property name="clearButtonEnabled">
        <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0">
+     <widget class="QCheckBox" name="ErrorCheckBox">
+      <property name="layoutDirection">
+       <enum>Qt::RightToLeft</enum>
+      </property>
+      <property name="text">
+       <string>Error File</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
@@ -219,16 +209,13 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="label_7">
+    <item row="0" column="2">
+     <widget class="QLabel" name="statusLabel">
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
       </property>
       <property name="text">
-       <string>Record?</string>
-      </property>
-      <property name="textFormat">
-       <enum>Qt::AutoText</enum>
+       <string>Status</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -248,55 +235,26 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="2">
-     <widget class="QLabel" name="statusLabel">
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
-      </property>
+    <item row="6" column="1">
+     <widget class="QLineEdit" name="ErrorPathLineEdit">
       <property name="text">
-       <string>Status</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="7" column="1">
-     <widget class="QLineEdit" name="NotesPathLineEdit">
-      <property name="text">
-       <string>Notes.txt</string>
+       <string>Error.txt</string>
       </property>
       <property name="clearButtonEnabled">
        <bool>false</bool>
       </property>
      </widget>
     </item>
-    <item row="7" column="0">
-     <widget class="QCheckBox" name="NotesCheckBox">
-      <property name="layoutDirection">
-       <enum>Qt::RightToLeft</enum>
-      </property>
-      <property name="text">
-       <string>Notes File</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="2">
-     <widget class="QLabel" name="EMstatusLabel">
-      <property name="minimumSize">
-       <size>
-        <width>40</width>
-        <height>0</height>
-       </size>
-      </property>
+    <item row="0" column="0">
+     <widget class="QLabel" name="label_7">
       <property name="frameShape">
-       <enum>QFrame::Box</enum>
+       <enum>QFrame::StyledPanel</enum>
       </property>
       <property name="text">
-       <string>Closed</string>
+       <string>Record?</string>
+      </property>
+      <property name="textFormat">
+       <enum>Qt::AutoText</enum>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -322,8 +280,8 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="2">
-     <widget class="QLabel" name="EPOSstatusLabel">
+    <item row="1" column="2">
+     <widget class="QLabel" name="EMstatusLabel">
       <property name="minimumSize">
        <size>
         <width>40</width>
@@ -341,8 +299,50 @@
       </property>
      </widget>
     </item>
+    <item row="7" column="0">
+     <widget class="QCheckBox" name="NotesCheckBox">
+      <property name="layoutDirection">
+       <enum>Qt::RightToLeft</enum>
+      </property>
+      <property name="text">
+       <string>Notes File</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="1">
+     <widget class="QLineEdit" name="NotesPathLineEdit">
+      <property name="text">
+       <string>Notes.txt</string>
+      </property>
+      <property name="clearButtonEnabled">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
     <item row="4" column="2">
      <widget class="QLabel" name="FrmGrabStatusLabel">
+      <property name="minimumSize">
+       <size>
+        <width>40</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="text">
+       <string>Closed</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="2">
+     <widget class="QLabel" name="EPOSstatusLabel">
       <property name="minimumSize">
        <size>
         <width>40</width>
@@ -417,13 +417,55 @@
       </property>
      </widget>
     </item>
+    <item row="8" column="0">
+     <widget class="QCheckBox" name="ControlCheckBox">
+      <property name="layoutDirection">
+       <enum>Qt::RightToLeft</enum>
+      </property>
+      <property name="text">
+       <string>Control File</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="1">
+     <widget class="QLineEdit" name="ControlPathLineEdit">
+      <property name="text">
+       <string>Controller.txt</string>
+      </property>
+      <property name="clearButtonEnabled">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="2">
+     <widget class="QLabel" name="ControlStatusLabel">
+      <property name="minimumSize">
+       <size>
+        <width>40</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="text">
+       <string>Closed</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>280</y>
+     <y>290</y>
      <width>471</width>
      <height>131</height>
     </rect>

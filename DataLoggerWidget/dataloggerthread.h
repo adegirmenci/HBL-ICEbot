@@ -79,6 +79,10 @@ public slots:
 //    void logData(QTime timeStamp,
 //                 EPOS_DATA_IDS dataType,
 //                 std::vector<long> data);
+    void logControllerData(QTime timeStamp,
+                           int loopIdx,
+                           int dataType,
+                           std::vector<double> data);
     void logEvent(int source,
                   int logType, // LOG_TYPES
                   QTime timeStamp,
@@ -132,6 +136,7 @@ private:
 //    QTextStream m_textStream;
 
     const int m_prec = 4; // precision for print operations
+    const int m_prec2 = 6;
 
     std::vector< std::shared_ptr<QFile> > m_files;
     std::vector< std::shared_ptr<QTextStream> > m_TextStreams;

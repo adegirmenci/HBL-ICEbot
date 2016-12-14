@@ -69,7 +69,8 @@ signals:
     void statusChanged(int event);
     void logData(QTime timeStamp,
                  int loopIdx,
-                 QString &data);
+                 int dataType,
+                 std::vector<double> data);
     void logEvent(int source, // LOG_SOURCE
                   int logType, // LOG_TYPES
                   QTime timeStamp,

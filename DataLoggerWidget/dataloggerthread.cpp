@@ -230,6 +230,8 @@ void DataLoggerThread::logFrmGrabImage(std::shared_ptr<Frame> frm)
     //state = frame->image_.save(m_imgFname, "JPG", 100);
     cv::imwrite(m_DirImgFname.toStdString().c_str(), frm->image_ ); // write frame
 
+    QMutexLocker locker(m_mutex);
+
     // output to text
     if(m_isReady && m_files[DATALOG_FrmGrab_ID]->isOpen())
     {
@@ -323,6 +325,119 @@ void DataLoggerThread::logEPOSdata(QTime timeStamp, int dataType, std::vector<lo
     }
     else
         ;//qDebug() << "File is closed.";
+}
+
+void DataLoggerThread::logControllerData(QTime timeStamp, int loopIdx, int dataType, std::vector<double> data)
+{
+//    CONTROLLER_DXYZPSI = 0, // 4 values
+//    CONTROLLER_USER_XYZDXYZPSI, // 7 values
+//    CONTROLLER_CURR_PSY_GAMMA, // 2 values
+//    CONTROLLER_PERIOD, // 1 value
+//    CONTROLLER_BIRD4_MODEL_PARAMS, // 19 = 10 polar + 9 rect
+//    CONTROLLER_RESETBB, // 16 values
+//    CONTROLLER_MODES, // 6 values
+//    CONTROLLER_USANGLE // 1 value
+    QString output;
+    output.append(QString("%1\t%2\t").arg(loopIdx).arg(timeStamp.msecsSinceStartOfDay()));
+
+    switch(dataType)
+    {
+    case CONTROLLER_DXYZPSI: // 4 values
+        output.append(QString("DXYZPSI\t%1\t%2\t%3\t%4")
+                             .arg(QString::number(data[0],'f',m_prec2))
+                             .arg(QString::number(data[1],'f',m_prec2))
+                             .arg(QString::number(data[2],'f',m_prec2))
+                             .arg(QString::number(data[3],'f',m_prec2)));
+        break;
+    case CONTROLLER_USER_XYZDXYZPSI: // 7 values
+        output.append(QString("USERXYZDXYZPSI\t%1\t%2\t%3\t%4\t%5\t%6\t%7")
+                             .arg(QString::number(data[0],'f',2))
+                             .arg(QString::number(data[1],'f',2))
+                             .arg(QString::number(data[2],'f',2))
+                             .arg(QString::number(data[3],'f',2))
+                             .arg(QString::number(data[4],'f',2))
+                             .arg(QString::number(data[5],'f',2))
+                             .arg(QString::number(data[6],'f',2)));
+        break;
+    case CONTROLLER_CURR_PSY_GAMMA: // 2 values
+        output.append(QString("CURRPSYGAMMA\t%1\t%2")
+                             .arg(QString::number(data[0],'f',m_prec2))
+                             .arg(QString::number(data[1],'f',m_prec2)));
+        break;
+    case CONTROLLER_PERIOD: // 1 value
+        output.append(QString("PERIOD\t%1")
+                             .arg(QString::number(data[0],'f',m_prec)));
+        break;
+    case CONTROLLER_BIRD4_MODEL_PARAMS: // 19 = 10 polar + 9 rect
+        output.append(QString("BIRD4MODELPARAMS\t%1\t%2\t%3\t%4\t%5\t%6\t%7\t%8\t%9\t%10\t%11\t%12\t%13\t%14\t%15\t%16\t%17\t%18\t%19")
+                             .arg(QString::number(data[0],'f',m_prec2))
+                             .arg(QString::number(data[1],'f',m_prec2))
+                             .arg(QString::number(data[2],'f',m_prec2))
+                             .arg(QString::number(data[3],'f',m_prec2))
+                             .arg(QString::number(data[4],'f',m_prec2))
+                             .arg(QString::number(data[5],'f',m_prec2))
+                             .arg(QString::number(data[6],'f',m_prec2))
+                             .arg(QString::number(data[7],'f',m_prec2))
+                             .arg(QString::number(data[8],'f',m_prec2))
+                             .arg(QString::number(data[9],'f',m_prec2))
+                             .arg(QString::number(data[10],'f',m_prec2))
+                             .arg(QString::number(data[11],'f',m_prec2))
+                             .arg(QString::number(data[12],'f',m_prec2))
+                             .arg(QString::number(data[13],'f',m_prec2))
+                             .arg(QString::number(data[14],'f',m_prec2))
+                             .arg(QString::number(data[15],'f',m_prec2))
+                             .arg(QString::number(data[16],'f',m_prec2))
+                             .arg(QString::number(data[17],'f',m_prec2))
+                             .arg(QString::number(data[18],'f',m_prec2)));
+        break;
+    case CONTROLLER_RESETBB: // 16 values
+        output.append(QString("RESETBB\t%1\t%2\t%3\t%4\t%5\t%6\t%7\t%8\t%9\t%10\t%11\t%12\t%13\t%14\t%15\t%16")
+                             .arg(QString::number(data[0],'f',m_prec2))
+                             .arg(QString::number(data[1],'f',m_prec2))
+                             .arg(QString::number(data[2],'f',m_prec2))
+                             .arg(QString::number(data[3],'f',m_prec2))
+                             .arg(QString::number(data[4],'f',m_prec2))
+                             .arg(QString::number(data[5],'f',m_prec2))
+                             .arg(QString::number(data[6],'f',m_prec2))
+                             .arg(QString::number(data[7],'f',m_prec2))
+                             .arg(QString::number(data[8],'f',m_prec2))
+                             .arg(QString::number(data[9],'f',m_prec2))
+                             .arg(QString::number(data[10],'f',m_prec2))
+                             .arg(QString::number(data[11],'f',m_prec2))
+                             .arg(QString::number(data[12],'f',m_prec2))
+                             .arg(QString::number(data[13],'f',m_prec2))
+                             .arg(QString::number(data[14],'f',m_prec2))
+                             .arg(QString::number(data[15],'f',m_prec2)));
+        break;
+    case CONTROLLER_MODES: // 6 values
+        output.append(QString("MODES\t%1\t%2\t%3\t%4\t%5\t%6")
+                             .arg(QString::number(data[0],'f',1))
+                             .arg(QString::number(data[1],'f',1))
+                             .arg(QString::number(data[2],'f',1))
+                             .arg(QString::number(data[3],'f',1))
+                             .arg(QString::number(data[4],'f',1))
+                             .arg(QString::number(data[5],'f',1)));
+        break;
+    case CONTROLLER_USANGLE: // 1 value
+        output.append(QString("USANGLE\t%1")
+                             .arg(QString::number(data[0],'f',m_prec)));
+        break;
+    default:
+        output.append(QString("UNKNOWN"));
+        break;
+    }
+
+    QMutexLocker locker(m_mutex);
+
+    // output to text
+    if(m_isReady && m_files[DATALOG_Control_ID]->isOpen())
+    {
+        (*m_TextStreams[DATALOG_Control_ID]) << output << '\n';
+
+        // emit fileStatusChanged(DATALOG_Control_ID, DATALOG_FILE_DATA_LOGGED);
+    }
+    else
+        ;//qDebug() << "Controller text file closed.";
 }
 
 void DataLoggerThread::logEvent(int source, int logType, QTime timeStamp, int eventID)

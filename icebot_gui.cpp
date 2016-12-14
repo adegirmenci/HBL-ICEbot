@@ -27,6 +27,10 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
     connect(ui->eposWidget->m_worker, SIGNAL(logData(QTime,int,std::vector<long>)),
             ui->dataLogWidget->m_worker, SLOT(logEPOSdata(QTime,int,std::vector<long>)));
 
+    // Controller to DataLogger
+    connect(ui->controlWidget->m_worker, SIGNAL(logData(QTime,int,int,std::vector<double>)),
+            ui->dataLogWidget->m_worker, SLOT(logControllerData(QTime,int,int,std::vector<double>)));
+
     // Events to DataLogger
     connect(ui->emWidget->m_worker, SIGNAL(logEvent(int,int,QTime,int)),
             ui->dataLogWidget->m_worker, SLOT(logEvent(int,int,QTime,int)));

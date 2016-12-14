@@ -198,11 +198,15 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX
             {
                 m_respModelInitializing = false;
                 std::cout << "Model trained.\n" << std::endl;
+
+                emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_RESP_MODEL_INITIALIZED);
             }
             else
             {
                 // ERROR!
                 std::cout << "Error in training resp model!" << std::endl;
+
+                emit logEvent(SRC_CONTROLLER, LOG_ERROR, QTime::currentTime(), CONTROLLER_RESP_MODEL_INIT_FAILED);
             }
         }
     }
@@ -210,6 +214,9 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX
     {
         // send current data
         m_respModel.addObservation(m_currChest, readings[EM_SENSOR_CHEST].time);
+
+        std::vector<double> omega = {m_respModel.getOmega()};
+        emit logData(QTime::currentTime(), m_numCycles, CONTROLLER_PERIOD, omega);
     }
 
     if(!m_respModelInitializing)
@@ -374,6 +381,11 @@ void ControllerThread::updateTaskSpaceCommand(double x, double y, double z, doub
     // check limits
 
     // emit event to DataLogger
+
+    std::vector<double> xyzdxyzpsi = {m_input_AbsXYZ(0), m_input_AbsXYZ(1), m_input_AbsXYZ(2),
+                                      m_input_RelXYZ(0), m_input_RelXYZ(1), m_input_RelXYZ(2), delPsi*deg180overPi};
+    emit logData(QTime::currentTime(), m_numCycles, CONTROLLER_USER_XYZDXYZPSI, xyzdxyzpsi);
+
     //std::cout << "New deltaXYZPsi : " << m_deltaXYZPsiToTarget << std::endl;
     std::cout << "New AbsXYZ RelXYZ DelPsi: " << m_input_AbsXYZ << m_input_RelXYZ << m_input_delPsi << std::endl;
 }
@@ -392,8 +404,13 @@ void ControllerThread::resetBB()
     // Save the fixed BB position, T_Box_BBfixed = T_Box_SBm_fixed * inv(T_BB_SBm)
     m_Box_BBfixed = m_basTipPos_fixed * m_BB_SBm.inverse();
 
-    // TODO: Log event
-    // TODO: Save Transform to file
+    std::vector<double> T_basTipPos_fixed(m_basTipPos_fixed.matrix().data(), m_basTipPos_fixed.matrix().data() + m_basTipPos_fixed.matrix().size());
+
+    emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_RESETBB_SUCCESS);
+    if(T_basTipPos_fixed.size() == 16)
+    {
+        emit logData(QTime::currentTime(), m_numCycles, CONTROLLER_RESETBB, T_basTipPos_fixed);
+    }
 }
 
 void ControllerThread::startControlCycle()
@@ -423,6 +440,7 @@ void ControllerThread::startControlCycle()
 //            emit logError(SRC_CONTROLLER, LOG_ERROR, QTime::currentTime(), CONTROLLER_INITIALIZE_FAILED, QString("Timer is not active."));
 //        }
         emit statusChanged(CONTROLLER_LOOP_STARTED);
+        emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_LOOP_STARTED);
     }
     else
     {
@@ -509,12 +527,24 @@ void ControllerThread::setModeFlags(ModeFlags flags)
 
     m_modeFlags = flags;
 
+    unsigned int numcyc = m_numCycles;
+
     locker.unlock();
 
-    qDebug() << "Mode flags set: " << flags.coordFrame
-             << flags.tethered << flags.instTrackState
-             << flags.instTrackMode << flags.EKFstate
-             << flags.inVivoMode;
+//    qDebug() << "Mode flags set: " << flags.coordFrame
+//             << flags.tethered << flags.instTrackState
+//             << flags.instTrackMode << flags.EKFstate
+//             << flags.inVivoMode;
+    //emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_RESETBB_SUCCESS);
+
+    std::vector<double> modes(6);
+    modes.push_back(flags.coordFrame);
+    modes.push_back(flags.tethered);
+    modes.push_back(flags.instTrackState);
+    modes.push_back(flags.instTrackMode);
+    modes.push_back(flags.EKFstate);
+    modes.push_back(flags.inVivoMode);
+    emit logData(QTime::currentTime(), numcyc, CONTROLLER_MODES, modes);
 }
 
 void ControllerThread::setUSangle(double usAngle)
@@ -536,13 +566,18 @@ void ControllerThread::setUSangle(double usAngle)
 //                         0,              0, 1, 21.7;
 
     std::cout << "New m_BT_CT:\n" << m_BT_CT.matrix() << std::endl;
-    qInfo() << "US angle updated to" << m_USangle*deg180overPi << "degrees.";
+    //qInfo() << "US angle updated to" << m_USangle*deg180overPi << "degrees.";
+
+    std::vector<double> usang = {m_USangle*deg180overPi};
+    emit logData(QTime::currentTime(), m_numCycles, CONTROLLER_USANGLE, usang);
 }
 
 void ControllerThread::initializeRespModel()
 {
     // TODO : start sending data to m_respModel
     m_respModelInitializing = true;
+
+    emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_RESP_MODEL_INIT_BEGIN);
 }
 
 void ControllerThread::re_initializeRespModel()
@@ -627,7 +662,7 @@ void ControllerThread::controlCycle()
 
         // emit logData(QTime::currentTime(), newData);
 
-        qDebug() << QTime::currentTime() << "Cycle:" << m_numCycles;
+        std::cout << QTime::currentTime().toString().toStdString() << "Cycle:" << m_numCycles << std::endl;
 
         m_numCycles++;
     }
@@ -647,7 +682,9 @@ void ControllerThread::computeCoordFrameWorld()
     // x-axis.
     m_currGamma = atan2(m_BBfixed_BBmobile(1,0), m_BBfixed_BBmobile(0,0));
 
-    printf("Psy : %.3f Gamma : %.3f\n", total_psy * deg180overPi, m_currGamma * deg180overPi);
+    //printf("Psy : %.3f Gamma : %.3f\n", total_psy * deg180overPi, m_currGamma * deg180overPi);
+    std::vector<double> psyGamma = {total_psy*deg180overPi, m_currGamma*deg180overPi};
+    emit logData(QTime::currentTime(), m_numCycles, CONTROLLER_CURR_PSY_GAMMA, psyGamma);
 
     switch(m_modeFlags.instTrackState)
     {
@@ -759,7 +796,9 @@ void ControllerThread::computeCoordFrameWorld()
         break;
     }
 
-    printf("dx : %.3f dy : %.3f dz : %.3f dpsi : %.3f\n", m_dXYZPsi(0), m_dXYZPsi(1), m_dXYZPsi(2), m_dXYZPsi(3)* deg180overPi);
+    //printf("dx : %.3f dy : %.3f dz : %.3f dpsi : %.3f\n", m_dXYZPsi(0), m_dXYZPsi(1), m_dXYZPsi(2), m_dXYZPsi(3)* deg180overPi);
+    std::vector<double> dxyzpsi = {m_dXYZPsi(0), m_dXYZPsi(1), m_dXYZPsi(2), m_dXYZPsi(3)*deg180overPi};
+    emit logData(QTime::currentTime(), m_numCycles, CONTROLLER_DXYZPSI, dxyzpsi);
 }
 
 void ControllerThread::computeCoordFrameMobile()
@@ -814,7 +853,9 @@ void ControllerThread::computeCoordFrameMobile()
 
     m_currGamma = atan2(T_BBtraj_BBmob(1,0), T_BBtraj_BBmob(0,0));
 
-    printf("Psy : %.3f Gamma : %.3f\n", total_psy * deg180overPi, m_currGamma * deg180overPi);
+    //printf("Psy : %.3f Gamma : %.3f\n", total_psy * deg180overPi, m_currGamma * deg180overPi);
+    std::vector<double> psyGamma = {total_psy*deg180overPi, m_currGamma*deg180overPi};
+    emit logData(QTime::currentTime(), m_numCycles, CONTROLLER_CURR_PSY_GAMMA, psyGamma);
 
     //% Get BT w.r.t. mobile BB, rather than fixed BB
     //        T_BBmob_BT = inv(T_BBfixed_BBmob)*T_BBfixed_CT*inv(T_BT_CT);
@@ -949,7 +990,9 @@ void ControllerThread::computeCoordFrameMobile()
         break;
     }
 
-    printf("dx : %.3f dy : %.3f dz : %.3f dpsi : %.3f\n", m_dXYZPsi(0), m_dXYZPsi(1), m_dXYZPsi(2), m_dXYZPsi(3)* deg180overPi);
+    //printf("dx : %.3f dy : %.3f dz : %.3f dpsi : %.3f\n", m_dXYZPsi(0), m_dXYZPsi(1), m_dXYZPsi(2), m_dXYZPsi(3)* deg180overPi);
+    std::vector<double> dxyzpsi = {m_dXYZPsi(0), m_dXYZPsi(1), m_dXYZPsi(2), m_dXYZPsi(3)*deg180overPi};
+    emit logData(QTime::currentTime(), m_numCycles, CONTROLLER_DXYZPSI, dxyzpsi);
 }
 
 double ControllerThread::computeSweep(const Eigen::Transform<double,3,Eigen::Affine> &currT, const Eigen::Vector3d &objXYZ)

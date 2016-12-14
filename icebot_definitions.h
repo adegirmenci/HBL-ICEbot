@@ -269,10 +269,26 @@ enum CONTROLLER_EVENT_IDS
     CONTROLLER_INITIALIZED,
     CONTROLLER_LOOP_STARTED,
     CONTROLLER_LOOP_STOPPED,
+    CONTROLLER_RESP_MODEL_INIT_BEGIN,
+    CONTROLLER_RESP_MODEL_INITIALIZED,
+    CONTROLLER_RESP_MODEL_INIT_FAILED,
+    CONTROLLER_RESETBB_SUCCESS,
     CONTROLLER_EPOCH_SET,
     CONTROLLER_EPOCH_SET_FAILED,
     CONTROLLER_RESET,
     CONTROLLER_RESET_FAILED
+};
+
+enum CONTROLLER_DATA_IDS
+{
+    CONTROLLER_DXYZPSI = 0, // 4 values
+    CONTROLLER_USER_XYZDXYZPSI, // 7 values
+    CONTROLLER_CURR_PSY_GAMMA, // 2 values
+    CONTROLLER_PERIOD, // 1 value
+    CONTROLLER_BIRD4_MODEL_PARAMS, // 19 = 10 polar + 9 rect
+    CONTROLLER_RESETBB, // 16 values
+    CONTROLLER_MODES, // 6 values
+    CONTROLLER_USANGLE // 1 value
 };
 
 enum CONTROLLER_SPACES
@@ -348,7 +364,7 @@ static const int CONTROLLER_LOOP_TIMER_MSEC = 1;
 #define N_STATES          N_HARMONICS*2 + 2         // number of states
 #define N_RECT            N_STATES - 1              // NUM_STATES of Rectangular components
 #define N_POLAR           N_STATES                  // NUM_STATES of Polar components
-#define N_SAMPLES         2000                      // CYCLE_DATA_SIZE
+#define N_SAMPLES         3000                      // CYCLE_DATA_SIZE
 #define EDGE_EFFECT       35                        // extent of edge effects
 #define N_FILTERED        N_SAMPLES - 2*EDGE_EFFECT // Filtered data length
 #define BREATH_RATE       5.0                       // respiration period (seconds)
@@ -358,7 +374,7 @@ static const int CONTROLLER_LOOP_TIMER_MSEC = 1;
 // ***** DATA LOGGER *****
 // ***********************
 
-static const int DATALOG_NUM_FILES = 7;
+static const int DATALOG_NUM_FILES = 8;
 static const unsigned short DATALOG_EM_ID = 0;
 static const unsigned short DATALOG_ECG_ID = 1;
 static const unsigned short DATALOG_EPOS_ID = 2;
@@ -366,6 +382,7 @@ static const unsigned short DATALOG_FrmGrab_ID = 3;
 static const unsigned short DATALOG_Log_ID = 4;
 static const unsigned short DATALOG_Error_ID = 5;
 static const unsigned short DATALOG_Note_ID = 6;
+static const unsigned short DATALOG_Control_ID = 7;
 
 static const unsigned short DATALOG_FILE_IDS[DATALOG_NUM_FILES] =
                                                   {DATALOG_EM_ID,
@@ -374,7 +391,8 @@ static const unsigned short DATALOG_FILE_IDS[DATALOG_NUM_FILES] =
                                                    DATALOG_FrmGrab_ID,
                                                    DATALOG_Log_ID,
                                                    DATALOG_Error_ID,
-                                                   DATALOG_Note_ID};
+                                                   DATALOG_Note_ID,
+                                                   DATALOG_Control_ID};
 
 enum DATALOG_EVENT_IDS
 {
@@ -407,6 +425,9 @@ enum DATALOG_EVENT_IDS
     DATALOG_NOTE_FILE_OPENED,
     DATALOG_NOTE_FILE_CLOSED,
     DATALOG_NOTE_FILE_DATA_LOGGED,
+    DATALOG_CONTROL_FILE_OPENED,
+    DATALOG_CONTROL_FILE_CLOSED,
+    DATALOG_CONTROL_FILE_DATA_LOGGED,
 	DATALOG_EPOCH_SET,
     DATALOG_EPOCH_SET_FAILED,
     DATALOG_LOGGING_STARTED,

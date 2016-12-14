@@ -388,7 +388,7 @@ void CyclicModel::retrainModel()
 //        if(mConcurrent3.resultCount() > 0)
 //        {
             m_Bird4_polarRect = mConcurrent3.result();
-            mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered, m_omega0);
+            mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered_new, m_omega0); // m_Bird4_filtered
             m_Bird4_polar      = m_Bird4_polarRect.segment(0, N_POLAR);
             m_Bird4_rectangular      = m_Bird4_polarRect.segment(N_POLAR, N_RECT);
         }
@@ -398,7 +398,7 @@ void CyclicModel::retrainModel()
             {
                 mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0);
                 mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0);
-                mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered, m_omega0);
+                mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered_new, m_omega0); // m_Bird4_filtered
 //                std::cout << "Start concurrent." << std::endl;
             }
 
@@ -434,7 +434,11 @@ void CyclicModel::retrainModel()
 void CyclicModel::updatePeriod(const double period)
 {
     // omega_0 = 2*pi*1/period; % 2*pi*breathing frequency (rad/sec)
-    m_omega0 = 2.0*pi/period;
+
+    if(period > 20.)
+        m_omega0 = 2.0*pi/BREATH_RATE;
+    else
+        m_omega0 = 2.0*pi/period;
 }
 
 double CyclicModel::getPrediction(const double timeShift, const EigenVectorPolar &x_polar, const EigenVectorRectangular &x_rect)
@@ -510,21 +514,44 @@ void CyclicModel::filterNewObservations()
 
 double CyclicModel::peakDetector(const bool runForInit)
 {
-    // look at Bird4
-    // EigenVectorFiltered::Index maxRow, maxCol, minRow, minCol;
-    auto maxBird = m_Bird4_filtered.maxCoeff();//(&maxRow, &maxCol);
-    auto minBird = m_Bird4_filtered.minCoeff();
-    double diffBird = maxBird - minBird;
-    double thresh = minBird + diffBird * PEAK_THRESHOLD;
-
-    // find indices that are greater than thresh
     std::vector<size_t> peakIdx; // container for indices
-    auto it = std::find_if(m_Bird4_filtered.data(), m_Bird4_filtered.data() + m_Bird4_filtered.size(),
-                           [thresh](double i){return i > thresh;});
-    while (it != (m_Bird4_filtered.data() + m_Bird4_filtered.size()) ) {
-       peakIdx.emplace_back(std::distance(m_Bird4_filtered.data(), it));
-       it = std::find_if(std::next(it), m_Bird4_filtered.data() + m_Bird4_filtered.size(),
-                         [thresh](double i){return i > thresh;});
+    double thresh;
+    if(runForInit){
+        // look at Bird4
+        // EigenVectorFiltered::Index maxRow, maxCol, minRow, minCol;
+        auto maxBird = m_Bird4_filtered.maxCoeff();//(&maxRow, &maxCol);
+        auto minBird = m_Bird4_filtered.minCoeff();
+        double diffBird = maxBird - minBird;
+        thresh = minBird + diffBird * PEAK_THRESHOLD;
+
+        // find indices that are greater than thresh
+
+        auto it = std::find_if(m_Bird4_filtered.data(), m_Bird4_filtered.data() + m_Bird4_filtered.size(),
+                               [thresh](double i){return i > thresh;});
+        while (it != (m_Bird4_filtered.data() + m_Bird4_filtered.size()) ) {
+           peakIdx.emplace_back(std::distance(m_Bird4_filtered.data(), it));
+           it = std::find_if(std::next(it), m_Bird4_filtered.data() + m_Bird4_filtered.size(),
+                             [thresh](double i){return i > thresh;});
+        }
+    }
+    else
+    {
+        // look at Bird4
+        // EigenVectorFiltered::Index maxRow, maxCol, minRow, minCol;
+        auto maxBird = m_Bird4_filtered_new.maxCoeff();//(&maxRow, &maxCol);
+        auto minBird = m_Bird4_filtered_new.minCoeff();
+        double diffBird = maxBird - minBird;
+        thresh = minBird + diffBird * PEAK_THRESHOLD;
+
+        // find indices that are greater than thresh
+
+        auto it = std::find_if(m_Bird4_filtered_new.data(), m_Bird4_filtered_new.data() + m_Bird4_filtered_new.size(),
+                               [thresh](double i){return i > thresh;});
+        while (it != (m_Bird4_filtered_new.data() + m_Bird4_filtered_new.size()) ) {
+           peakIdx.emplace_back(std::distance(m_Bird4_filtered_new.data(), it));
+           it = std::find_if(std::next(it), m_Bird4_filtered_new.data() + m_Bird4_filtered_new.size(),
+                             [thresh](double i){return i > thresh;});
+        }
     }
 
     // get the timestamp at peaks
@@ -534,11 +561,13 @@ double CyclicModel::peakDetector(const bool runForInit)
         for(auto it = peakIdx.begin(); it != peakIdx.end(); ++it){
             peaksTime.emplace_back(m_timeData_init[*it]);
         }
+        std::cout << "///runForInit///" << std::endl;
     }
     else{
         for(auto it = peakIdx.begin(); it != peakIdx.end(); ++it){
             peaksTime.emplace_back(m_timeData_new[*it]);
         }
+        std::cout << "///m_timeData_new///" << std::endl;
     }
     std::cout << std::endl;
 
@@ -548,7 +577,7 @@ double CyclicModel::peakDetector(const bool runForInit)
                    peaksTime.begin(),std::back_inserter(peaksTdiff),std::minus<double>());
 
     // find time differences larger than 1 seconds
-    std::cout << "peakGapsIdx: " << std::endl;
+    std::cout << "peakDetector peakGapsIdx: " << std::endl;
     double largeTimeGap = 1.0; // seconds
     std::vector<size_t> peakGapsIdx; // container for indices
     std::vector<double>::iterator it2 = std::find_if(peaksTdiff.begin(), peaksTdiff.end(),
@@ -584,15 +613,30 @@ double CyclicModel::peakDetector(const bool runForInit)
 //        tops_peak_times_right(end)=[];
 //        tops_peak_times_left(end)=[];
 //    end
-    if( m_Bird4_filtered.head(1)[0] > thresh )
+    if(runForInit)
     {
-        peakTimesRight.erase(peakTimesRight.begin());
-        peakTimesLeft.erase(peakTimesLeft.begin());
+        if( m_Bird4_filtered.head(1)[0] > thresh )
+        {
+            peakTimesRight.erase(peakTimesRight.begin());
+            peakTimesLeft.erase(peakTimesLeft.begin());
+        }
+        if( m_Bird4_filtered.tail(1)[0] > thresh )
+        {
+            peakTimesRight.pop_back();
+            peakTimesLeft.pop_back();
+        }
     }
-    if( m_Bird4_filtered.tail(1)[0] > thresh )
-    {
-        peakTimesRight.pop_back();
-        peakTimesLeft.pop_back();
+    else{
+        if( m_Bird4_filtered_new.head(1)[0] > thresh )
+        {
+            peakTimesRight.erase(peakTimesRight.begin());
+            peakTimesLeft.erase(peakTimesLeft.begin());
+        }
+        if( m_Bird4_filtered_new.tail(1)[0] > thresh )
+        {
+            peakTimesRight.pop_back();
+            peakTimesLeft.pop_back();
+        }
     }
 
     // better not be empty
@@ -690,7 +734,7 @@ double CyclicModel::peakDetector(const bool runForInit)
         timeDiff.cwiseAbs().minCoeff(&minIdx);
         minTimeDiff = timeDiff[minIdx];
 
-        double period_new = period_old*(1.0 - minTimeDiff/(mean[0]-m_timeData_init[0]));
+        double period_new = period_old*(1.0 - minTimeDiff/(mean[0]-m_timeData_new[0])); // m_timeData_old[0]
 
         if(m_isInVivo) // in vivo mode
         {
