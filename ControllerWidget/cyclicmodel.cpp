@@ -257,6 +257,10 @@ void CyclicModel::trainModel()
         m_Bird4_polar       = m_Bird4_polarRect.segment(0, N_POLAR);
         m_Bird4_rectangular = m_Bird4_polarRect.segment(N_POLAR, N_RECT);
 
+        std::cout << "m_Bird4_polarRect\n" << m_Bird4_polarRect << std::endl;
+        std::cout << "m_Bird4_polar\n" << m_Bird4_polar << std::endl;
+        std::cout << "m_Bird4_rectangular\n" << m_Bird4_rectangular << std::endl;
+
         // 1 should be done sooner since it was launched first
         mConcurrent1.waitForFinished();
         m_BBfixed_CT_polarRect = mConcurrent1.result();
@@ -270,7 +274,6 @@ void CyclicModel::trainModel()
 
         m_BBfixed_BB_polar       = m_BBfixed_BB_polarRect.block(0,0, N_POLAR, 7);
         m_BBfixed_BB_rectangular = m_BBfixed_BB_polarRect.block(N_POLAR,0, N_RECT, 7);
-
 
         std::cout << "Model created.\n" << std::endl;
 
@@ -445,9 +448,9 @@ double CyclicModel::getPrediction(const double timeShift, const EigenVectorPolar
 
         for (size_t i = 0; i < N_HARMONICS; i++)
         {
-            x_des += x_polar[i+1] * sin( (i+1.0)*x_polar[N_HARMONICS+1]*timeShift + atan2( x_rect[i+N_HARMONICS+1], x_rect[i+1] ) );
+            x_des += x_polar(i+1) * sin( (i+1.0)*x_polar(N_HARMONICS+1)*timeShift + atan2( x_rect(i+N_HARMONICS+1), x_rect(i+1) ) );
         }
-        x_des += x_polar[0];
+        x_des += x_polar(0);
     }
     else
     {
@@ -514,10 +517,7 @@ double CyclicModel::peakDetector(const bool runForInit)
     double diffBird = maxBird - minBird;
     double thresh = minBird + diffBird * PEAK_THRESHOLD;
 
-    std::cout << "Max bird: " << maxBird << " Min bird: " << minBird << std::endl;
-
     // find indices that are greater than thresh
-    std::cout << "peakIdx: " << std::endl;
     std::vector<size_t> peakIdx; // container for indices
     auto it = std::find_if(m_Bird4_filtered.data(), m_Bird4_filtered.data() + m_Bird4_filtered.size(),
                            [thresh](double i){return i > thresh;});
@@ -525,24 +525,19 @@ double CyclicModel::peakDetector(const bool runForInit)
        peakIdx.emplace_back(std::distance(m_Bird4_filtered.data(), it));
        it = std::find_if(std::next(it), m_Bird4_filtered.data() + m_Bird4_filtered.size(),
                          [thresh](double i){return i > thresh;});
-       std::cout << peakIdx.back() << " ";
     }
-    std::cout << std::endl;
 
     // get the timestamp at peaks
-    std::cout << "peaksTime: " << std::endl;
     std::vector<double> peaksTime; peaksTime.reserve(peakIdx.size());
     // if initializing, then use "m_timeData_init", otherwise use "m_timeData_new"
     if(runForInit){
         for(auto it = peakIdx.begin(); it != peakIdx.end(); ++it){
             peaksTime.emplace_back(m_timeData_init[*it]);
-            std::cout << peaksTime.back() << " ";
         }
     }
     else{
         for(auto it = peakIdx.begin(); it != peakIdx.end(); ++it){
             peaksTime.emplace_back(m_timeData_new[*it]);
-            std::cout << peaksTime.back() << " ";
         }
     }
     std::cout << std::endl;
@@ -551,20 +546,16 @@ double CyclicModel::peakDetector(const bool runForInit)
     std::vector<double> peaksTdiff; peaksTdiff.reserve(peaksTime.size() - 1);
     std::transform(peaksTime.begin()+1,peaksTime.end(),
                    peaksTime.begin(),std::back_inserter(peaksTdiff),std::minus<double>());
-    std::cout << "peaksTdiff: " << std::endl;
-    for(auto const &elem : peaksTdiff)
-        std::cout << elem << " ";
-    std::cout << std::endl;
 
     // find time differences larger than 1 seconds
     std::cout << "peakGapsIdx: " << std::endl;
-    double largeTimeGap = 1000.0; // milliseconds
+    double largeTimeGap = 1.0; // seconds
     std::vector<size_t> peakGapsIdx; // container for indices
-    auto it2 = std::find_if(std::begin(peaksTdiff), std::end(peaksTdiff),
-                            [largeTimeGap](double i){return i > largeTimeGap;});
-    while (it2 != std::end(peaksTdiff)) {
-       peakGapsIdx.emplace_back(std::distance(std::begin(peaksTdiff), it2));
-       it2 = std::find_if(std::next(it2), std::end(peaksTdiff),
+    std::vector<double>::iterator it2 = std::find_if(peaksTdiff.begin(), peaksTdiff.end(),
+                                                     [largeTimeGap](double i){return i > largeTimeGap;});
+    while (it2 != peaksTdiff.end()) {
+       peakGapsIdx.emplace_back(std::distance(peaksTdiff.begin(), it2));
+       it2 = std::find_if(std::next(it2), peaksTdiff.end(),
                           [largeTimeGap](double i){return i > largeTimeGap;});
        std::cout << peakGapsIdx.back() << " ";
     }
@@ -615,7 +606,7 @@ double CyclicModel::peakDetector(const bool runForInit)
     std::vector<double> mean; mean.reserve(peakTimesRight.size());
     std::transform(peakTimesRight.begin(), peakTimesRight.end(),
                    peakTimesLeft.begin(), std::back_inserter(mean),
-                   [](double l, double r){ return (l+r)/2.0; });
+                   [](double r, double l){ return (l+r)/2.0; });
 
 //    if length(tops_peak_times_means)>1
 //        tops_peak_times_diffs = tops_peak_times_means(2:end)-tops_peak_times_means(1:(end-1));
@@ -627,11 +618,16 @@ double CyclicModel::peakDetector(const bool runForInit)
 
     if(mean.size() > 1)
     {
-        period = std::accumulate(mean.begin(),mean.end(),0.0) / (double)mean.size();
+        // take the difference of the means
+        std::vector<double> meanDiffs; meanDiffs.reserve(mean.size());
+        std::transform(mean.begin()+1, mean.end(),
+                       mean.begin(), std::back_inserter(meanDiffs), std::minus<double>());
+
+        period = std::accumulate(meanDiffs.begin(),meanDiffs.end(),0.0) / (double)meanDiffs.size();
     }
     else
     {
-        period = mean[0];
+        period = BREATH_RATE;
     }
 
     if(runForInit)
@@ -669,6 +665,12 @@ double CyclicModel::peakDetector(const bool runForInit)
 
         peakDetectorForBreathModel(); // filter the breathing signal
         m_respPeakMean = m_breathSignalPeakMean;
+
+        if(m_respPeakMean.size() < 1)
+        {
+            std::cout << "PeakDetector is in trouble 3!\n" << std::endl;
+            return period_old;
+        }
 
         Eigen::MatrixXd peakTimeDiff = Eigen::MatrixXd::Zero(m_respPeakMean.size(), mean.size());
         Eigen::VectorXd timeDiff = Eigen::VectorXd::Zero(mean.size());
@@ -740,8 +742,10 @@ void CyclicModel::peakDetectorForBreathModel()
     std::transform(peaksTime.begin()+1,peaksTime.end(),
                    peaksTime.begin(),std::back_inserter(peaksTdiff),std::minus<double>());
 
+
     // find time differences larger than 1 seconds
-    double largeTimeGap = 1000.0; // milliseconds
+    std::cout << "peakDetectorForBreathModel : peakGapsIdx: " << std::endl;
+    double largeTimeGap = 1.0; // seconds
     std::vector<size_t> peakGapsIdx; // container for indices
     auto it2 = std::find_if(std::begin(peaksTdiff), std::end(peaksTdiff),
                             [largeTimeGap](double i){return i > largeTimeGap;});
@@ -749,11 +753,17 @@ void CyclicModel::peakDetectorForBreathModel()
        peakGapsIdx.emplace_back(std::distance(std::begin(peaksTdiff), it2));
        it2 = std::find_if(std::next(it2), std::end(peaksTdiff),
                           [largeTimeGap](double i){return i > largeTimeGap;});
+       std::cout << peakGapsIdx.back() << " ";
     }
+    std::cout << std::endl;
+
 
     // we better have peaks
     if(peakGapsIdx.size() < 1)
-        printf("PeakDetector is in trouble!\n");
+    {
+        std::cout << "PeakDetector is in trouble! n=" << peakGapsIdx.size() << std::endl;
+        return;
+    }
 
     std::vector<double> peakTimesRight, peakTimesLeft;
     peakTimesLeft.emplace_back(peaksTime.front());
@@ -776,14 +786,16 @@ void CyclicModel::peakDetectorForBreathModel()
 
     // better not be empty
     if(peakTimesLeft.size() < 1)
-        std::printf("PeakDetector is in trouble 2!\n");
+    {
+        std::cout << "PeakDetector is in trouble 2! n=" << peakTimesLeft.size() << std::endl;
+        return;
+    }
 
     // tops_peak_times_means = mean([tops_peak_times_right tops_peak_times_left],2);
     std::vector<double> mean; mean.reserve(peakTimesRight.size());
     std::transform(peakTimesRight.begin(), peakTimesRight.end(),
                    peakTimesLeft.begin(), std::back_inserter(mean),
                    [](double l, double r){ return (l+r)/2.0; });
-
 
     m_breathSignalPeakMean = mean;
 }
