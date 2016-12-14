@@ -27,6 +27,8 @@ signals:
     void addSaveRequest(unsigned short numFrames);
     void frmGrabDisconnect();
     void toggleLiveFeed();
+    void startSaving();
+    void stopSaving();
 
 private slots:
     void workerStatusChanged(int status);
@@ -45,10 +47,17 @@ private slots:
 
     void on_stopStreamButton_clicked();
 
+    void on_saveFramesButton_clicked();
+
+    void controlStarted();
+    void controlStopped();
+
 private:
     Ui::FrmGrabWidget *ui;
 
     QThread m_thread; // FrmGrab Thread will live in here
+
+    bool mKeepSavingFrames;
 
 };
 

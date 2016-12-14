@@ -10,6 +10,8 @@ FrmGrabWidget::FrmGrabWidget(QWidget *parent) :
     m_worker = new FrmGrabThread;
     m_worker->moveToThread(&m_thread);
 
+    mKeepSavingFrames = false;
+
     //connect(&m_thread, &QThread::finished, m_worker, &QObject::deleteLater);
     connect(&m_thread, SIGNAL(finished()), m_worker, SLOT(deleteLater()));
     m_thread.start();
@@ -23,7 +25,8 @@ FrmGrabWidget::FrmGrabWidget(QWidget *parent) :
     connect(this, SIGNAL(toggleLiveFeed()), m_worker, SLOT(toggleLiveFeed()));
     connect(this, SIGNAL(addSaveRequest(unsigned short)), m_worker, SLOT(addSaveRequest(unsigned short)));
     connect(this, SIGNAL(frmGrabDisconnect()), m_worker, SLOT(frmGrabDisconnect()));
-
+    connect(this, SIGNAL(startSaving()), m_worker, SLOT(startSaving()));
+    connect(this, SIGNAL(stopSaving()), m_worker, SLOT(stopSaving()));
 }
 
 FrmGrabWidget::~FrmGrabWidget()
@@ -210,4 +213,40 @@ void FrmGrabWidget::on_saveFrameButton_clicked()
 void FrmGrabWidget::on_stopStreamButton_clicked()
 {
     emit stopStream();
+}
+
+void FrmGrabWidget::on_saveFramesButton_clicked()
+{
+    if(mKeepSavingFrames) // already saving, so stop saving
+    {
+        mKeepSavingFrames = false;
+        ui->saveFramesButton->setText("Start Saving");
+        emit stopSaving();
+    }
+    else
+    {
+        mKeepSavingFrames = true;
+        ui->saveFramesButton->setText("Stop Saving");
+        emit startSaving();
+    }
+}
+
+void FrmGrabWidget::controlStarted()
+{
+    if(!mKeepSavingFrames)
+    {
+        mKeepSavingFrames = true;
+        ui->saveFramesButton->setText("Stop Saving");
+        emit startSaving();
+    }
+}
+
+void FrmGrabWidget::controlStopped()
+{
+    if(mKeepSavingFrames)
+    {
+        mKeepSavingFrames = false;
+        ui->saveFramesButton->setText("Start Saving");
+        emit stopSaving();
+    }
 }

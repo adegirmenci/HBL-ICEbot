@@ -67,6 +67,9 @@ void DataLoggerThread::setRootDirectory(QString rootDir)
         if( dir.mkpath(rootDir) )
         {
             qDebug() << "Folder created: " << rootDir;
+            QDir imgDir;
+            if( imgDir.mkpath(rootDir + QString("/images")) )
+                qDebug() << "Folder created: " << "/images";
         }
         else
         {
@@ -75,6 +78,16 @@ void DataLoggerThread::setRootDirectory(QString rootDir)
             emit statusChanged(DATALOG_FOLDER_ERROR);
         }
     }
+    else
+    {
+        QDir imgDir;
+        if(! dir.exists(rootDir+ QString("/images")) )
+        {
+            if( imgDir.mkpath(rootDir + QString("/images")) )
+                qDebug() << "Folder created: " << "/images";
+        }
+    }
+    qDebug() << "Root dir: " << rootDir;
 
     m_rootDirectory = rootDir;
 }
@@ -224,7 +237,7 @@ void DataLoggerThread::logFrmGrabImage(std::shared_ptr<Frame> frm)
     m_imgFname.append( QString("_%1.jpg").arg(frm->index_) );
 
     QString m_DirImgFname = m_rootDirectory;
-    m_DirImgFname.append("/");
+    m_DirImgFname.append("/images/");
     m_DirImgFname.append(m_imgFname);
     // save frame
     //state = frame->image_.save(m_imgFname, "JPG", 100);

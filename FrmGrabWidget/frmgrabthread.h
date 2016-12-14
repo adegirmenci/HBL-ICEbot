@@ -89,6 +89,9 @@ public slots:
     void setEpoch(const QDateTime &datetime); // set Epoch
     void grabFrame();
 
+    void startSaving();
+    void stopSaving();
+
 
 private:
     // Instead of using "m_mutex.lock()"
@@ -127,6 +130,8 @@ private:
     int m_frameCount; // keep a count of number of saved frames
 
     int m_numSaveImageRequests; // Counter to keep track of image saving
+
+    bool m_continuousSaving;
 
     cv::VideoCapture m_cap; // video capture device
 

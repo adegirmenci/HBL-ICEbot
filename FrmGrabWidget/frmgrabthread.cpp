@@ -12,6 +12,8 @@ FrmGrabThread::FrmGrabThread(QObject *parent) : QObject(parent)
     m_frameCount = 0;
     m_abort = false;
 
+    m_continuousSaving = false;
+
     m_videoFPS = 0;
 
     m_mutex = new QMutex(QMutex::Recursive);
@@ -22,6 +24,7 @@ FrmGrabThread::~FrmGrabThread()
     frmGrabDisconnect();
 
     m_mutex->lock();
+    m_continuousSaving = false;
     m_abort = true;
     qDebug() << "Ending FrmGrabThread - ID: " << reinterpret_cast<int>(QThread::currentThreadId()) << ".";
     m_mutex->unlock();
@@ -189,6 +192,11 @@ void FrmGrabThread::grabFrame()
     // construct new frame
     std::shared_ptr<Frame> frame(new Frame(m_dst, msec, m_frameCount), FrameDeleter);
 
+    if(m_continuousSaving)
+    {
+        m_numSaveImageRequests++;
+    }
+
     if(m_numSaveImageRequests > 0)
     {
         emit pleaseSaveImage(frame);
@@ -198,6 +206,20 @@ void FrmGrabThread::grabFrame()
 
     //if(m_showLiveFeed)
     emit imageAcquired(frame);
+}
+
+void FrmGrabThread::startSaving()
+{
+    QMutexLocker locker(m_mutex);
+
+    m_continuousSaving = true;
+}
+
+void FrmGrabThread::stopSaving()
+{
+    QMutexLocker locker(m_mutex);
+
+    m_continuousSaving = false;
 }
 
 void FrmGrabThread::addSaveRequest(unsigned short numFrames)
