@@ -5,6 +5,9 @@
 
 #include <QCloseEvent>
 
+#include "filtfilt.h"
+#include "../icebot_definitions.h"
+
 namespace Ui {
 class respModelWidget;
 }
@@ -22,6 +25,8 @@ signals:
 
     void initializeRespModel();
 
+    void re_initializeRespModel();
+
     void newFutureSamplesValue(int n);
 
 private slots:
@@ -30,6 +35,16 @@ private slots:
     void on_initializeButton_clicked();
 
     void on_futureSamplesSpinBox_valueChanged(int arg1);
+
+    void on_reInitButton_clicked();
+
+    void receiveDataFromRespModel(int numSamples,
+                                   bool isTrained,
+                                   bool inVivoMode,
+                                   double omega0);//,
+                                   //EigenVectorFiltered Bird4_filtered,
+                                   //EigenVectorFiltered Bird4_filtered_new,
+                                   //EigenVectorFiltered breathSignalFromModel);
 
 private:
     Ui::respModelWidget *ui;

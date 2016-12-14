@@ -56,6 +56,7 @@ struct ModeFlags
 };
 
 Q_DECLARE_METATYPE(ModeFlags)
+Q_DECLARE_METATYPE(EigenVectorFiltered)
 
 class ControllerThread : public QObject
 {
@@ -87,6 +88,11 @@ signals:
     void finished(); // emit upon termination
     void setEPOSservoTargetPos(std::vector<long> targetPos, bool moveAbsOrRel);
 
+    void sendDataToRespModelWidget(int numSamples,
+                                   bool isTrained,
+                                   bool inVivoMode,
+                                   double omega0);
+
 public slots:
     void setEpoch(const QDateTime &epoch);
     void printThreadID();
@@ -111,6 +117,7 @@ public slots:
     void setUSangle(double usAngle);
 
     void initializeRespModel();
+    void re_initializeRespModel();
     void updateFutureSamples(int n);
 
 private slots:
@@ -176,6 +183,7 @@ private:
 
     // Respiration Model
     CyclicModel m_respModel;
+    bool m_respModelInitializing;
 
     // gains
     GainsPYRT m_gains;

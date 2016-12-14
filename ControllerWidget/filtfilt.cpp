@@ -225,8 +225,8 @@ void filtfilt::filter(const std::vector<double> &X, std::vector<double> &Y, std:
     double *z = &Zi[0];
     double *y = &Y[0];
 
-    QElapsedTimer elTimer;
-    elTimer.start();
+//    QElapsedTimer elTimer;
+//    elTimer.start();
 
     for (size_t i = 0; i < input_size; ++i)
     {
@@ -243,8 +243,8 @@ void filtfilt::filter(const std::vector<double> &X, std::vector<double> &Y, std:
     }
     Zi.resize(filter_order - 1);
 
-    qint64 elNsec = elTimer.nsecsElapsed();
-    std::cout << "\nNsec elapsed:" << elNsec << std::endl;
+//    qint64 elNsec = elTimer.nsecsElapsed();
+//    std::cout << "\nNsec elapsed:" << elNsec << std::endl;
 }
 
 void filtfilt::filter(const EigenStdVecVector7d &X, EigenStdVecVector7d &Y, EigenStdVecVector7d &Zi)
@@ -263,8 +263,8 @@ void filtfilt::filter(const EigenStdVecVector7d &X, EigenStdVecVector7d &Y, Eige
 //    EigenVector7d *z = &Zi[0];
 //    EigenVector7d *y = &Y[0];
 
-    QElapsedTimer elTimer;
-    elTimer.start();
+//    QElapsedTimer elTimer;
+//    elTimer.start();
 
     for (size_t i = 0; i < input_size; ++i)
     {
@@ -283,8 +283,8 @@ void filtfilt::filter(const EigenStdVecVector7d &X, EigenStdVecVector7d &Y, Eige
     }
     Zi.resize(filter_order - 1);
 
-    qint64 elNsec = elTimer.nsecsElapsed();
-    std::cout << "\nNsec elapsed:" << elNsec << std::endl;
+//    qint64 elNsec = elTimer.nsecsElapsed();
+//    std::cout << "\nNsec elapsed:" << elNsec << std::endl;
 }
 
 void filtfilt::setFilterCoefficients(const std::vector<double> &B, const std::vector<double> &A)

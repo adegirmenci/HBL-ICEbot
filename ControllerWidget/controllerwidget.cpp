@@ -46,8 +46,12 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
     // Resp Model Widget
     connect(m_respModelWidget, SIGNAL(closeRespModelWindow()), this, SLOT(on_respModelButton_clicked()));
     connect(m_respModelWidget, SIGNAL(initializeRespModel()), m_worker, SLOT(initializeRespModel()));
-
+    connect(m_respModelWidget, SIGNAL(re_initializeRespModel()), m_worker, SLOT(re_initializeRespModel()));
     connect(m_respModelWidget, SIGNAL(newFutureSamplesValue(int)), m_worker, SLOT(updateFutureSamples(int)));
+//    connect(m_worker, SIGNAL(sendDataToRespModelWidget(int,bool,bool,double,EigenVectorFiltered,EigenVectorFiltered,EigenVectorFiltered)),
+//            m_respModelWidget, SLOT(receiveDataFromRespModel(int,bool,bool,double,EigenVectorFiltered,EigenVectorFiltered,EigenVectorFiltered)));
+    connect(m_worker, SIGNAL(sendDataToRespModelWidget(int,bool,bool,double)),
+            m_respModelWidget, SLOT(receiveDataFromRespModel(int,bool,bool,double)));
 
     // Initalize gains and limits to defaults
     gainWidget->on_setGainsButton_clicked();
@@ -71,7 +75,8 @@ ControllerWidget::~ControllerWidget()
     qDebug() << "Controller thread quit.";
 
     gainWidget->close();
-    m_respModelWidget->close();
+    //m_respModelWidget->close();
+    emit m_respModelWidget->closeRespModelWindow();
 
     delete gainWidget;
     delete m_respModelWidget;

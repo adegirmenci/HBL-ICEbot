@@ -4,12 +4,15 @@ ControllerThread::ControllerThread(QObject *parent) :
     QObject(parent)
 {
     qRegisterMetaType<ModeFlags>("ModeFlags");
+    qRegisterMetaType<EigenVectorFiltered>("EigenVectorFiltered");
 
     m_isEpochSet = false;
     m_isReady = false;
     m_keepControlling = false;
     m_abort = false;
     m_latestReading.resize(4);
+
+    m_respModelInitializing = false;
 
     m_numCycles = 0;
 
@@ -139,8 +142,8 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX
 {
     QMutexLocker locker(m_mutex);
 
-//    QElapsedTimer elTimer;
-//    elTimer.start();
+    QElapsedTimer elTimer;
+    elTimer.start();
 
     Q_ASSERT(4 == readings.size());
 
@@ -174,10 +177,64 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX
     m_targetPos = m_targetPos * m_ISm_INSTR; // the tip of the instrument in EM coord
     m_BB_targetPos = m_BB_Box * m_targetPos; // the tip of the instr in BBfixed coord
 
-    controlCycle();
+    if(m_respModelInitializing)
+    {
+        // send training data
+        //const EigenAffineTransform3d &T_BB_CT_curTipPos,
+        //const EigenAffineTransform3d &T_BB_targetPos,
+        //const EigenAffineTransform3d &T_Box_BBmobile,
+        //const EigenAffineTransform3d &T_BB_Box,
+        //const EigenAffineTransform3d &T_Bird4,
+        m_respModel.addTrainingObservation(m_BB_CT_curTipPos, m_BB_targetPos, m_Box_BBmobile, m_BB_Box, m_currChest, readings[EM_SENSOR_CHEST].time);
 
-//    qint64 elNsec = elTimer.nsecsElapsed();
-//    qDebug() << "Nsec elapsed:" << elNsec;
+        // check how many samples were sent and turn off flag if trained
+
+        if(m_respModel.getNumSamples() == N_SAMPLES)
+        {
+            std::cout << "Train model.\n" << std::endl;
+            m_respModel.trainModel();
+
+            if(m_respModel.isTrained())
+            {
+                m_respModelInitializing = false;
+                std::cout << "Model trained.\n" << std::endl;
+            }
+            else
+            {
+                // ERROR!
+                std::cout << "Error in training resp model!" << std::endl;
+            }
+        }
+    }
+    else if(m_respModel.isTrained())
+    {
+        // send current data
+        m_respModel.addObservation(m_currChest, readings[EM_SENSOR_CHEST].time);
+    }
+
+    if(!m_respModelInitializing)
+    {
+        controlCycle();
+    }
+
+    // TODO : send data to resp model widget
+    // size_t numSamples,
+    //    bool isTrained,
+    //    bool inVivoMode,
+    //    double omega0,
+    //    EigenVectorFiltered Bird4_filtered,
+    //    EigenVectorFiltered Bird4_filtered_new,
+    //    EigenVectorFiltered breathSignalFromModel);
+    emit sendDataToRespModelWidget(m_respModel.getNumSamples(),
+                                   m_respModel.isTrained(),
+                                   m_respModel.isInVivoMode(),
+                                   m_respModel.getOmega());//,
+//                                   m_respModel.get_Bird4_filtered(),
+//                                   m_respModel.get_Bird4_filtered_new(),
+//                                   m_respModel.get_breathSignalFromModel());
+
+    qint64 elNsec = elTimer.nsecsElapsed();
+    std::cout << "EM receive Nsec elapsed: " << elNsec << std::endl;
 
     //std::cout << m_BB_CT_curTipPos.matrix() << std::endl;
     // display in GUI
@@ -435,6 +492,21 @@ void ControllerThread::setModeFlags(ModeFlags flags)
 {
     QMutexLocker locker(m_mutex);
 
+    if(flags.inVivoMode)
+    {
+        if(!m_modeFlags.inVivoMode) // we're turning on in vivo mode
+        {
+            m_respModel.setInVivo(true);
+        }
+    }
+    else
+    {
+        if(m_modeFlags.inVivoMode) // we're turning off in vivo mode
+        {
+            m_respModel.setInVivo(false);
+        }
+    }
+
     m_modeFlags = flags;
 
     locker.unlock();
@@ -470,10 +542,14 @@ void ControllerThread::setUSangle(double usAngle)
 void ControllerThread::initializeRespModel()
 {
     // TODO : start sending data to m_respModel
+    m_respModelInitializing = true;
+}
 
-    // this should also disable the initialize button in the GUI
-
-    // show a counter of how many samples were collected
+void ControllerThread::re_initializeRespModel()
+{
+    // TODO : test these
+//    m_respModel.resetModel();
+//    m_respModelInitializing = true;
 }
 
 void ControllerThread::updateFutureSamples(int n)
@@ -872,6 +948,8 @@ void ControllerThread::computeCoordFrameMobile()
     default:
         break;
     }
+
+    printf("dx : %.3f dy : %.3f dz : %.3f dpsi : %.3f\n", m_dXYZPsi(0), m_dXYZPsi(1), m_dXYZPsi(2), m_dXYZPsi(3)* deg180overPi);
 }
 
 double ControllerThread::computeSweep(const Eigen::Transform<double,3,Eigen::Affine> &currT, const Eigen::Vector3d &objXYZ)

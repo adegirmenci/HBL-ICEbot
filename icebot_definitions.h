@@ -351,7 +351,7 @@ static const int CONTROLLER_LOOP_TIMER_MSEC = 1;
 #define N_SAMPLES         4000                      // CYCLE_DATA_SIZE
 #define EDGE_EFFECT       35                        // extent of edge effects
 #define N_FILTERED        N_SAMPLES - 2*EDGE_EFFECT // Filtered data length
-#define BREATH_RATE       7.5                       // respiration period (seconds)
+#define BREATH_RATE       5.0                       // respiration period (seconds)
 #define PEAK_THRESHOLD    0.80                      // For peak detection
 
 // ***********************

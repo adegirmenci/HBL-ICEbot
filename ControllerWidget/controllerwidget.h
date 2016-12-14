@@ -33,6 +33,7 @@ signals:
     void updateModeFlags(ModeFlags flags);
     void updateUSangle(double usAngle);
 
+
 private slots:
     void workerStatusChanged(int status);
     void receiveMsgFromWorker(QString msg);

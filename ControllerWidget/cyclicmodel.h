@@ -16,6 +16,8 @@
 #include <QTextStream>
 #include <QDebug>
 #include <QElapsedTimer>
+#include <QtConcurrent/QtConcurrentRun>
+#include <QFuture>
 
 #include "filtfilt.h"
 
@@ -53,8 +55,14 @@ public:
     // Accessors
     const size_t getNumSamples() { return m_numSamples; }
     const bool isTrained() { return m_isTrained; }
+    const bool isInVivoMode() { return m_isInVivo; }
+    const double getOmega() { return m_omega0; }
 
     void setInVivo(const bool isInVivo);
+
+    EigenVectorFiltered get_Bird4_filtered() { return m_Bird4_filtered; }
+    EigenVectorFiltered get_Bird4_filtered_new() { return m_Bird4_filtered_new; }
+    EigenVectorFiltered get_breathSignalFromModel() { return m_breathSignalFromModel; }
 
     EigenVector7d getT_BBfixed_CT_des() { return m_BBfixed_CT_des; }
     EigenVector7d getT_BBfixed_CTtraj_future_des() { return m_BBfixed_CTtraj_future_des; }
@@ -94,6 +102,9 @@ private:
     void cycle_recalculate(const EigenVectorFiltered &z_init,
                            EigenVectorRectangular &x_rect,
                            EigenVectorPolar &x_polar);
+
+    Eigen::MatrixXd cycle_recalculate_concurrentM(const EigenMatrixFiltered &z_init, const double omega0);
+    Eigen::VectorXd cycle_recalculate_concurrentV(const EigenVectorFiltered &z_init, const double omega0);
     // data members
 
     // Low Pass Filter
@@ -158,6 +169,13 @@ private:
     bool m_isTrained; // is the model trained
     double m_lastTrainingTimestamp; // when last training was performed
     bool m_isInVivo; // are we in IN VIVO mode
+
+    // concurrent execution
+    QFuture<Eigen::MatrixXd> mConcurrent1, mConcurrent2;
+    QFuture<Eigen::VectorXd> mConcurrent3;
+    Eigen::MatrixXd m_BBfixed_CT_polarRect;
+    Eigen::MatrixXd m_BBfixed_BB_polarRect;
+    Eigen::VectorXd m_Bird4_polarRect;
 
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
