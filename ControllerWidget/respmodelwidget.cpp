@@ -22,11 +22,11 @@ respModelWidget::respModelWidget(QWidget *parent) :
     //ui->plotWidget->graph(0)->setBrush(QBrush(QColor(240, 255, 200)));
     ui->plotWidget->graph(0)->setAntialiasedFill(false);
 
-    ui->plotWidget->addGraph(); // blue line
+    ui->plotWidget->addGraph(); // red line
     ui->plotWidget->graph(1)->setPen(QPen(Qt::red));
     ui->plotWidget->graph(1)->setAntialiasedFill(false);
 
-    ui->plotWidget->addGraph(); // blue line
+    ui->plotWidget->addGraph(); // black line
     ui->plotWidget->graph(2)->setPen(QPen(Qt::black));
     ui->plotWidget->graph(2)->setAntialiasedFill(false);
 

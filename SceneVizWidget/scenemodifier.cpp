@@ -10,7 +10,7 @@ SceneModifier::SceneModifier(Qt3DCore::QEntity *rootEntity)
     m_entityList.append(new TriadEntity(m_rootEntity));
     m_entityList.append(new TriadEntity(m_rootEntity));
     //m_entityList.append(new usEntity(m_rootEntity));
-    m_entityList.append(new usEntity(m_entityList[0]));
+    m_entityList.append(new usEntity(m_entityList[1])); // US plane attached to the BT
 
     static_cast<TriadEntity*>(m_entityList[0])->translate(QVector3D(0.0f, 0.0f, 0.0f));
     // EM_SENSOR_BB
@@ -104,7 +104,34 @@ void SceneModifier::receiveEMreading(QTime timeStamp, int sensorID, DOUBLE_POSIT
     static_cast<TriadEntity*>(m_entityList[sensorID])->setTransformation(tf);
 
 //    static_cast<TriadEntity*>(m_entityList[sensorID])->rotate(QQuaternion(data.q[0],data.q[1],data.q[2],data.q[3]));
-//    static_cast<TriadEntity*>(m_entityList[sensorID])->translate(QVector3D(data.x,data.y,data.z));
+    //    static_cast<TriadEntity*>(m_entityList[sensorID])->translate(QVector3D(data.x,data.y,data.z));
+}
+
+void SceneModifier::receiveEMreading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD> data)
+{
+    Q_ASSERT(data.size() == 4);
+
+    for(size_t i = 0; i < data.size(); i++)
+    {
+        QMatrix4x4 tmp(data[i].s[0][0], data[i].s[0][1], data[i].s[0][2], data[i].x,
+                       data[i].s[1][0], data[i].s[1][1], data[i].s[1][2], data[i].y,
+                       data[i].s[2][0], data[i].s[2][1], data[i].s[2][2], data[i].z,
+                             0.0,      0.0,        0.0, 1.0);
+
+        Qt3DCore::QTransform tf;
+        tf.setMatrix(tmp);
+
+        if(m_tformOption == 0)
+            tf.setMatrix(tf.matrix());
+        else if(m_tformOption == 1)
+            tf.setMatrix(m_calibMat*tf.matrix()*m_Box_US.matrix());
+        else if(m_tformOption == 2)
+            tf.setMatrix(m_baseEMpose.inverted()*m_T_Box_EM.inverted() * tf.matrix()*m_Box_US.matrix());
+        else
+            tf.setMatrix(tf.matrix());
+
+        static_cast<TriadEntity*>(m_entityList[i])->setTransformation(tf);
+    }
 }
 
 void SceneModifier::resetBase()

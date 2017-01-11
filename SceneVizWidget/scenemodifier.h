@@ -38,6 +38,7 @@ public slots:
     void receiveEMreading(QTime timeStamp,
                           int sensorID,
                           DOUBLE_POSITION_MATRIX_TIME_Q_RECORD data);
+    void receiveEMreading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD> data);
     void resetBase();
     void changeTFormOption(int opt);
     void setUSangle(int ang);

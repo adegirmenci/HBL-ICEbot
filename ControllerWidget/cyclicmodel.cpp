@@ -839,7 +839,7 @@ void CyclicModel::peakDetectorForBreathModel()
     std::vector<double> mean; mean.reserve(peakTimesRight.size());
     std::transform(peakTimesRight.begin(), peakTimesRight.end(),
                    peakTimesLeft.begin(), std::back_inserter(mean),
-                   [](double l, double r){ return (l+r)/2.0; });
+                   [](double r, double l){ return (l+r)/2.0; });
 
     m_breathSignalPeakMean = mean;
 }

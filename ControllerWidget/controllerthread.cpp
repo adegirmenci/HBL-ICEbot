@@ -177,6 +177,14 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX
     m_targetPos = m_targetPos * m_ISm_INSTR; // the tip of the instrument in EM coord
     m_BB_targetPos = m_BB_Box * m_targetPos; // the tip of the instr in BBfixed coord
 
+    std::vector<double> T_BB_CT_curTipPos(m_BB_CT_curTipPos.matrix().data(), m_BB_CT_curTipPos.matrix().data() + m_BB_CT_curTipPos.matrix().size());
+
+    if(T_BB_CT_curTipPos.size() == 16)
+    {
+        QDateTime t; t.setMSecsSinceEpoch(readings[EM_SENSOR_BT].time*1000.0);
+        emit logData(t.time(), m_numCycles, CONTROLLER_T_BB_CT_curTipPos, T_BB_CT_curTipPos);
+    }
+
     if(m_respModelInitializing)
     {
         // send training data
@@ -624,6 +632,11 @@ void ControllerThread::controlCycle()
         // feed into control_icra2016
         Eigen::Matrix<double, 4, 2> jointsCurrAndTarget;
         jointsCurrAndTarget = m_cathKin.control_icra2016(m_BB_CT_curTipPos, m_dXYZPsi, m_currGamma);
+
+        // Jacobian based
+//        Eigen::Vector4d configCurr = m_cathKin.inverseKinematics(m_BB_CT_curTipPos, m_currGamma);
+//        Eigen::Matrix<double, 6, 4> J = m_cathKin.JacobianNumeric(configCurr(0), configCurr(1), configCurr(2), configCurr(3));
+//        m_cathKin.dampedLeastSquaresStep(J, m_dXYZPsi);
 
         // get relative motor counts
         Eigen::Vector4d relQCs;  // knob_tgt - knob_curr

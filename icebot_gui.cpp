@@ -56,8 +56,10 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
             ui->dataLogWidget->m_worker, SLOT(logError(int,int,QTime,int,QString)));
 
     // EM to SceneVizWidget
-    connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)),
-            ui->sceneVizWidget->m_modifier, SLOT(receiveEMreading(QTime,int,DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)));
+//    connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)),
+//            ui->sceneVizWidget->m_modifier, SLOT(receiveEMreading(QTime,int,DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)));
+    connect(ui->emWidget->m_worker, SIGNAL(sendLatestReading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD>)),
+            ui->sceneVizWidget->m_modifier, SLOT(receiveEMreading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD>)));
 
     // EM to Controller
     //connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_QUATERNION_TIME_Q_RECORD)),

@@ -345,6 +345,7 @@ void DataLoggerThread::logControllerData(QTime timeStamp, int loopIdx, int dataT
 //    CONTROLLER_DXYZPSI = 0, // 4 values
 //    CONTROLLER_USER_XYZDXYZPSI, // 7 values
 //    CONTROLLER_CURR_PSY_GAMMA, // 2 values
+//    CONTROLLER_T_BB_CT_curTipPos, // 16 values
 //    CONTROLLER_PERIOD, // 1 value
 //    CONTROLLER_BIRD4_MODEL_PARAMS, // 19 = 10 polar + 9 rect
 //    CONTROLLER_RESETBB, // 16 values
@@ -376,6 +377,25 @@ void DataLoggerThread::logControllerData(QTime timeStamp, int loopIdx, int dataT
         output.append(QString("CURRPSYGAMMA\t%1\t%2")
                              .arg(QString::number(data[0],'f',m_prec2))
                              .arg(QString::number(data[1],'f',m_prec2)));
+        break;
+    case CONTROLLER_T_BB_CT_curTipPos: // 16 values
+        output.append(QString("T_BB_CT\t%1\t%2\t%3\t%4\t%5\t%6\t%7\t%8\t%9\t%10\t%11\t%12\t%13\t%14\t%15\t%16")
+                      .arg(QString::number(data[0],'f',m_prec2))
+                      .arg(QString::number(data[1],'f',m_prec2))
+                      .arg(QString::number(data[2],'f',m_prec2))
+                      .arg(QString::number(data[3],'f',m_prec2))
+                      .arg(QString::number(data[4],'f',m_prec2))
+                      .arg(QString::number(data[5],'f',m_prec2))
+                      .arg(QString::number(data[6],'f',m_prec2))
+                      .arg(QString::number(data[7],'f',m_prec2))
+                      .arg(QString::number(data[8],'f',m_prec2))
+                      .arg(QString::number(data[9],'f',m_prec2))
+                      .arg(QString::number(data[10],'f',m_prec2))
+                      .arg(QString::number(data[11],'f',m_prec2))
+                      .arg(QString::number(data[12],'f',m_prec2))
+                      .arg(QString::number(data[13],'f',m_prec2))
+                      .arg(QString::number(data[14],'f',m_prec2))
+                      .arg(QString::number(data[15],'f',m_prec2)));
         break;
     case CONTROLLER_PERIOD: // 1 value
         output.append(QString("PERIOD\t%1")
