@@ -36,7 +36,10 @@ if(~isempty(mask))
     
     relevantIdx = find(mask);
     relevantIdx = relevantIdx(relevantIdx>resetbbIdx);
-    Time_T_BB_CT = Time(relevantIdx)./1000.0;
+    Time_T_BB_CT = Time(relevantIdx);
+    
+    % convert to posix time
+    Time_T_BB_CT = posixtime(datetime('today') + hours(5) + milliseconds(Time_T_BB_CT));
     
     numRelevant = length(relevantIdx);
     
@@ -63,7 +66,7 @@ end
 
 %% Import Images
 
-[imageFileNames,imageTimestamps] = importImageTimestamps([folder,filesep,study,'_FrmGrabber.txt']);
+[imageFileNames,imageTimestamps] = importImageTimestamps([folder,filesep,study,'_FrmGrab.txt']);
 
 allImages = struct('FileName',imageFileNames,... % file name of image
                    'TimeStamp',num2cell(imageTimestamps),... % time stamp of image
@@ -74,14 +77,20 @@ allImages = struct('FileName',imageFileNames,... % file name of image
 %% Align image and EM timestamps
 
 for i = 1:length(imageTimestamps)
-    idx = min(abs(Time_T_BB_CT - imageTimestamps(i)));
-    closestEM = T_BB_CT(idx);
+    [~,idx] = min(abs(Time_T_BB_CT*1000.0 - imageTimestamps(i)));
+    closestEM = T_BB_CT(:,:,idx);
     allImages(i).poseEM = closestEM;
 end
 
+figure
+plot(Time_T_BB_CT, zeros(length(Time_T_BB_CT),1))
+hold on;
+plot(imageTimestamps/1000.,zeros(length(imageTimestamps),1),'o')
+figure
+
 %% Load crop mask
 
-load(['cropMasks',filesep,'Acuson_Epiphan.mat']);
+load(['.',filesep,'cropMasks',filesep,'Acuson_Epiphan.mat']);
 % gives us a variable named cropSettings
 cropSettings.mask_uint8 = uint8(cropSettings.mask);
 
@@ -96,7 +105,7 @@ for i = 1:nSlicesToStitch
     fileName = allImages(imIdx).FileName;
 
     % Load image to memory
-    fullName = [folder,filesep,study,filesep,fileName];
+    fullName = [folder,filesep,'images',filesep,fileName];
     %fprintf('%s\n',fullName);
     stitch.imageOriginal{i} = imread(fullName);
   
@@ -133,26 +142,24 @@ end
 stitch.imHeightOrig = size(cropSettings.mask,1);
 stitch.imWidthOrig = size(cropSettings.mask,2);
 
-%%%%%
-
-% initialize container 
+%% initialize container 
 stitch.imageLocXYZval = cell(nSlicesToStitch,1);
 stitch.nFrames = nSlicesToStitch;
 
-% interpolate
-[CdZeroed] = interpolateSlices(stitch, cropMask, 'true');
+%% interpolate
+[CdZeroed] = interpolateSlices(stitch, 'Acuson_Epiphan', true');
 
 dt = datestr(datetime('now'),'_yymmdd_HHMMss');
-outfilePre = ['volume_',study,dt];
+outfilePre = ['.',filesep,'volumes',filesep,'volume_',study(2:end),dt];
 
-% save as .RAW
+%% save as .RAW
 volumeFileName = [outfilePre,'.raw'];
 saveStitched2RawFile(CdZeroed, volumeFileName)
 
-% save as .mat
+%% save as .mat
 save([outfilePre,'.mat'],'CdZeroed')
 
-% save volume size to text file
+%% save volume size to text file
 [xn,yn,zn] = size(CdZeroed);
 
 fileID = fopen([outfilePre,'.txt'],'w');

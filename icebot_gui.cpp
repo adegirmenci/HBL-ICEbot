@@ -78,8 +78,9 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
             ui->eposWidget->m_worker, SLOT(setServoTargetPos(std::vector<long>,bool)));
 
     // Controller to frame grabber
-    connect(ui->controlWidget, SIGNAL(startControlCycle()), ui->frmGrabWidget, SLOT(controlStarted()));
-    connect(ui->controlWidget, SIGNAL(stopControlCycle()), ui->frmGrabWidget, SLOT(controlStopped()));
+    // FIXME: don't forget to uncomment this
+//    connect(ui->controlWidget, SIGNAL(startControlCycle()), ui->frmGrabWidget, SLOT(controlStarted()));
+//    connect(ui->controlWidget, SIGNAL(stopControlCycle()), ui->frmGrabWidget, SLOT(controlStopped()));
 
     // get current date time
     m_epoch = QDateTime::currentDateTime();

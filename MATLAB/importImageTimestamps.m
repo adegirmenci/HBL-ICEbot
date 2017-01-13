@@ -16,7 +16,7 @@ function [FileName,time] = importImageTimestamps(filename, startRow, endRow)
 %% Initialize variables.
 delimiter = '\t';
 if nargin<=2
-    startRow = 3;
+    startRow = 2;
     endRow = inf;
 end
 
