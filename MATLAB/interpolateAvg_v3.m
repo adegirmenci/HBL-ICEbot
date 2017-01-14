@@ -90,4 +90,16 @@ in3 = reshape(in,size(Xd,1),size(Xd,2),size(Xd,3));
 volume = avgIntensityCube;
 volume(~in3) = 0;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% test1
+fprintf('Doing regular interp\n');
+CdZeroed = griddata(xyz(:,1),xyz(:,2),xyz(:,3),c,Xd(:),Yd(:),Zd(:));
+CdZeroed = reshape(CdZeroed,size(Xd,1),size(Xd,2),size(Xd,3));
+saveStitched2RawFile(CdZeroed, 'test1.raw')
+[xn,yn,zn] = size(CdZeroed);
+
+fileID = fopen('test1.txt','w');
+fprintf(fileID,'%d\t%d\t%d\n',xn,yn,zn);
+fclose(fileID);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 end

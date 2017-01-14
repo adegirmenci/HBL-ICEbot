@@ -33,6 +33,7 @@ dxyzpsi = [x1(relevantIdx), x2(relevantIdx), x3(relevantIdx), x4(relevantIdx)];
 mask = strcmp(Type,'T_BB_CT');
 if(~isempty(mask))
     resetbbIdx = find(strcmp(Type,'RESETBB'));
+    resetbbIdx = resetbbIdx(end);
     
     relevantIdx = find(mask);
     relevantIdx = relevantIdx(relevantIdx>resetbbIdx);
@@ -153,7 +154,7 @@ dt = datestr(datetime('now'),'_yymmdd_HHMMss');
 outfilePre = ['.',filesep,'volumes',filesep,'volume_',study(2:end),dt];
 
 %% save as .RAW
-volumeFileName = [outfilePre,'.raw'];
+volumeFileName = [outfilePre,'_1.raw'];
 saveStitched2RawFile(CdZeroed, volumeFileName)
 
 %% save as .mat
