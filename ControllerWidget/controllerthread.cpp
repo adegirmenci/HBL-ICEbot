@@ -629,21 +629,36 @@ void ControllerThread::controlCycle()
         // calculate gains
         updateGains();
 
-        // feed into control_icra2016
-        Eigen::Matrix<double, 4, 2> jointsCurrAndTarget;
-        jointsCurrAndTarget = m_cathKin.control_icra2016(m_BB_CT_curTipPos, m_dXYZPsi, m_currGamma);
+//        // feed into control_icra2016
+//        Eigen::Matrix<double, 4, 2> jointsCurrAndTarget;
+//        jointsCurrAndTarget = m_cathKin.control_icra2016(m_BB_CT_curTipPos, m_dXYZPsi, m_currGamma);
+//        //jointsCurrAndTarget = m_cathKin.control_icra2016(m_BBmobile_CT, m_dXYZPsi, m_currGamma);
+
+//        // get relative motor counts
+//        Eigen::Vector4d relQCs;  // knob_tgt - knob_curr
+//        relQCs(0) = (jointsCurrAndTarget(0,1) - jointsCurrAndTarget(0,0)) * m_gains.kTrans * 0.001 * EPOS_TRANS_RAD2QC;
+//        relQCs(1) = (jointsCurrAndTarget(1,1) - jointsCurrAndTarget(1,0)) * m_gains.kPitch * EPOS_PITCH_RAD2QC;
+//        relQCs(2) = (jointsCurrAndTarget(2,1) - jointsCurrAndTarget(2,0)) * m_gains.kYaw * EPOS_YAW_RAD2QC;
+//        relQCs(3) = (jointsCurrAndTarget(3,1) - jointsCurrAndTarget(3,0)) * m_gains.kRoll * EPOS_ROLL_RAD2QC;
 
         // Jacobian based
 //        Eigen::Vector4d configCurr = m_cathKin.inverseKinematics(m_BB_CT_curTipPos, m_currGamma);
 //        Eigen::Matrix<double, 6, 4> J = m_cathKin.JacobianNumeric(configCurr(0), configCurr(1), configCurr(2), configCurr(3));
 //        m_cathKin.dampedLeastSquaresStep(J, m_dXYZPsi);
 
+        Eigen::Vector4d configCurr = m_cathKin.inverseKinematics(m_BB_CT_curTipPos, m_currGamma);
+        Eigen::Vector4d currTask = m_cathKin.configToTaskSpace(configCurr);
+        Eigen::Vector4d targetTask(m_input_AbsXYZ(0), m_input_AbsXYZ(1), m_input_AbsXYZ(2), m_input_delPsi);
+        Eigen::Vector4d targetConfig = m_cathKin.JacobianStep(currTask, targetTask, configCurr);
+        Eigen::Vector4d currJoint = m_cathKin.configToJointSpace(configCurr);
+        Eigen::Vector4d targetJoint = m_cathKin.configToJointSpace(targetConfig);
+
         // get relative motor counts
         Eigen::Vector4d relQCs;  // knob_tgt - knob_curr
-        relQCs(0) = (jointsCurrAndTarget(0,1) - jointsCurrAndTarget(0,0)) * m_gains.kTrans * 0.001 * EPOS_TRANS_RAD2QC;
-        relQCs(1) = (jointsCurrAndTarget(1,1) - jointsCurrAndTarget(1,0)) * m_gains.kPitch * EPOS_PITCH_RAD2QC;
-        relQCs(2) = (jointsCurrAndTarget(2,1) - jointsCurrAndTarget(2,0)) * m_gains.kYaw * EPOS_YAW_RAD2QC;
-        relQCs(3) = (jointsCurrAndTarget(3,1) - jointsCurrAndTarget(3,0)) * m_gains.kRoll * EPOS_ROLL_RAD2QC;
+        relQCs(0) = (targetJoint(0) - currJoint(0)) * m_gains.kTrans * 0.001 * EPOS_TRANS_RAD2QC;
+        relQCs(1) = (targetJoint(1) - currJoint(1)) * m_gains.kPitch * EPOS_PITCH_RAD2QC;
+        relQCs(2) = (targetJoint(2) - currJoint(2)) * m_gains.kYaw * EPOS_YAW_RAD2QC;
+        relQCs(3) = (targetJoint(3) - currJoint(3)) * m_gains.kRoll * EPOS_ROLL_RAD2QC;
 
         // check if QCs are finite
         if( !(isfinite(relQCs(0)) && isfinite(relQCs(1)) && isfinite(relQCs(2)) && isfinite(relQCs(3))) )

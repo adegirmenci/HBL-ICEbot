@@ -68,7 +68,11 @@ public:
     Eigen::Vector4d dampedLeastSquaresStep(const Eigen::Matrix<double, 6, 4> &J,
                                            const Eigen::Matrix<double,6,1> &C_error);
 
-
+    // new kinematics with global heading
+    Eigen::Vector4d taskToConfigSpace(const Eigen::Vector4d &taskSpace);
+    Eigen::Vector4d configToTaskSpace(const Eigen::Vector4d &configSpace);
+    Eigen::Matrix4d JacobianNumericTaskSpace(const Eigen::Vector4d &configCurr);
+    Eigen::Vector4d JacobianStep(const Eigen::Vector4d &currTask, const Eigen::Vector4d &targetTask, const Eigen::Vector4d &currConfig);
 
 private:
     // GEOMETRY CONSTANTS

@@ -351,6 +351,208 @@ Eigen::Vector4d Kinematics_4DOF::dampedLeastSquaresStep(const Eigen::Matrix<doub
     return delta_C;
 }
 
+// taskSpace = {x,y,z,psi}
+// configSpace = {gamma,theta,alpha,d}
+Eigen::Vector4d Kinematics_4DOF::taskToConfigSpace(const Eigen::Vector4d &taskSpace)
+{
+    double xt = taskSpace(0), yt = taskSpace(1), zt = taskSpace(2), psi = taskSpace(3);
+    double gamma, theta, alpha, d;
+
+    if( (abs(xt) < 0.000001) && (abs(yt) < 0.000001) )
+    {
+        alpha = 0;
+        theta = 0;
+        gamma = psi;
+        d = zt - m_L;
+    }
+    else
+    {
+        double gamma_plus_theta = atan2(yt, xt); // roll plus bending axis angle
+        theta = psi;
+        gamma =  gamma_plus_theta - psi;
+
+        bool fZeroSuccess;
+
+        if (fmod(gamma_plus_theta,pi) == 0)
+        {
+            double c = xt/m_L/cos(gamma_plus_theta); // constant
+
+            fZeroSuccess = fZeroAlpha(c, alpha);
+        }
+        else
+        {
+            double c = yt/m_L/sin(gamma_plus_theta); // constant
+
+            fZeroSuccess = fZeroAlpha(c, alpha);
+        }
+
+        d = zt - (m_L*sin(alpha))/alpha; // translation
+
+    }
+
+    // gamma = wrapToPi(gamma);
+    // theta = wrapToPi(theta);
+    if(alpha < 0)
+        printf("\n\n\n\n\n ALPHA LESS THAN ZERO!!! \n\n\n\n\n");
+
+    return Eigen::Vector4d(gamma,theta,alpha,d);
+}
+
+// {gamma,theta,alpha,d}
+Eigen::Vector4d Kinematics_4DOF::configToTaskSpace(const Eigen::Vector4d &configSpace)
+{
+    double gamma = configSpace(0), theta = configSpace(1), alpha = configSpace(2), d = configSpace(3);
+    double x,y,z,psi;
+
+    if(abs(alpha) < 0.0001)
+    {
+        x = 0;
+        y = 0;
+        z = d + m_L;
+        psi = gamma;
+    }
+    else
+    {
+        double r = m_L*(1.0-cos(alpha))/alpha;
+        x = r*cos(gamma + theta);
+        y = r*sin(gamma + theta);
+        z = d + m_L*sin(alpha)/alpha;
+        psi = theta;
+    }
+
+    return Eigen::Vector4d(x,y,z,psi);
+}
+
+Eigen::Matrix4d Kinematics_4DOF::JacobianNumericTaskSpace(const Eigen::Vector4d &configCurr)
+{
+    double gamma = configCurr(0), theta = configCurr(1), alpha = configCurr(2), d = configCurr(3);
+
+    double del_ = 0.0001; // small bump
+
+    // vary d
+    Eigen::Transform<double, 3, Eigen::Affine> T1plus = forwardKinematics(gamma,theta,alpha,d + del_);
+    Eigen::Transform<double, 3, Eigen::Affine> T1minus = forwardKinematics(gamma,theta,alpha,d - del_);
+    // psi1plus = theta;
+    // psi1minus = theta;
+
+    // vary gamma
+    Eigen::Transform<double, 3, Eigen::Affine> T2plus = forwardKinematics(gamma + del_,theta,alpha,d);
+    Eigen::Transform<double, 3, Eigen::Affine> T2minus = forwardKinematics(gamma - del_,theta,alpha,d);
+    // psi2plus = theta;
+    // psi2minus = theta;
+
+    // vary theta
+    Eigen::Transform<double, 3, Eigen::Affine> T3plus = forwardKinematics(gamma,theta + del_,alpha,d);
+    Eigen::Transform<double, 3, Eigen::Affine> T3minus = forwardKinematics(gamma,theta - del_,alpha,d);
+    double psi3plus = theta + del_;
+    double psi3minus = theta - del_;
+
+    // vary alpha
+    Eigen::Transform<double, 3, Eigen::Affine> T4plus = forwardKinematics(gamma,theta,alpha + del_,d);
+    Eigen::Transform<double, 3, Eigen::Affine> T4minus = forwardKinematics(gamma,theta,alpha - del_,d);
+    // psi4plus = theta;
+    // psi4minus = theta;
+
+    // numerical x
+    double delx1 = (T1plus(0,3) - T1minus(0,3))/(2*del_);
+    double delx2 = (T2plus(0,3) - T2minus(0,3))/(2*del_);
+    double delx3 = (T3plus(0,3) - T3minus(0,3))/(2*del_);
+    double delx4 = (T4plus(0,3) - T4minus(0,3))/(2*del_);
+    // numerical y
+    double dely1 = (T1plus(1,3) - T1minus(1,3))/(2*del_);
+    double dely2 = (T2plus(1,3) - T2minus(1,3))/(2*del_);
+    double dely3 = (T3plus(1,3) - T3minus(1,3))/(2*del_);
+    double dely4 = (T4plus(1,3) - T4minus(1,3))/(2*del_);
+    // numerical z
+    double delz1 = (T1plus(2,3) - T1minus(2,3))/(2*del_);
+    double delz2 = (T2plus(2,3) - T2minus(2,3))/(2*del_);
+    double delz3 = (T3plus(2,3) - T3minus(2,3))/(2*del_);
+    double delz4 = (T4plus(2,3) - T4minus(2,3))/(2*del_);
+    // numerical psi
+    // psi1,2,4 = 0
+    double psi3 = (psi3plus - psi3minus)/(2*del_);
+
+    Eigen::Matrix4d J;
+    if(abs(alpha) < 0.0001){
+        J << 1e-12, delx3, delx4, delx1,
+             dely2, 1e-12, dely4, dely1,
+             delz2, delz3, delz4, delz1,
+              psi3,   0.0,   0.0,   0.0;
+    }
+    else{
+        J << delx2, delx3, delx4, delx1,
+             dely2, dely3, dely4, dely1,
+             delz2, delz3, delz4, delz1,
+               0.0,  psi3,   0.0,   0.0;
+    }
+
+    return J;
+}
+
+Eigen::Vector4d Kinematics_4DOF::JacobianStep(const Eigen::Vector4d &currTask, const Eigen::Vector4d &targetTask, const Eigen::Vector4d &currConfig)
+{
+    Eigen::Vector4d dxyzpsi = targetTask - currTask;
+    double normXYZ = dxyzpsi.segment<3>(0).norm(), errorRot = abs(wrapToPi(abs(dxyzpsi(3))));
+    double euclThresh = 1.5;
+    double rotThresh = pi/5;
+
+    Eigen::Vector4d delta_C; delta_C = Eigen::Vector4d::Zero();
+    Eigen::Vector4d newConfig = currConfig;
+    Eigen::Vector4d newTask = currTask;
+
+    unsigned int iter = 0;
+    bool isNotConverged = (normXYZ > 0.01) || (errorRot > 0.01);
+    while( isNotConverged && (iter < 30) )
+    {
+        // clamp error
+
+        // don't translate more than 1.5 at a time
+        if(normXYZ > euclThresh)
+            dxyzpsi.segment<3>(0) *= euclThresh/normXYZ;
+        // don't rotate more than 36 degrees at a time
+        if(abs(dxyzpsi(3)) > rotThresh)
+            dxyzpsi(3) = boost::math::copysign(rotThresh, dxyzpsi(3));
+
+        // numerically compute Jacobian
+        Eigen::Matrix4d J = JacobianNumericTaskSpace(newConfig);
+
+        // J_pseudoinverseWithNullspace
+        Eigen::Vector4d v_(0.5,0.5,0.5,0.5); v_ *= 2.0;
+        Eigen::JacobiSVD<Eigen::Matrix4d> svd(J, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        //Eigen::Matrix4d pinvJ = svd.solve(Eigen::Matrix4d::Identity()); // J.inverse();
+        //delta_C = pinvJ * dxyzpsi + (Eigen::Matrix4d::Identity() - pinvJ*J)*v_;
+        delta_C = svd.solve(dxyzpsi) + (Eigen::Matrix4d::Identity() - svd.solve(J))*v_;
+
+        newConfig += delta_C;
+
+        if(newConfig(2) < 0.0) // gamma, theta, alpha, d
+        {
+            newConfig(2) = abs(newConfig(2));
+            newConfig(1) = wrapToPi(newConfig(1) + pi);
+        }
+
+        newTask = configToTaskSpace(newConfig);
+
+        dxyzpsi = targetTask - newTask;
+        normXYZ = dxyzpsi.segment<3>(0).norm();
+        errorRot = abs(wrapToPi(abs(dxyzpsi(3))));
+
+        isNotConverged = (normXYZ > 0.01) || (errorRot > 0.01);
+
+        iter++;
+    }
+
+    if(isNotConverged)
+    {
+        printf("Not converged, %.3f %.3f.\n", normXYZ, errorRot);
+        newConfig = currConfig;
+    }
+    else
+        printf("Converged in %d steps.\n", iter);
+
+    return newConfig;
+}
+
 double Kinematics_4DOF::wrapToPi(double lambda)
 {
     double signedPI = boost::math::copysign(pi, lambda);
