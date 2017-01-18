@@ -32,6 +32,7 @@ EPOS2Widget::EPOS2Widget(QWidget *parent) :
             this, SLOT(receiveDataFromWorker(int,QString)));
 
     connect(this, SIGNAL(setServoTargetPos(int,long,bool)), m_worker, SLOT(setServoTargetPos(int,long,bool)));
+    connect(this, SIGNAL(setServoTargetPos(std::vector<long>,bool)), m_worker, SLOT(setServoTargetPos(std::vector<long>,bool)));
     connect(this, SIGNAL(servoToPos()), m_worker, SLOT(servoToPosition()));
     connect(this, SIGNAL(servoToPos(int)), m_worker, SLOT(servoToPosition(int)));
     connect(this, SIGNAL(haltMotor(int)), m_worker, SLOT(haltMotor(int)));
@@ -52,6 +53,10 @@ EPOS2Widget::EPOS2Widget(QWidget *parent) :
     motQCs.push_back(ui->pitchQC_LCD);
     motQCs.push_back(ui->yawQC_LCD);
     motQCs.push_back(ui->rollQC_LCD);
+
+    // trajectory
+    m_keepDriving = false;
+    m_currTrajIdx = 0;
 }
 
 EPOS2Widget::~EPOS2Widget()
@@ -354,4 +359,117 @@ void EPOS2Widget::on_homeAllButton_clicked()
     emit stopServoLoop();
 
     emit homeAllAxes();
+}
+
+void EPOS2Widget::on_trajOpenFileButton_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open CSV File"),
+                                                    "../ICEbot_QT_v1/LoggedData",
+                                                    tr("CSV File (*.csv)"));
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug() << file.errorString();
+        return;
+    }
+
+    QTextStream in(&file);
+
+    m_pyrtQCs.clear();
+
+    while (!in.atEnd()) {
+        QString line = in.readLine();
+        QStringList split = line.split(',');
+        if(split.size() == 4)
+        {
+            PYRT qc;
+            qc.pitchQC = split[0].toLong();
+            qc.yawQC = split[1].toLong();
+            qc.rollQC = split[2].toLong();
+            qc.transQC = split[3].toLong();
+            m_pyrtQCs.push_back(qc);
+        }
+        else
+        {
+            qDebug() << "Error reading CSV - number of elements in line is not equal to 4!";
+            break;
+        }
+    }
+
+    qDebug() << "Read" << m_pyrtQCs.size() << "setpoints from trajectory file.";
+
+    if(m_pyrtQCs.size() > 0){
+        ui->trajDriveButton->setEnabled(true);
+        ui->trajStepLineEdit->setText(QString("%1 points loaded.").arg(m_pyrtQCs.size()));
+    }
+    else{
+        ui->trajDriveButton->setEnabled(false);
+        ui->trajStepLineEdit->setText("Error reading file.");
+    }
+}
+
+void EPOS2Widget::on_trajDriveButton_clicked()
+{
+    if(m_keepDriving)
+    {
+        m_keepDriving = false;
+        ui->trajDriveButton->setText("Drive");
+
+        // stop timer
+        m_trajTimer->stop();
+        disconnect(m_trajTimer, SIGNAL(timeout()), 0, 0);
+        delete m_trajTimer;
+    }
+    else
+    {
+        m_keepDriving = true;
+        ui->trajDriveButton->setText("Stop");
+
+        m_currTrajIdx = 0;
+        ui->trajStepLineEdit->setText(QString("%1 of %2.").arg(m_currTrajIdx).arg(m_pyrtQCs.size()));
+
+        PYRT currPYRT = m_pyrtQCs[m_currTrajIdx];
+        std::vector<long> newPos(4);
+        newPos[TRANS_AXIS_ID] = currPYRT.transQC;
+        newPos[PITCH_AXIS_ID] = currPYRT.pitchQC;
+        newPos[YAW_AXIS_ID] = currPYRT.yawQC;
+        newPos[ROLL_AXIS_ID] = currPYRT.rollQC;
+        setServoTargetPos(newPos, true);
+
+        // start timer
+        m_trajTimer = new QTimer(this);
+        connect(m_trajTimer, SIGNAL(timeout()), this, SLOT(driveTrajectory()));
+        m_trajTimer->start(10);
+    }
+}
+
+void EPOS2Widget::driveTrajectory()
+{
+    PYRT currPYRT = m_pyrtQCs[m_currTrajIdx];
+    if( (abs(ui->pitchQC_LCD->intValue() - ui->rollQC_LCD->intValue() - currPYRT.pitchQC) < 5) &&
+        (abs(ui->yawQC_LCD->intValue() + ui->rollQC_LCD->intValue() - currPYRT.yawQC) < 5) &&
+        (abs(ui->rollQC_LCD->intValue() - currPYRT.rollQC) < 5) &&
+        (abs(ui->transQC_LCD->intValue() - currPYRT.transQC) < 5) && m_keepDriving)
+    {
+        m_currTrajIdx++;
+        ui->trajStepLineEdit->setText(QString("%1 of %2.").arg(m_currTrajIdx).arg(m_pyrtQCs.size()));
+        if(m_currTrajIdx < m_pyrtQCs.size())
+        {
+            currPYRT = m_pyrtQCs[m_currTrajIdx];
+            std::vector<long> newPos(4);
+            newPos[TRANS_AXIS_ID] = currPYRT.transQC;
+            newPos[PITCH_AXIS_ID] = currPYRT.pitchQC;
+            newPos[YAW_AXIS_ID] = currPYRT.yawQC;
+            newPos[ROLL_AXIS_ID] = currPYRT.rollQC;
+            setServoTargetPos(newPos, true); // absolute
+
+            qDebug() << "Drive to" << newPos[TRANS_AXIS_ID] << newPos[PITCH_AXIS_ID] << newPos[YAW_AXIS_ID] << newPos[ROLL_AXIS_ID];
+        }
+        else
+        {
+            m_keepDriving = false;
+            ui->trajDriveButton->setText("Drive");
+        }
+    }
+
 }

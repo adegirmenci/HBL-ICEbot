@@ -172,13 +172,20 @@ static const int ROLL_AXIS_ID = 3;
 
 static const int EPOS_AXIS_IDS[EPOS_NUM_MOTORS] = {TRANS_AXIS_ID, PITCH_AXIS_ID, YAW_AXIS_ID, ROLL_AXIS_ID};
 
+// original values from Alienware
 //static const int EPOS_VELOCITY[EPOS_NUM_MOTORS] = {5000, 10000, 10000, 10000};
 //static const int EPOS_ACCEL[EPOS_NUM_MOTORS] = {20000, 50000, 50000, 50000};
 //static const int EPOS_DECEL[EPOS_NUM_MOTORS] = {20000, 30000, 30000, 30000};
 
-static const int EPOS_VELOCITY[EPOS_NUM_MOTORS] = {5000, 10000, 10000, 10000};
-static const int EPOS_ACCEL[EPOS_NUM_MOTORS] = {50000, 80000, 80000, 80000};
-static const int EPOS_DECEL[EPOS_NUM_MOTORS] = {50000, 70000, 70000, 70000};
+// better values
+//static const int EPOS_VELOCITY[EPOS_NUM_MOTORS] = {5000, 10000, 10000, 10000};
+//static const int EPOS_ACCEL[EPOS_NUM_MOTORS] = {50000, 80000, 80000, 80000};
+//static const int EPOS_DECEL[EPOS_NUM_MOTORS] = {50000, 70000, 70000, 70000};
+
+// values for mapping
+static const int EPOS_VELOCITY[EPOS_NUM_MOTORS] = {5000, 5000, 5000, 5000};
+static const int EPOS_ACCEL[EPOS_NUM_MOTORS] = {50000, 30000, 30000, 30000};
+static const int EPOS_DECEL[EPOS_NUM_MOTORS] = {50000, 20000, 20000, 20000};
 
 static const long EPOS_TRANS_MIN = -320000;
 static const long EPOS_TRANS_MAX = 320000;

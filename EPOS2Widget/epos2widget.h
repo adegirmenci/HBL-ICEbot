@@ -5,12 +5,26 @@
 #include <QThread>
 #include <QLabel>
 #include <QLCDNumber>
+#include <QFileDialog>
+#include <QTextStream>
+#include <QStringList>
+#include <QTimer>
+
+#include <vector>
 
 #include "epos2thread.h"
 
 namespace Ui {
 class EPOS2Widget;
 }
+
+struct PYRT
+{
+    long pitchQC;
+    long yawQC;
+    long rollQC;
+    long transQC;
+};
 
 class EPOS2Widget : public QWidget
 {
@@ -24,6 +38,7 @@ public:
 
 signals:
     void setServoTargetPos(const int axisID, long targetPos, bool moveAbsOrRel);
+    void setServoTargetPos(std::vector<long> targetPos, bool moveAbsOrRel);
     void servoToPos();
     void servoToPos(const int axisID);
     void haltMotor(const int axisID);
@@ -62,6 +77,12 @@ private slots:
 
     void on_homeAllButton_clicked();
 
+    void on_trajOpenFileButton_clicked();
+
+    void on_trajDriveButton_clicked();
+
+    void driveTrajectory();
+
 private:
     Ui::EPOS2Widget *ui;
 
@@ -71,6 +92,12 @@ private:
     std::vector<QLCDNumber*> motQCs;
 
     void updateManualControls(const int motorStatus);
+
+    // trajectory
+    std::vector<PYRT> m_pyrtQCs;
+    bool m_keepDriving;
+    size_t m_currTrajIdx;
+    QTimer *m_trajTimer;
 
 };
 

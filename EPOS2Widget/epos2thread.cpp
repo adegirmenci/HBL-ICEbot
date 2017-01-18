@@ -141,7 +141,11 @@ void EPOS2Thread::setServoTargetPos(const int axisID, long targetPos, bool moveA
         if(ROLL_AXIS_ID == axisID)
         {
             // #relativeRoll = #currentIncrement - #oldPosition
-            long relativeRoll = targetPos - m_motors[ROLL_AXIS_ID]->m_lActualValue;
+            long relativeRoll;
+            if(moveAbsOrRel)
+                relativeRoll = targetPos;
+            else
+                relativeRoll = targetPos - m_motors[ROLL_AXIS_ID]->m_lActualValue;
 
             // this works because roll is the last to update
             // if roll is not the last to get updated, then these target values
@@ -159,6 +163,10 @@ void EPOS2Thread::setServoTargetPos(const int axisID, long targetPos, bool moveA
             m_motors[YAW_AXIS_ID]->m_minQC = EPOS_YAW_MIN - targetPos;
             m_motors[YAW_AXIS_ID]->m_maxQC = EPOS_YAW_MAX - targetPos;
 
+            // recheck pitch and yaw
+            m_motors[PITCH_AXIS_ID]->m_lTargetPosition = clampToMotorLimits(PITCH_AXIS_ID, m_motors[PITCH_AXIS_ID]->m_lTargetPosition);
+            m_motors[YAW_AXIS_ID]->m_lTargetPosition = clampToMotorLimits(YAW_AXIS_ID, m_motors[YAW_AXIS_ID]->m_lTargetPosition);
+
         }
 
         // finally, update the target
@@ -173,7 +181,14 @@ void EPOS2Thread::setServoTargetPos(std::vector<long> targetPos, bool moveAbsOrR
     if(targetPos.size() != EPOS_NUM_MOTORS)
         qDebug() << "Wrong vector size in setServoTargetPos.";
 
-    //updateMotorQCs();
+    // reset the limit changes due to roll
+    if(moveAbsOrRel)
+    {
+        m_motors[PITCH_AXIS_ID]->m_minQC = EPOS_PITCH_MIN;
+        m_motors[PITCH_AXIS_ID]->m_maxQC = EPOS_PITCH_MAX;
+        m_motors[YAW_AXIS_ID]->m_minQC = EPOS_YAW_MIN;
+        m_motors[YAW_AXIS_ID]->m_maxQC = EPOS_YAW_MAX;
+    }
 
     for(int i = 0; i < EPOS_NUM_MOTORS; i++)
     {
@@ -184,7 +199,11 @@ void EPOS2Thread::setServoTargetPos(std::vector<long> targetPos, bool moveAbsOrR
         setServoTargetPos(i, targetPos[i], moveAbsOrRel);
     }
 
-    //qDebug() << "New servo pos received.";
+    qDebug() << "New servo pos received:"
+             << m_motors[TRANS_AXIS_ID]->m_lTargetPosition
+             << m_motors[PITCH_AXIS_ID]->m_lTargetPosition
+             << m_motors[YAW_AXIS_ID]->m_lTargetPosition
+             << m_motors[ROLL_AXIS_ID]->m_lTargetPosition;
 }
 
 int EPOS2Thread::checkMotorLimits(const int axisID, const long targetPos)
