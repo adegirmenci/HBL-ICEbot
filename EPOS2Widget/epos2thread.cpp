@@ -143,9 +143,9 @@ void EPOS2Thread::setServoTargetPos(const int axisID, long targetPos, bool moveA
             // #relativeRoll = #currentIncrement - #oldPosition
             long relativeRoll;
             if(moveAbsOrRel)
-                relativeRoll = targetPos;
+                relativeRoll = targetPos; // this got added later (1/17/17)
             else
-                relativeRoll = targetPos - m_motors[ROLL_AXIS_ID]->m_lActualValue;
+                relativeRoll = targetPos - m_motors[ROLL_AXIS_ID]->m_lActualValue; // it was just this before (1/17/17)
 
             // this works because roll is the last to update
             // if roll is not the last to get updated, then these target values
@@ -198,12 +198,6 @@ void EPOS2Thread::setServoTargetPos(std::vector<long> targetPos, bool moveAbsOrR
 //            m_motors[i]->m_lTargetPosition += targetPos[i];
         setServoTargetPos(i, targetPos[i], moveAbsOrRel);
     }
-
-    qDebug() << "New servo pos received:"
-             << m_motors[TRANS_AXIS_ID]->m_lTargetPosition
-             << m_motors[PITCH_AXIS_ID]->m_lTargetPosition
-             << m_motors[YAW_AXIS_ID]->m_lTargetPosition
-             << m_motors[ROLL_AXIS_ID]->m_lTargetPosition;
 }
 
 int EPOS2Thread::checkMotorLimits(const int axisID, const long targetPos)

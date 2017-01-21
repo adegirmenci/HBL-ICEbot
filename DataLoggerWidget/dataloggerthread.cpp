@@ -346,6 +346,7 @@ void DataLoggerThread::logControllerData(QTime timeStamp, int loopIdx, int dataT
 //    CONTROLLER_USER_XYZDXYZPSI, // 7 values
 //    CONTROLLER_CURR_PSY_GAMMA, // 2 values
 //    CONTROLLER_T_BB_CT_curTipPos, // 16 values
+//    CONTROLLER_CURR_TASK, // 4 values
 //    CONTROLLER_PERIOD, // 1 value
 //    CONTROLLER_BIRD4_MODEL_PARAMS, // 19 = 10 polar + 9 rect
 //    CONTROLLER_RESETBB, // 16 values
@@ -396,6 +397,13 @@ void DataLoggerThread::logControllerData(QTime timeStamp, int loopIdx, int dataT
                       .arg(QString::number(data[13],'f',m_prec2))
                       .arg(QString::number(data[14],'f',m_prec2))
                       .arg(QString::number(data[15],'f',m_prec2)));
+        break;
+    case CONTROLLER_CURR_TASK: // 4 values
+        output.append(QString("CURRTASK\t%1\t%2\t%3\t%4")
+                      .arg(QString::number(data[0],'f',m_prec2))
+                      .arg(QString::number(data[1],'f',m_prec2))
+                      .arg(QString::number(data[2],'f',m_prec2))
+                      .arg(QString::number(data[3],'f',m_prec2)));
         break;
     case CONTROLLER_PERIOD: // 1 value
         output.append(QString("PERIOD\t%1")

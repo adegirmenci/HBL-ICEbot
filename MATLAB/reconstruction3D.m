@@ -40,7 +40,7 @@ if(~isempty(mask))
     Time_T_BB_CT = Time(relevantIdx);
     
     % convert to posix time
-    Time_T_BB_CT = posixtime(datetime('today') + hours(5) + milliseconds(Time_T_BB_CT));
+    Time_T_BB_CT = posixtime(datetime(study(1:4),study(5:6),study(7:8)) + hours(5) + milliseconds(Time_T_BB_CT));
     
     numRelevant = length(relevantIdx);
     

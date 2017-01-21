@@ -296,6 +296,7 @@ enum CONTROLLER_DATA_IDS
     CONTROLLER_USER_XYZDXYZPSI, // 7 values
     CONTROLLER_CURR_PSY_GAMMA, // 2 values
     CONTROLLER_T_BB_CT_curTipPos, // 16 values
+    CONTROLLER_CURR_TASK, // 4 values
     CONTROLLER_PERIOD, // 1 value
     CONTROLLER_BIRD4_MODEL_PARAMS, // 19 = 10 polar + 9 rect
     CONTROLLER_RESETBB, // 16 values

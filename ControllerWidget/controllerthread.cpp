@@ -646,12 +646,28 @@ void ControllerThread::controlCycle()
 //        Eigen::Matrix<double, 6, 4> J = m_cathKin.JacobianNumeric(configCurr(0), configCurr(1), configCurr(2), configCurr(3));
 //        m_cathKin.dampedLeastSquaresStep(J, m_dXYZPsi);
 
+
         Eigen::Vector4d configCurr = m_cathKin.inverseKinematics(m_BB_CT_curTipPos, m_currGamma);
         Eigen::Vector4d currTask = m_cathKin.configToTaskSpace(configCurr);
         Eigen::Vector4d targetTask(m_input_AbsXYZ(0), m_input_AbsXYZ(1), m_input_AbsXYZ(2), m_input_delPsi);
         Eigen::Vector4d targetConfig = m_cathKin.JacobianStep(currTask, targetTask, configCurr);
         Eigen::Vector4d currJoint = m_cathKin.configToJointSpace(configCurr);
         Eigen::Vector4d targetJoint = m_cathKin.configToJointSpace(targetConfig);
+
+        // FIXME: 1/20/2017: Trying to fix BBmobile discrepancy
+//        Eigen::Vector4d configCurr = m_cathKin.inverseKinematics(m_BBmobile_CT, m_currGamma);
+//        Eigen::Vector4d currTask = m_cathKin.configToTaskSpace(configCurr);
+//        Eigen::Vector4d tmp = {currTask(0),currTask(1),currTask(2),1.0};
+//        tmp = (m_BBfixed_BBmobile.inverse() * tmp).eval();
+//        currTask.segment<3>(0) = tmp.segment<3>(0);
+//        tmp = {m_input_AbsXYZ(0), m_input_AbsXYZ(1), m_input_AbsXYZ(2),1.0};
+//        tmp = (m_BBfixed_BBmobile * tmp).eval();
+//        Eigen::Vector4d targetTask(tmp(0), tmp(1), tmp(2), m_input_delPsi);
+//        Eigen::Vector4d targetConfig = m_cathKin.JacobianStep(currTask, targetTask, configCurr);
+//        Eigen::Vector4d currJoint = m_cathKin.configToJointSpace(configCurr);
+//        Eigen::Vector4d targetJoint = m_cathKin.configToJointSpace(targetConfig);
+
+
 
         // get relative motor counts
         Eigen::Vector4d relQCs;  // knob_tgt - knob_curr
@@ -693,6 +709,15 @@ void ControllerThread::controlCycle()
         std::cout << QTime::currentTime().toString().toStdString() << "Cycle:" << m_numCycles << std::endl;
 
         m_numCycles++;
+    }
+    else
+    {
+        m_currGamma = atan2(m_BBfixed_BBmobile(1,0), m_BBfixed_BBmobile(0,0));
+        Eigen::Vector4d configCurr = m_cathKin.inverseKinematics(m_BB_CT_curTipPos, m_currGamma);
+        Eigen::Vector4d currTask = m_cathKin.configToTaskSpace(configCurr);
+
+        std::vector<double> task = {currTask(0),currTask(1),currTask(2),currTask(3)};
+        emit logData(QTime::currentTime(), m_numCycles, CONTROLLER_CURR_TASK, task);
     }
 }
 
