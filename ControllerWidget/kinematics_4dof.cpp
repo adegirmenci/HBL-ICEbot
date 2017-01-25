@@ -499,6 +499,7 @@ Eigen::Vector4d Kinematics_4DOF::JacobianStep(const Eigen::Vector4d &currTask, c
     Eigen::Vector4d delta_C; delta_C = Eigen::Vector4d::Zero();
     Eigen::Vector4d newConfig = currConfig;
     Eigen::Vector4d newTask = currTask;
+    //Eigen::Vector4d oldTask = newTask, intm_task;
 
     unsigned int iter = 0;
     bool isNotConverged = (normXYZ > 0.01) || (errorRot > 0.01);
@@ -523,6 +524,7 @@ Eigen::Vector4d Kinematics_4DOF::JacobianStep(const Eigen::Vector4d &currTask, c
         //delta_C = pinvJ * dxyzpsi + (Eigen::Matrix4d::Identity() - pinvJ*J)*v_;
         delta_C = svd.solve(dxyzpsi) + (Eigen::Matrix4d::Identity() - svd.solve(J))*v_;
 
+//        oldTask = configToTaskSpace(newConfig);
         newConfig += delta_C;
 
         if(newConfig(2) < 0.0) // gamma, theta, alpha, d
@@ -530,6 +532,9 @@ Eigen::Vector4d Kinematics_4DOF::JacobianStep(const Eigen::Vector4d &currTask, c
             newConfig(2) = abs(newConfig(2));
             newConfig(1) = wrapToPi(newConfig(1) + pi);
         }
+
+//        intm_task = configToTaskSpace(newConfig);
+//        newTask += (intm_task - oldTask);
 
         newTask = configToTaskSpace(newConfig);
 
@@ -545,12 +550,46 @@ Eigen::Vector4d Kinematics_4DOF::JacobianStep(const Eigen::Vector4d &currTask, c
     if(isNotConverged)
     {
         printf("Not converged, %.3f %.3f.\n", normXYZ, errorRot);
-        newConfig = currConfig;
+        //newConfig = currConfig;
     }
     else
         printf("Converged in %d steps.\n", iter);
 
     return newConfig;
+}
+
+Eigen::Vector4d Kinematics_4DOF::JacobianStepSingle(const Eigen::Vector4d &currTask, const Eigen::Vector4d &targetTask, const Eigen::Vector4d &currConfig)
+{
+    Eigen::Vector4d dxyzpsi = targetTask - currTask;
+    double normXYZ = dxyzpsi.segment<3>(0).norm(), errorRot = abs(wrapToPi(abs(dxyzpsi(3))));
+    double euclThresh = 1.5;
+    double rotThresh = pi/5;
+
+    Eigen::Vector4d delta_C; delta_C = Eigen::Vector4d::Zero();
+
+    bool isNotConverged = (normXYZ > 0.01) || (errorRot > 0.01);
+    if( isNotConverged )
+    {
+        // clamp error
+
+        // don't translate more than 1.5 at a time
+        if(normXYZ > euclThresh)
+            dxyzpsi.segment<3>(0) *= euclThresh/normXYZ;
+        // don't rotate more than 36 degrees at a time
+        if(abs(dxyzpsi(3)) > rotThresh)
+            dxyzpsi(3) = boost::math::copysign(rotThresh, dxyzpsi(3));
+
+        // numerically compute Jacobian
+        Eigen::Matrix4d J = JacobianNumericTaskSpace(currConfig);
+
+        // J_pseudoinverseWithNullspace
+        Eigen::Vector4d v_(0.5,0.5,0.5,0.5); v_ *= 2.0;
+        Eigen::JacobiSVD<Eigen::Matrix4d> svd(J, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        //Eigen::Matrix4d pinvJ = svd.solve(Eigen::Matrix4d::Identity()); // J.inverse();
+        //delta_C = pinvJ * dxyzpsi + (Eigen::Matrix4d::Identity() - pinvJ*J)*v_;
+        delta_C = svd.solve(dxyzpsi) + (Eigen::Matrix4d::Identity() - svd.solve(J))*v_;
+    }
+    return delta_C;
 }
 
 double Kinematics_4DOF::wrapToPi(double lambda)

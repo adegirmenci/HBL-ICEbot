@@ -55,8 +55,21 @@ struct ModeFlags
     { }
 };
 
+struct XYZPSI
+{
+    double x;
+    double y;
+    double z;
+    double psi;
+
+    explicit XYZPSI(double x_ = 0.0, double y_ = 0.0, double z_ = 0.0, double psi_ = 0.0):
+        x(x_), y(y_), z(z_), psi(psi_)
+    { }
+};
+
 Q_DECLARE_METATYPE(ModeFlags)
 Q_DECLARE_METATYPE(EigenVectorFiltered)
+Q_DECLARE_METATYPE(XYZPSI)
 
 class ControllerThread : public QObject
 {
@@ -93,6 +106,8 @@ signals:
                                    bool isTrained,
                                    bool inVivoMode,
                                    double omega0);
+
+    void reportCurrentXYZPSI(XYZPSI currXYZPSI);
 
 public slots:
     void setEpoch(const QDateTime &epoch);

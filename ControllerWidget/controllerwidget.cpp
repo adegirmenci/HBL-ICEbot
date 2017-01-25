@@ -66,6 +66,10 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
     ui->jointSpaceGroupBox->setChecked(false);
     ui->configSpaceGroupBox->setChecked(false);
 
+    // trajectory
+    m_keepDriving = false;
+    m_currTrajIdx = 0;
+
 }
 
 ControllerWidget::~ControllerWidget()
@@ -339,4 +343,129 @@ void ControllerWidget::on_respModelButton_clicked()
         ui->respModelButton->setText("Respiration Model");
         m_respModelWidget->close();
     }
+}
+
+void ControllerWidget::receiveCurrentXYZPSI(XYZPSI currXYZPSI)
+{
+    m_currXYZPSI = currXYZPSI;
+}
+
+void ControllerWidget::on_trajOpenFileButton_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open CSV File"),
+                                                    "../ICEbot_QT_v1/LoggedData",
+                                                    tr("CSV File (*.csv)"));
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug() << file.errorString();
+        return;
+    }
+
+    QTextStream in(&file);
+
+    m_XYZPSIs.clear();
+
+    while (!in.atEnd()) {
+        QString line = in.readLine();
+        QStringList split = line.split(',');
+        if(split.size() == 4)
+        {
+            XYZPSI xyzpsi;
+            xyzpsi.x = split[0].toLong();
+            xyzpsi.y = split[1].toLong();
+            xyzpsi.z = split[2].toLong();
+            xyzpsi.psi = split[3].toLong();
+            m_XYZPSIs.push_back(xyzpsi);
+        }
+        else
+        {
+            qDebug() << "Error reading CSV - number of elements in line is not equal to 4!";
+            break;
+        }
+    }
+
+    qDebug() << "Read" << m_XYZPSIs.size() << "setpoints from trajectory file.";
+
+    if(m_XYZPSIs.size() > 0){
+        ui->trajDriveButton->setEnabled(true);
+        ui->trajStepLineEdit->setText(QString("%1 points loaded.").arg(m_XYZPSIs.size()));
+    }
+    else{
+        ui->trajDriveButton->setEnabled(false);
+        ui->trajStepLineEdit->setText("Error reading file.");
+    }
+}
+
+void ControllerWidget::on_trajDriveButton_clicked()
+{
+    if(m_keepDriving)
+    {
+        m_keepDriving = false;
+        ui->trajDriveButton->setText("Drive");
+
+        // stop timer
+        m_trajTimer->stop();
+        disconnect(m_trajTimer, SIGNAL(timeout()), 0, 0);
+        delete m_trajTimer;
+    }
+    else
+    {
+        m_keepDriving = true;
+        ui->trajDriveButton->setText("Stop");
+
+        m_currTrajIdx = 0;
+        ui->trajStepLineEdit->setText(QString("%1 of %2.").arg(m_currTrajIdx).arg(m_XYZPSIs.size()));
+
+        XYZPSI targetXYZPSI = m_XYZPSIs[m_currTrajIdx];
+
+        // send to worker
+        emit updateTaskSpaceCommand(targetXYZPSI.x, targetXYZPSI.y, targetXYZPSI.z, targetXYZPSI.psi, true);
+
+        // update spinbox in UI
+        ui->xSpinbox->setValue(targetXYZPSI.x);
+        ui->ySpinbox->setValue(targetXYZPSI.y);
+        ui->zSpinbox->setValue(targetXYZPSI.z);
+        ui->delPsiSpinbox->setValue(targetXYZPSI.psi * deg180overPi);
+
+        // start timer
+        m_trajTimer = new QTimer(this);
+        connect(m_trajTimer, SIGNAL(timeout()), this, SLOT(driveTrajectory()));
+        m_trajTimer->start(10);
+    }
+}
+
+void ControllerWidget::driveTrajectory()
+{
+    XYZPSI targetXYZPSI = m_XYZPSIs[m_currTrajIdx];
+    if( (abs(m_currXYZPSI.x - targetXYZPSI.x) < 0.5) &&
+        (abs(m_currXYZPSI.y - targetXYZPSI.y) < 0.5) &&
+        (abs(m_currXYZPSI.z - targetXYZPSI.z) < 0.5) &&
+        (abs(m_currXYZPSI.psi - targetXYZPSI.psi) < 0.01) && m_keepDriving)
+    {
+        m_currTrajIdx++;
+        ui->trajStepLineEdit->setText(QString("%1 of %2.").arg(m_currTrajIdx).arg(m_XYZPSIs.size()));
+        if(m_currTrajIdx < m_XYZPSIs.size())
+        {
+            // get next traget
+            targetXYZPSI = m_XYZPSIs[m_currTrajIdx];
+
+            // send to worker
+            emit updateTaskSpaceCommand(targetXYZPSI.x, targetXYZPSI.y, targetXYZPSI.z, targetXYZPSI.psi, true);
+
+            // update spinbox in UI
+            ui->xSpinbox->setValue(targetXYZPSI.x);
+            ui->ySpinbox->setValue(targetXYZPSI.y);
+            ui->zSpinbox->setValue(targetXYZPSI.z);
+            ui->delPsiSpinbox->setValue(targetXYZPSI.psi * deg180overPi);
+
+            qDebug() << "Drive to" << targetXYZPSI.x << targetXYZPSI.y << targetXYZPSI.z << targetXYZPSI.psi;
+        }
+        else
+        {
+            m_keepDriving = false;
+            ui->trajDriveButton->setText("Drive");
+        }
+    }
+
 }

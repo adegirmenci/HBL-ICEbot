@@ -5,6 +5,7 @@ ControllerThread::ControllerThread(QObject *parent) :
 {
     qRegisterMetaType<ModeFlags>("ModeFlags");
     qRegisterMetaType<EigenVectorFiltered>("EigenVectorFiltered");
+    qRegisterMetaType<XYZPSI>("XYZPSI");
 
     m_isEpochSet = false;
     m_isReady = false;
@@ -646,7 +647,6 @@ void ControllerThread::controlCycle()
 //        Eigen::Matrix<double, 6, 4> J = m_cathKin.JacobianNumeric(configCurr(0), configCurr(1), configCurr(2), configCurr(3));
 //        m_cathKin.dampedLeastSquaresStep(J, m_dXYZPsi);
 
-
         Eigen::Vector4d configCurr = m_cathKin.inverseKinematics(m_BB_CT_curTipPos, m_currGamma);
         Eigen::Vector4d currTask = m_cathKin.configToTaskSpace(configCurr);
         Eigen::Vector4d targetTask(m_input_AbsXYZ(0), m_input_AbsXYZ(1), m_input_AbsXYZ(2), m_input_delPsi);
@@ -654,18 +654,32 @@ void ControllerThread::controlCycle()
         Eigen::Vector4d currJoint = m_cathKin.configToJointSpace(configCurr);
         Eigen::Vector4d targetJoint = m_cathKin.configToJointSpace(targetConfig);
 
+        emit reportCurrentXYZPSI(XYZPSI(currTask(0),currTask(1),currTask(2),currTask(3)));
+
         // FIXME: 1/20/2017: Trying to fix BBmobile discrepancy
-//        Eigen::Vector4d configCurr = m_cathKin.inverseKinematics(m_BBmobile_CT, m_currGamma);
+//        // figure out distance from BBcurr to xy plane of BBfixed
+//        double ratio = m_BBfixed_BBmobile(2,3)/m_BBfixed_BBmobile(2,2);
+//        //Eigen::Vector4d offset_ =  m_BBfixed_BBmobile.matrix().col(2)*ratio; // extend along z axis
+//        Eigen::Transform<double,3,Eigen::Affine> T_BBtrans_CT(m_BBmobile_CT);
+//        //T_BBtrans_CT.matrix().col(3) += offset_;
+//        T_BBtrans_CT(2,3) += ratio;
+
+//        Eigen::Vector4d configCurr = m_cathKin.inverseKinematics(T_BBtrans_CT, m_currGamma);
 //        Eigen::Vector4d currTask = m_cathKin.configToTaskSpace(configCurr);
-//        Eigen::Vector4d tmp = {currTask(0),currTask(1),currTask(2),1.0};
-//        tmp = (m_BBfixed_BBmobile.inverse() * tmp).eval();
-//        currTask.segment<3>(0) = tmp.segment<3>(0);
-//        tmp = {m_input_AbsXYZ(0), m_input_AbsXYZ(1), m_input_AbsXYZ(2),1.0};
-//        tmp = (m_BBfixed_BBmobile * tmp).eval();
-//        Eigen::Vector4d targetTask(tmp(0), tmp(1), tmp(2), m_input_delPsi);
+////        Eigen::Vector4d tmp = {currTask(0),currTask(1),currTask(2),1.0};
+////        tmp = (m_BBfixed_BBmobile * tmp).eval();
+////        currTask.segment<3>(0) = tmp.segment<3>(0);
+//        currTask.segment<3>(0) = m_BB_CT_curTipPos.matrix().col(3).segment<3>(0);
+////        Eigen::Vector4d tmp(m_input_AbsXYZ(0), m_input_AbsXYZ(1), m_input_AbsXYZ(2),1.0);
+////        tmp = (m_BBfixed_BBmobile.inverse() * tmp).eval();
+////        Eigen::Vector4d targetTask(tmp(0), tmp(1), tmp(2)+ratio, m_input_delPsi);
+//        Eigen::Vector4d targetTask(m_input_AbsXYZ(0), m_input_AbsXYZ(1), m_input_AbsXYZ(2), m_input_delPsi);
 //        Eigen::Vector4d targetConfig = m_cathKin.JacobianStep(currTask, targetTask, configCurr);
 //        Eigen::Vector4d currJoint = m_cathKin.configToJointSpace(configCurr);
 //        Eigen::Vector4d targetJoint = m_cathKin.configToJointSpace(targetConfig);
+////        Eigen::Vector4d deltaConfig = m_cathKin.JacobianStepSingle(currTask, targetTask, configCurr);
+////        Eigen::Vector4d currJoint = m_cathKin.configToJointSpace(Eigen::Vector4d::Zero());
+////        Eigen::Vector4d targetJoint = m_cathKin.configToJointSpace(deltaConfig);
 
 
 

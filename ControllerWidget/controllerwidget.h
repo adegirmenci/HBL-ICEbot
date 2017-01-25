@@ -4,6 +4,11 @@
 #include <QWidget>
 #include <QThread>
 
+#include <QFileDialog>
+#include <QTextStream>
+#include <QStringList>
+#include <QTimer>
+
 #include "controllerthread.h"
 #include "gainswidget.h"
 #include "respmodelwidget.h"
@@ -68,6 +73,14 @@ private slots:
 
     void on_respModelButton_clicked();
 
+    void on_trajOpenFileButton_clicked();
+
+    void on_trajDriveButton_clicked();
+
+    void receiveCurrentXYZPSI(XYZPSI currXYZPSI);
+
+    void driveTrajectory();
+
 private:
     Ui::ControllerWidget *ui;
 
@@ -75,6 +88,14 @@ private:
     respModelWidget *m_respModelWidget;
 
     QThread m_thread; // Controller Thread will live in here
+
+    XYZPSI m_currXYZPSI;
+
+    // trajectory
+    std::vector<XYZPSI> m_XYZPSIs;
+    bool m_keepDriving;
+    size_t m_currTrajIdx;
+    QTimer *m_trajTimer;
 };
 
 #endif // CONTROLLERWIDGET_H

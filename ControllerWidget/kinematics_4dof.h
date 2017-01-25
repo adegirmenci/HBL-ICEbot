@@ -73,6 +73,7 @@ public:
     Eigen::Vector4d configToTaskSpace(const Eigen::Vector4d &configSpace);
     Eigen::Matrix4d JacobianNumericTaskSpace(const Eigen::Vector4d &configCurr);
     Eigen::Vector4d JacobianStep(const Eigen::Vector4d &currTask, const Eigen::Vector4d &targetTask, const Eigen::Vector4d &currConfig);
+    Eigen::Vector4d JacobianStepSingle(const Eigen::Vector4d &currTask, const Eigen::Vector4d &targetTask, const Eigen::Vector4d &currConfig);
 
 private:
     // GEOMETRY CONSTANTS
