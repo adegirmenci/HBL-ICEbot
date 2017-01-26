@@ -70,6 +70,8 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
     m_keepDriving = false;
     m_currTrajIdx = 0;
 
+    connect(m_worker, SIGNAL(reportCurrentXYZPSI(XYZPSI)), this, SLOT(receiveCurrentXYZPSI(XYZPSI)));
+
 }
 
 ControllerWidget::~ControllerWidget()
@@ -368,14 +370,16 @@ void ControllerWidget::on_trajOpenFileButton_clicked()
 
     while (!in.atEnd()) {
         QString line = in.readLine();
-        QStringList split = line.split(',');
+        QStringList split = line.split(','); // files are generated using dlmwrite in MATLAB
         if(split.size() == 4)
         {
             XYZPSI xyzpsi;
-            xyzpsi.x = split[0].toLong();
-            xyzpsi.y = split[1].toLong();
-            xyzpsi.z = split[2].toLong();
-            xyzpsi.psi = split[3].toLong();
+            xyzpsi.x = split[0].toDouble();
+            xyzpsi.y = split[1].toDouble();
+            xyzpsi.z = split[2].toDouble();
+            xyzpsi.psi = split[3].toDouble() * piOverDeg180; // convert to radians
+            double signedPI = boost::math::copysign(pi, xyzpsi.psi);
+            xyzpsi.psi = fmod(xyzpsi.psi + signedPI,(2*pi)) - signedPI;
             m_XYZPSIs.push_back(xyzpsi);
         }
         else
@@ -438,10 +442,9 @@ void ControllerWidget::on_trajDriveButton_clicked()
 void ControllerWidget::driveTrajectory()
 {
     XYZPSI targetXYZPSI = m_XYZPSIs[m_currTrajIdx];
-    if( (abs(m_currXYZPSI.x - targetXYZPSI.x) < 0.5) &&
-        (abs(m_currXYZPSI.y - targetXYZPSI.y) < 0.5) &&
-        (abs(m_currXYZPSI.z - targetXYZPSI.z) < 0.5) &&
-        (abs(m_currXYZPSI.psi - targetXYZPSI.psi) < 0.01) && m_keepDriving)
+    if( (abs(m_currXYZPSI.x - targetXYZPSI.x) < 0.75) &&
+        (abs(m_currXYZPSI.y - targetXYZPSI.y) < 0.75) &&
+        (abs(m_currXYZPSI.z - targetXYZPSI.z) < 0.75) && m_keepDriving)
     {
         m_currTrajIdx++;
         ui->trajStepLineEdit->setText(QString("%1 of %2.").arg(m_currTrajIdx).arg(m_XYZPSIs.size()));

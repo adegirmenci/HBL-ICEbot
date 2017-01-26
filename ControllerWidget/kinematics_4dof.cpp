@@ -492,7 +492,8 @@ Eigen::Matrix4d Kinematics_4DOF::JacobianNumericTaskSpace(const Eigen::Vector4d 
 Eigen::Vector4d Kinematics_4DOF::JacobianStep(const Eigen::Vector4d &currTask, const Eigen::Vector4d &targetTask, const Eigen::Vector4d &currConfig)
 {
     Eigen::Vector4d dxyzpsi = targetTask - currTask;
-    double normXYZ = dxyzpsi.segment<3>(0).norm(), errorRot = abs(wrapToPi(abs(dxyzpsi(3))));
+    dxyzpsi(3) = wrapToPi(dxyzpsi(3));
+    double normXYZ = dxyzpsi.segment<3>(0).norm(), errorRot = abs(dxyzpsi(3));
     double euclThresh = 1.5;
     double rotThresh = pi/5;
 
@@ -539,8 +540,9 @@ Eigen::Vector4d Kinematics_4DOF::JacobianStep(const Eigen::Vector4d &currTask, c
         newTask = configToTaskSpace(newConfig);
 
         dxyzpsi = targetTask - newTask;
+        dxyzpsi(3) = wrapToPi(dxyzpsi(3));
         normXYZ = dxyzpsi.segment<3>(0).norm();
-        errorRot = abs(wrapToPi(abs(dxyzpsi(3))));
+        errorRot = abs(dxyzpsi(3));
 
         isNotConverged = (normXYZ > 0.01) || (errorRot > 0.01);
 
@@ -561,7 +563,8 @@ Eigen::Vector4d Kinematics_4DOF::JacobianStep(const Eigen::Vector4d &currTask, c
 Eigen::Vector4d Kinematics_4DOF::JacobianStepSingle(const Eigen::Vector4d &currTask, const Eigen::Vector4d &targetTask, const Eigen::Vector4d &currConfig)
 {
     Eigen::Vector4d dxyzpsi = targetTask - currTask;
-    double normXYZ = dxyzpsi.segment<3>(0).norm(), errorRot = abs(wrapToPi(abs(dxyzpsi(3))));
+    dxyzpsi(3) = wrapToPi(dxyzpsi(3));
+    double normXYZ = dxyzpsi.segment<3>(0).norm(), errorRot = abs(dxyzpsi(3));
     double euclThresh = 1.5;
     double rotThresh = pi/5;
 

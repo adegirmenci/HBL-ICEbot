@@ -6,6 +6,7 @@
 
 #include <QFileDialog>
 #include <QTextStream>
+#include <QString>
 #include <QStringList>
 #include <QTimer>
 
