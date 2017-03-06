@@ -241,7 +241,12 @@ void DataLoggerThread::logFrmGrabImage(std::shared_ptr<Frame> frm)
     m_DirImgFname.append(m_imgFname);
     // save frame
     //state = frame->image_.save(m_imgFname, "JPG", 100);
-    cv::imwrite(m_DirImgFname.toStdString().c_str(), frm->image_ ); // write frame
+
+    std::vector<int> compression_params;
+    compression_params.push_back(CV_IMWRITE_JPEG_QUALITY);
+    compression_params.push_back(100);
+
+    cv::imwrite(m_DirImgFname.toStdString().c_str(), frm->image_, compression_params); // write frame
 
     QMutexLocker locker(m_mutex);
 
