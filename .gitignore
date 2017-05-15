@@ -1,3 +1,5 @@
+*.pro.user
+
 dir_to_ignore/
 LoggedData
 MATLAB/volumes
