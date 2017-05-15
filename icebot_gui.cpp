@@ -70,8 +70,10 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
     // inter-process communication
     connect(ui->frmGrabWidget->m_worker, SIGNAL(imageAcquired(std::shared_ptr<Frame>)),
             ui->frameClientWidget->m_worker, SLOT(receiveFrame(std::shared_ptr<Frame>)));
-    connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)),
-            ui->frameClientWidget->m_worker, SLOT(receiveEMreading(QTime,int,DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)));
+//    connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)),
+//            ui->frameClientWidget->m_worker, SLOT(receiveEMreading(QTime,int,DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)));
+    connect(ui->emWidget->m_worker, SIGNAL(sendLatestReading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD>)),
+            ui->frameClientWidget->m_worker, SLOT(receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD>)));
 
     // Controller to EPOS
     connect(ui->controlWidget->m_worker, SIGNAL(setEPOSservoTargetPos(std::vector<long>,bool)),

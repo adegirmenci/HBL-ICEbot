@@ -148,6 +148,31 @@ void FrameClientThread::receiveEMreading(QTime timeStamp, int sensorID, DOUBLE_P
         m_keepStreaming = true;
 }
 
+void FrameClientThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD> readings)
+{
+    QMutexLocker locker(m_mutex);
+
+    Q_ASSERT(4 == readings.size());
+
+    if(m_currFrame)
+    {
+        qint64 tBirdCurr(m_currBird.data.time*1000);
+        qint64 tBirdNext(readings[EM_SENSOR_BT].time*1000);
+        qint64 diffCurr = qAbs(m_currFrame->timestamp_ - tBirdCurr);
+        qint64 diffNext = qAbs(m_currFrame->timestamp_ - tBirdNext);
+
+        if(diffNext < diffCurr)
+        {
+            m_currBird.data = readings[EM_SENSOR_BT];
+            m_currBird.sensorID = EM_SENSOR_BT;
+            m_currBird.timeStamp = QTime::currentTime();
+        }
+    }
+
+    if(m_currFrame)
+        m_keepStreaming = true;
+}
+
 void FrameClientThread::connectedToHost()
 {
     emit statusChanged(FRMCLNT_CONNECTED);
