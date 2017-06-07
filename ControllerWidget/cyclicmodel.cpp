@@ -59,7 +59,7 @@ void CyclicModel::resetModel()
     m_timeData_init.reserve(N_SAMPLES);    // stores the time vector for the model initialization observations
     m_timeData_new .resize(N_SAMPLES, 0.0); // stores time for the most recent observations
 
-    m_nFutureSamples = 35;
+    m_nFutureSamples = EDGE_EFFECT;
 
     m_omega0 = 2.*pi/BREATH_RATE; // frequency
 
@@ -496,7 +496,7 @@ void CyclicModel::setInVivo(const bool isInVivo)
     if( (!m_isTrained) && (m_numSamples == 0) )
         m_isInVivo = isInVivo;
     else
-        printf("Can't modify mode now!");
+        printf("Can't modify mode now!\n");
 }
 
 void CyclicModel::filterTrainingData()

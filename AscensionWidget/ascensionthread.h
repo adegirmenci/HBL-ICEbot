@@ -137,6 +137,8 @@ private:
     int m_numberBytes;
     // latest reading
     std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD> m_latestReading;
+    std::vector<double> m_deltaT;
+    double m_avgSamplingFreq;
 
     const int m_prec = 4; // precision for print operations
 

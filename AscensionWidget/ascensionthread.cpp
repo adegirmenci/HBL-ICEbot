@@ -14,6 +14,9 @@ AscensionThread::AscensionThread(QObject *parent) :
     m_records = 0;
     m_latestReading.resize(4);
 
+    m_deltaT.resize(EM_DELTA_T_SIZE,0);
+    m_avgSamplingFreq = 0.0;
+
     qRegisterMetaType<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD>("DOUBLE_POSITION_MATRIX_TIME_Q_RECORD");
     qRegisterMetaType< std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD> >("std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD>");
 }
@@ -200,6 +203,12 @@ void AscensionThread::startAcquisition() // start timer
 {
     QMutexLocker locker(m_mutex);
 
+    // reset stats
+    m_deltaT.clear();
+    m_deltaT.resize(EM_DELTA_T_SIZE,0);
+    m_avgSamplingFreq = 0;
+
+    // start timer
     m_timer = new QTimer(this);
     connect(m_timer,SIGNAL(timeout()),this,SLOT(getSample()));
     m_timer->start(1000./m_samplingFreq);
@@ -264,6 +273,14 @@ void AscensionThread::getSample() // called by timer
     //    }
     */
 
+    // get time difference between readings
+    // m_deltaT hold the latest index as the last element in the vector
+    // this index is incremented to essentially create a circular buffer
+    m_deltaT[m_deltaT[EM_DELTA_T_SIZE-1]] = record[0].time - m_latestReading[0].time;
+    m_deltaT[EM_DELTA_T_SIZE-1] = ((int)(m_deltaT[EM_DELTA_T_SIZE-1] + 1))%(EM_DELTA_T_SIZE-1);
+    // average the deltaT's
+    m_avgSamplingFreq = std::accumulate(m_deltaT.begin(),m_deltaT.end()-1,0.0)/(EM_DELTA_T_SIZE-1);
+
     m_latestReading.clear();
     m_latestReading.resize(4);
 
@@ -303,12 +320,16 @@ void AscensionThread::getSample() // called by timer
             m_latestReading[m_sensorID] = record[m_sensorID];
             emit logData(tstamp, m_sensorID, record[m_sensorID]);
             //emit logData(tstamp, m_sensorID, record);
-            if( m_i == 0 )
+            if( m_i == 0 ){
                 //emit sendDataToGUI(m_sensorID, formatOutput(tstamp, m_sensorID, record));
                 emit sendDataToGUI(m_sensorID, formatOutput(tstamp, m_sensorID, record[m_sensorID]));
+            }
         }
         else
             qDebug() << "Invalid data received, sensorID:" << m_sensorID;
+    }
+    if( m_i == 0 ){
+        std::printf("EM rate: %.3f ms\n", m_avgSamplingFreq*1000.0);
     }
     m_i = (m_i + 1)%(int)(m_samplingFreq/10);
 
