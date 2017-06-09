@@ -25,7 +25,7 @@ Eigen::Transform<double, 3, Eigen::Affine> Kinematics_4DOF::forwardKinematics(do
 {
     if(alpha < 0)
     {
-        alpha = abs(alpha); // flip sign
+        alpha = std::abs(alpha); // flip sign
         theta = wrapToPi(theta + pi);
     }
 
@@ -77,7 +77,7 @@ Eigen::Vector4d Kinematics_4DOF::inverseKinematics3D(const double xt,
     double theta, alpha, d;
     // If gamma is not provided, this problem is underdefined. 1 DoF is free since we didn't specify
     // an orientation for the US crystal. We deal with this by setting default gamma to zero.
-    if( (abs(xt) < 0.000001) && (abs(yt) < 0.000001) )
+    if( (std::abs(xt) < 0.000001) && (std::abs(yt) < 0.000001) )
     {
         theta = 0.0; // bending axis 0
         alpha = 0.0; // bending angle 0
@@ -115,7 +115,7 @@ Eigen::Vector4d Kinematics_4DOF::inverseKinematics3D(const double xt,
     //double tip_calc = sqrt( pow(Tcalc(0,3),2) + pow(Tcalc(1,3),2) + pow(Tcalc(2,3),2) );
     double tip_calc = Tcalc.matrix().col(3).segment(0,3).norm();
     double err = (tip_given - tip_calc)/tip_given;
-    if(abs(err) > 0.000001)
+    if(std::abs(err) > 0.000001)
         printf("BIG ERROR (%f) CHECK PARAMETERS\n", err);
 
 //    if(true)
@@ -140,7 +140,7 @@ Eigen::Vector4d Kinematics_4DOF::inverseKinematics(const Eigen::Transform<double
 
     double theta, alpha, d;
 
-    if( (abs(xt) < 0.000001) && (abs(yt) < 0.000001) )
+    if( (std::abs(xt) < 0.000001) && (std::abs(yt) < 0.000001) )
     {
         theta = 0; // bending axis 0
         alpha = 0; // bending angle 0
@@ -358,7 +358,7 @@ Eigen::Vector4d Kinematics_4DOF::taskToConfigSpace(const Eigen::Vector4d &taskSp
     double xt = taskSpace(0), yt = taskSpace(1), zt = taskSpace(2), psi = taskSpace(3);
     double gamma, theta, alpha, d;
 
-    if( (abs(xt) < 0.000001) && (abs(yt) < 0.000001) )
+    if( (std::abs(xt) < 0.000001) && (std::abs(yt) < 0.000001) )
     {
         alpha = 0;
         theta = 0;
@@ -404,7 +404,7 @@ Eigen::Vector4d Kinematics_4DOF::configToTaskSpace(const Eigen::Vector4d &config
     double gamma = configSpace(0), theta = configSpace(1), alpha = configSpace(2), d = configSpace(3);
     double x,y,z,psi;
 
-    if(abs(alpha) < 0.0001)
+    if(std::abs(alpha) < 0.0001)
     {
         x = 0;
         y = 0;
@@ -473,7 +473,7 @@ Eigen::Matrix4d Kinematics_4DOF::JacobianNumericTaskSpace(const Eigen::Vector4d 
     double psi3 = (psi3plus - psi3minus)/(2*del_);
 
     Eigen::Matrix4d J;
-    if(abs(alpha) < 0.0001){
+    if(std::abs(alpha) < 0.0001){
         J << 1e-12, delx3, delx4, delx1,
              dely2, 1e-12, dely4, dely1,
              delz2, delz3, delz4, delz1,
@@ -493,7 +493,7 @@ Eigen::Vector4d Kinematics_4DOF::JacobianStep(const Eigen::Vector4d &currTask, c
 {
     Eigen::Vector4d dxyzpsi = targetTask - currTask;
     dxyzpsi(3) = wrapToPi(dxyzpsi(3));
-    double normXYZ = dxyzpsi.segment<3>(0).norm(), errorRot = abs(dxyzpsi(3));
+    double normXYZ = dxyzpsi.segment<3>(0).norm(), errorRot = std::abs(dxyzpsi(3));
     double euclThresh = 1.5;
     double rotThresh = pi/5;
 
@@ -512,7 +512,7 @@ Eigen::Vector4d Kinematics_4DOF::JacobianStep(const Eigen::Vector4d &currTask, c
         if(normXYZ > euclThresh)
             dxyzpsi.segment<3>(0) *= euclThresh/normXYZ;
         // don't rotate more than 36 degrees at a time
-        if(abs(dxyzpsi(3)) > rotThresh)
+        if(std::abs(dxyzpsi(3)) > rotThresh)
             dxyzpsi(3) = boost::math::copysign(rotThresh, dxyzpsi(3));
 
         // numerically compute Jacobian
@@ -530,7 +530,7 @@ Eigen::Vector4d Kinematics_4DOF::JacobianStep(const Eigen::Vector4d &currTask, c
 
         if(newConfig(2) < 0.0) // gamma, theta, alpha, d
         {
-            newConfig(2) = abs(newConfig(2));
+            newConfig(2) = std::abs(newConfig(2));
             newConfig(1) = wrapToPi(newConfig(1) + pi);
         }
 
@@ -542,7 +542,7 @@ Eigen::Vector4d Kinematics_4DOF::JacobianStep(const Eigen::Vector4d &currTask, c
         dxyzpsi = targetTask - newTask;
         dxyzpsi(3) = wrapToPi(dxyzpsi(3));
         normXYZ = dxyzpsi.segment<3>(0).norm();
-        errorRot = abs(dxyzpsi(3));
+        errorRot = std::abs(dxyzpsi(3));
 
         isNotConverged = (normXYZ > 0.01) || (errorRot > 0.01);
 
@@ -564,7 +564,7 @@ Eigen::Vector4d Kinematics_4DOF::JacobianStepSingle(const Eigen::Vector4d &currT
 {
     Eigen::Vector4d dxyzpsi = targetTask - currTask;
     dxyzpsi(3) = wrapToPi(dxyzpsi(3));
-    double normXYZ = dxyzpsi.segment<3>(0).norm(), errorRot = abs(dxyzpsi(3));
+    double normXYZ = dxyzpsi.segment<3>(0).norm(), errorRot = std::abs(dxyzpsi(3));
     double euclThresh = 1.5;
     double rotThresh = pi/5;
 
@@ -579,7 +579,7 @@ Eigen::Vector4d Kinematics_4DOF::JacobianStepSingle(const Eigen::Vector4d &currT
         if(normXYZ > euclThresh)
             dxyzpsi.segment<3>(0) *= euclThresh/normXYZ;
         // don't rotate more than 36 degrees at a time
-        if(abs(dxyzpsi(3)) > rotThresh)
+        if(std::abs(dxyzpsi(3)) > rotThresh)
             dxyzpsi(3) = boost::math::copysign(rotThresh, dxyzpsi(3));
 
         // numerically compute Jacobian
@@ -614,12 +614,12 @@ bool Kinematics_4DOF::fZeroAlpha(const double c, double &alpha)
         y = 1.0 - cos(a0) - a0*c; // function
         yprime = sin(a0) - c;     // 1st derivative
 
-        if(abs(yprime) < 1.0e-14)
+        if(std::abs(yprime) < 1.0e-14)
             break;
 
         a1 = a0 - y/yprime;
 
-        if(abs(a1 - a0) <= (1.0e-7 * abs(a1)) )
+        if(std::abs(a1 - a0) <= (1.0e-7 * std::abs(a1)) )
         {
             printf("Found solution in %d steps.\n", i+1);
             foundSoln = true;
