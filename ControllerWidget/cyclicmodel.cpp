@@ -381,7 +381,7 @@ void CyclicModel::retrainModel()
             double t_minus_t_begin;
             for(size_t i = 0; i < N_FILTERED; i++)
             {
-                t_minus_t_begin = m_timeData_new[i+EDGE_EFFECT] - m_timeData_init[0];
+                t_minus_t_begin = m_timeData_new[i+EDGE_EFFECT] - m_timeData_init[EDGE_EFFECT];
 
                 if(m_isInVivo)
                 {
@@ -433,7 +433,7 @@ void CyclicModel::retrainModel()
         // get predictions based on the models
         double t0 = m_timeData_new.back();
         double t1 = t0; // + 0.0; fudge factor may be needed?
-        double t2 = (m_nFutureSamples - EDGE_EFFECT)*SAMPLE_DELTA_TIME;
+        double t2 = t1 + (m_nFutureSamples - EDGE_EFFECT)*SAMPLE_DELTA_TIME;
         getPrediction7Axis(t1, m_BBfixed_CT_polar, m_BBfixed_CT_rectangular, m_BBfixed_CT_des);
         getPrediction7Axis(t2, m_BBfixed_CT_polar, m_BBfixed_CT_rectangular, m_BBfixed_CTtraj_future_des);
         getPrediction7Axis(t1, m_BBfixed_BB_polar, m_BBfixed_BB_rectangular, m_BBfixed_BB_des);
@@ -519,6 +519,7 @@ void CyclicModel::setInVivo(const bool isInVivo)
 
 void CyclicModel::filterTrainingData()
 {
+    // TODO: run concurrent?
     m_LowPassFilter.run(m_BBfixed_CT, m_BBfixed_CT_filtered);
     //m_LowPassFilter.run(m_BBfixed_Instr, m_BBfixed_Instr_filtered);
     m_LowPassFilter.run(m_BBfixed_BB, m_BBfixed_BB_filtered);
@@ -577,13 +578,13 @@ double CyclicModel::peakDetector(const bool runForInit)
     // if initializing, then use "m_timeData_init", otherwise use "m_timeData_new"
     if(runForInit){
         for(auto it = peakIdx.begin(); it != peakIdx.end(); ++it){
-            peaksTime.emplace_back(m_timeData_init[*it]);
+            peaksTime.emplace_back(m_timeData_init[(*it) + EDGE_EFFECT]);
         }
         std::cout << "///runForInit///" << std::endl;
     }
     else{
         for(auto it = peakIdx.begin(); it != peakIdx.end(); ++it){
-            peaksTime.emplace_back(m_timeData_new[*it]);
+            peaksTime.emplace_back(m_timeData_new[(*it) + EDGE_EFFECT]);
         }
         std::cout << "///m_timeData_new///" << std::endl;
     }
@@ -768,7 +769,8 @@ double CyclicModel::peakDetector(const bool runForInit)
         {
             printf("period_old: %.3f | minTimeDiff: %.3f | mean[0]: %.3f | m_timeData_new[0]: %.3f\n",
                 period_old, minTimeDiff, mean[0], m_timeData_new[0]); fflush(stdout);
-            period_new = period_old*(1.0 - minTimeDiff/(mean[0] - m_timeData_new[0])); // mean[minIdx], m_timeData_init[EDGE_EFFECT]
+            period_new = period_old*(1.0 - minTimeDiff/(mean[0] - m_timeData_new[EDGE_EFFECT])); // mean[minIdx], m_timeData_init[EDGE_EFFECT]
+            //period_new = period_old*(1.0 - minTimeDiff/(mean[0] - m_timeData_init[EDGE_EFFECT])); // mean[minIdx], m_timeData_init[EDGE_EFFECT]
 
             if(m_isInVivo) // in vivo mode
             {
