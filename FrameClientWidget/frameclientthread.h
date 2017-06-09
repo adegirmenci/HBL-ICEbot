@@ -107,6 +107,7 @@ public slots:
                           int sensorID,
                           DOUBLE_POSITION_MATRIX_TIME_Q_RECORD data);
     void receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD> readings);
+    void receive_T_CT(std::vector<double> T_BB_CT, double time);
     void handleTcpError(QAbstractSocket::SocketError error);
     void connectedToHost();
     void disconnectedFromHost();

@@ -747,6 +747,7 @@ double CyclicModel::peakDetector(const bool runForInit)
         Eigen::MatrixXd peakTimeDiff = Eigen::MatrixXd::Zero(m_respPeakMean.size(), mean.size());
 		Eigen::VectorXd timeDiff = Eigen::VectorXd::Zero(m_respPeakMean.size());
         double minTimeDiff;
+        Eigen::VectorXd::Index minIdx;
 
         for(size_t iMeanModel = 0; iMeanModel < m_respPeakMean.size(); iMeanModel++)
         {
@@ -754,24 +755,20 @@ double CyclicModel::peakDetector(const bool runForInit)
             {
                 peakTimeDiff(iMeanModel,jMeanMeas) = m_respPeakMean[iMeanModel] - mean[jMeanMeas];
             }
-//            Eigen::VectorXd::Index maxIdx;
-//            peakTimeDiff.row(iMeanModel).cwiseAbs().maxCoeff(&maxIdx);
-//            timeDiff[iMeanModel] = peakTimeDiff(iMeanModel,maxIdx);
-            timeDiff(iMeanModel) = peakTimeDiff.row(iMeanModel).cwiseAbs().minCoeff();
+
+            peakTimeDiff.row(iMeanModel).cwiseAbs().minCoeff(&minIdx);
+            timeDiff[iMeanModel] = peakTimeDiff(iMeanModel,minIdx);
         }
-        Eigen::VectorXd::Index minIdx;
         timeDiff.cwiseAbs().minCoeff(&minIdx);
         minTimeDiff = timeDiff(minIdx);
 //        minTimeDiff = timeDiff.cwiseAbs().minCoeff();
-
-        // FFT method over
 
         double period_new;
         if(mean.size() > 0)
         {
             printf("period_old: %.3f | minTimeDiff: %.3f | mean[0]: %.3f | m_timeData_new[0]: %.3f\n",
-				period_old, minTimeDiff, mean[0], m_timeData_new[0]); fflush(stdout);
-            period_new = period_old*(1.0 - minTimeDiff/(mean[0] - m_timeData_new[0])); // mean[minIdx]
+                period_old, minTimeDiff, mean[0], m_timeData_new[0]); fflush(stdout);
+            period_new = period_old*(1.0 - minTimeDiff/(mean[0] - m_timeData_new[0])); // mean[minIdx], m_timeData_init[EDGE_EFFECT]
 
             if(m_isInVivo) // in vivo mode
             {
@@ -1311,7 +1308,7 @@ Eigen::VectorXd CyclicModel::cycle_recalculate_concurrentV(const EigenVectorFilt
         x_polar(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + atan2(x_init(i + m + 1), x_init(i + 1)); // theta = i*omega*T + phi, (rad)
     }
 
-    Eigen::VectorXd result(N_POLAR + N_RECT);;
+    Eigen::VectorXd result(N_POLAR + N_RECT);
     result << x_polar, x_rect;
 
     return result;

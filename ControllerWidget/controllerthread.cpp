@@ -184,6 +184,8 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX
     {
         QDateTime t; t.setMSecsSinceEpoch(readings[EM_SENSOR_BT].time*1000.0);
         emit logData(t.time(), m_numCycles, CONTROLLER_T_BB_CT_curTipPos, T_BB_CT_curTipPos);
+
+        emit send_CT_toFrameClient(T_BB_CT_curTipPos, readings[EM_SENSOR_BT].time);
     }
 
     if(m_respModelInitializing)

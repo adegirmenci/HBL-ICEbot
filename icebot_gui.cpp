@@ -72,8 +72,10 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
             ui->frameClientWidget->m_worker, SLOT(receiveFrame(std::shared_ptr<Frame>)));
 //    connect(ui->emWidget->m_worker, SIGNAL(logData(QTime,int,DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)),
 //            ui->frameClientWidget->m_worker, SLOT(receiveEMreading(QTime,int,DOUBLE_POSITION_MATRIX_TIME_Q_RECORD)));
-    connect(ui->emWidget->m_worker, SIGNAL(sendLatestReading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD>)),
-            ui->frameClientWidget->m_worker, SLOT(receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD>)));
+//    connect(ui->emWidget->m_worker, SIGNAL(sendLatestReading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD>)),
+//            ui->frameClientWidget->m_worker, SLOT(receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD>)));
+    connect(ui->controlWidget->m_worker, SIGNAL(send_CT_toFrameClient(std::vector<double>,double)),
+            ui->frameClientWidget->m_worker, SLOT(receive_T_CT(std::vector<double>,double)));
 
     // Controller to EPOS
     connect(ui->controlWidget->m_worker, SIGNAL(setEPOSservoTargetPos(std::vector<long>,bool)),
@@ -81,8 +83,8 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
 
     // Controller to frame grabber
     // FIXME: don't forget to uncomment this
-//    connect(ui->controlWidget, SIGNAL(startControlCycle()), ui->frmGrabWidget, SLOT(controlStarted()));
-//    connect(ui->controlWidget, SIGNAL(stopControlCycle()), ui->frmGrabWidget, SLOT(controlStopped()));
+    connect(ui->controlWidget, SIGNAL(startControlCycle()), ui->frmGrabWidget, SLOT(controlStarted()));
+    connect(ui->controlWidget, SIGNAL(stopControlCycle()), ui->frmGrabWidget, SLOT(controlStopped()));
 
     // get current date time
     m_epoch = QDateTime::currentDateTime();
@@ -103,4 +105,11 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
 ICEbot_GUI::~ICEbot_GUI()
 {
     delete ui;
+}
+
+void ICEbot_GUI::closeEvent(QCloseEvent *event)
+{
+    event->accept();
+
+    qApp->quit();
 }

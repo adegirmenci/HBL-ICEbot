@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QDebug>
 
+#include <QCloseEvent>
+
 #include <QDateTime>
 
 namespace Ui {
@@ -22,6 +24,8 @@ private slots:
 
 private:
     Ui::ICEbot_GUI *ui;
+
+    void closeEvent(QCloseEvent *event);
 
     QDateTime m_epoch;
 };

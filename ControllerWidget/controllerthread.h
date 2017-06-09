@@ -102,6 +102,8 @@ signals:
     void finished(); // emit upon termination
     void setEPOSservoTargetPos(std::vector<long> targetPos, bool moveAbsOrRel);
 
+    void send_CT_toFrameClient(std::vector<double> T_BB_CT_curTipPos, double time);
+
     void sendDataToRespModelWidget(int numSamples,
                                    bool isTrained,
                                    bool inVivoMode,

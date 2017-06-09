@@ -173,6 +173,41 @@ void FrameClientThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRI
         m_keepStreaming = true;
 }
 
+void FrameClientThread::receive_T_CT(std::vector<double> T_BB_CT, double time)
+{
+    QMutexLocker locker(m_mutex);
+
+    if(m_currFrame && (T_BB_CT.size() == 16))
+    {
+        qint64 tBirdCurr(m_currBird.data.time*1000);
+        qint64 tBirdNext(time*1000);
+        qint64 diffCurr = qAbs(m_currFrame->timestamp_ - tBirdCurr);
+        qint64 diffNext = qAbs(m_currFrame->timestamp_ - tBirdNext);
+
+        if(diffNext < diffCurr)
+        {
+            m_currBird.data.s[0][0] = T_BB_CT[0];
+            m_currBird.data.s[0][1] = T_BB_CT[1];
+            m_currBird.data.s[0][2] = T_BB_CT[2];
+            m_currBird.data.x = T_BB_CT[3];
+            m_currBird.data.s[1][0] = T_BB_CT[4];
+            m_currBird.data.s[1][1] = T_BB_CT[5];
+            m_currBird.data.s[1][2] = T_BB_CT[6];
+            m_currBird.data.y = T_BB_CT[7];
+            m_currBird.data.s[2][0] = T_BB_CT[8];
+            m_currBird.data.s[2][1] = T_BB_CT[9];
+            m_currBird.data.s[2][2] = T_BB_CT[10];
+            m_currBird.data.z = T_BB_CT[11];
+            m_currBird.data.time = time;
+            m_currBird.sensorID = EM_SENSOR_BT;
+            m_currBird.timeStamp = QTime::currentTime();
+        }
+    }
+
+    if(m_currFrame)
+        m_keepStreaming = true;
+}
+
 void FrameClientThread::connectedToHost()
 {
     emit statusChanged(FRMCLNT_CONNECTED);
