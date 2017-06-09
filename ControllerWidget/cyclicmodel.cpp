@@ -381,8 +381,7 @@ void CyclicModel::retrainModel()
             double t_minus_t_begin;
             for(size_t i = 0; i < N_FILTERED; i++)
             {
-                // t_minus_t_begin = m_timeData_new[i+EDGE_EFFECT] - m_timeData_init[0];
-                t_minus_t_begin = m_timeData_new[0] - m_timeData_init[0];
+                t_minus_t_begin = m_timeData_new[i+EDGE_EFFECT] - m_timeData_init[0];
 
                 if(m_isInVivo)
                 {
@@ -736,8 +735,17 @@ double CyclicModel::peakDetector(const bool runForInit)
             return period_old;
         }
 
+		if (mean.size() == 0)
+		{
+			printf("mean.size() == 0");
+			return period_old;
+		}
+
+		printf(".");
+		std::cout << " ." << std::endl;
+
         Eigen::MatrixXd peakTimeDiff = Eigen::MatrixXd::Zero(m_respPeakMean.size(), mean.size());
-        Eigen::VectorXd timeDiff = Eigen::VectorXd::Zero(mean.size());
+		Eigen::VectorXd timeDiff = Eigen::VectorXd::Zero(m_respPeakMean.size());
         double minTimeDiff;
 
         for(size_t iMeanModel = 0; iMeanModel < m_respPeakMean.size(); iMeanModel++)
@@ -749,11 +757,11 @@ double CyclicModel::peakDetector(const bool runForInit)
 //            Eigen::VectorXd::Index maxIdx;
 //            peakTimeDiff.row(iMeanModel).cwiseAbs().maxCoeff(&maxIdx);
 //            timeDiff[iMeanModel] = peakTimeDiff(iMeanModel,maxIdx);
-            timeDiff[iMeanModel] = peakTimeDiff.row(iMeanModel).cwiseAbs().minCoeff();
+            timeDiff(iMeanModel) = peakTimeDiff.row(iMeanModel).cwiseAbs().minCoeff();
         }
         Eigen::VectorXd::Index minIdx;
         timeDiff.cwiseAbs().minCoeff(&minIdx);
-        minTimeDiff = timeDiff[minIdx];
+        minTimeDiff = timeDiff(minIdx);
 //        minTimeDiff = timeDiff.cwiseAbs().minCoeff();
 
         // FFT method over
@@ -762,7 +770,7 @@ double CyclicModel::peakDetector(const bool runForInit)
         if(mean.size() > 0)
         {
             printf("period_old: %.3f | minTimeDiff: %.3f | mean[0]: %.3f | m_timeData_new[0]: %.3f\n",
-                   period_old, minTimeDiff, mean[0], m_timeData_new[0]);
+				period_old, minTimeDiff, mean[0], m_timeData_new[0]); fflush(stdout);
             period_new = period_old*(1.0 - minTimeDiff/(mean[0] - m_timeData_new[0])); // mean[minIdx]
 
             if(m_isInVivo) // in vivo mode
@@ -785,7 +793,7 @@ double CyclicModel::peakDetector(const bool runForInit)
             printf("Mean is empty.\n");
     }
 
-    std::cout << "Period: " << period << std::endl;
+    std::cout << "Period: " << period << std::endl << std::flush;
 
     return period;
 }
@@ -815,6 +823,12 @@ void CyclicModel::peakDetectorForBreathModel()
     for(auto it = peakIdx.begin(); it != peakIdx.end(); ++it){
         peaksTime.emplace_back(m_timeData_new[*it + EDGE_EFFECT]);
     }
+
+	if (peaksTime.size() == 0)
+	{
+		std::cout << "PeakDetector is in trouble! peaksTime.size is 0" << std::endl;
+		return;
+	}
 
     // take the difference of time stamps
     std::vector<double> peaksTdiff; peaksTdiff.reserve(peaksTime.size() - 1);
