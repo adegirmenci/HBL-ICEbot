@@ -328,9 +328,9 @@ void AscensionThread::getSample() // called by timer
         else
             qDebug() << "Invalid data received, sensorID:" << m_sensorID;
     }
-    if( m_i == 0 ){
-        std::printf("EM rate: %.3f ms\n", m_avgSamplingFreq*1000.0);
-    }
+//    if( m_i == 0 ){
+//        std::printf("EM rate: %.3f ms\n", m_avgSamplingFreq*1000.0);
+//    }
     m_i = (m_i + 1)%(int)(m_samplingFreq/10);
 
     // emit m_latestReading for use with the controller

@@ -138,6 +138,9 @@ void CyclicModel::addTrainingObservation(const EigenAffineTransform3d &T_BB_CT_c
 
 void CyclicModel::addObservation(const EigenAffineTransform3d &T_Bird4, const double sampleTime)
 {
+    printf("Entering addObservation\n");
+    fflush(stdout);
+
     if(m_isTrained)
     {
         QElapsedTimer elTimer;
@@ -161,13 +164,16 @@ void CyclicModel::addObservation(const EigenAffineTransform3d &T_Bird4, const do
 
         qint64 elNsec = elTimer.nsecsElapsed();
         printf("Insert new obs: %d ns\n", elNsec);
+        fflush(stdout);
 
         // up to here take about 3 microseconds
 
         // Retrain model
-        std::cout << "Retrain model ";
+        std::cout << "Retrain model...";
+        fflush(stdout);
         retrainModel();
-        std::cout << "done." << std::endl;
+        std::cout << "...done." << std::endl;
+        fflush(stdout);
     }
     else
     {
@@ -327,33 +333,7 @@ void CyclicModel::retrainModel()
 //            breathing_signal_model.push_back(breathing_signal_value);
 //        }
 
-        // update the prediction of m_breathSignalFromModel
-        double t_minus_t_begin;
-        for(size_t i = 0; i < N_FILTERED; i++)
-        {
-            t_minus_t_begin = m_timeData_new[i+EDGE_EFFECT] - m_timeData_init[0];
 
-            if(m_isInVivo)
-            {
-                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                // FIXME : do we need to differentiate b/w in vivo and benchtop?
-                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                m_breathSignalFromModel(i) = -1.0*getPrediction(t_minus_t_begin, m_Bird4_polar, m_Bird4_rectangular);
-                // WE'RE NOT SURE IF THIS -1.0 IS SUPPOSED TO BE HERE !!!!!!!!!!
-            }
-            else
-            {
-
-                m_breathSignalFromModel(i) = getPrediction(t_minus_t_begin, m_Bird4_polar, m_Bird4_rectangular);
-            }
-        }
-
-        // update period / freq
-        updatePeriod( peakDetector(false) );
-
-        elNsec = elTimer.nsecsElapsed();
-        printf("Update period: %d ns\n", elNsec);
-        elTimer.restart();
 
         // update Fourier components
 //        cycle_recalculate(m_BBfixed_CT_filtered, m_BBfixed_CT_rectangular, m_BBfixed_CT_polar);
@@ -374,23 +354,63 @@ void CyclicModel::retrainModel()
         if( (mConcurrent1.resultCount() > 0) && (mConcurrent2.resultCount() > 0) && (mConcurrent3.resultCount() > 0) )
         {
             m_BBfixed_CT_polarRect = mConcurrent1.result();
-            mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0);
+            // mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0);
             m_BBfixed_CT_polar = m_BBfixed_CT_polarRect.block(0,0, N_POLAR, 7);
             m_BBfixed_CT_rectangular = m_BBfixed_CT_polarRect.block(N_POLAR,0, N_RECT, 7);
 //        }
 //        if(mConcurrent2.resultCount() > 0)
 //        {
             m_BBfixed_BB_polarRect = mConcurrent2.result();
-            mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0);
+            // mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0);
             m_BBfixed_BB_polar = m_BBfixed_BB_polarRect.block(0,0, N_POLAR, 7);
             m_BBfixed_BB_rectangular = m_BBfixed_BB_polarRect.block(N_POLAR,0, N_RECT, 7);
 //        }
 //        if(mConcurrent3.resultCount() > 0)
 //        {
             m_Bird4_polarRect = mConcurrent3.result();
+            // mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered_new, m_omega0); // m_Bird4_filtered
+            m_Bird4_polar = m_Bird4_polarRect.segment(0, N_POLAR);
+            m_Bird4_rectangular = m_Bird4_polarRect.segment(N_POLAR, N_RECT);
+
+            elNsec = elTimer.nsecsElapsed();
+            std::cout << "Cycle recalc x2+x1 Nsec elapsed: " << elNsec << std::endl;
+            elTimer.restart();
+
+
+            // update the prediction of m_breathSignalFromModel
+            double t_minus_t_begin;
+            for(size_t i = 0; i < N_FILTERED; i++)
+            {
+                // t_minus_t_begin = m_timeData_new[i+EDGE_EFFECT] - m_timeData_init[0];
+                t_minus_t_begin = m_timeData_new[0] - m_timeData_init[0];
+
+                if(m_isInVivo)
+                {
+                    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    // FIXME : do we need to differentiate b/w in vivo and benchtop?
+                    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    m_breathSignalFromModel(i) = -1.0*getPrediction(t_minus_t_begin, m_Bird4_polar, m_Bird4_rectangular);
+                    // WE'RE NOT SURE IF THIS -1.0 IS SUPPOSED TO BE HERE !!!!!!!!!!
+                }
+                else
+                {
+
+                    m_breathSignalFromModel(i) = getPrediction(t_minus_t_begin, m_Bird4_polar, m_Bird4_rectangular);
+                }
+            }
+
+            // update period / freq
+            updatePeriod( peakDetector(false) );
+
+            elNsec = elTimer.nsecsElapsed();
+            printf("Update period: %d ns\n", elNsec);
+            fflush(stdout);
+            elTimer.restart();
+
+
+            mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0);
+            mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0);
             mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered_new, m_omega0); // m_Bird4_filtered
-            m_Bird4_polar      = m_Bird4_polarRect.segment(0, N_POLAR);
-            m_Bird4_rectangular      = m_Bird4_polarRect.segment(N_POLAR, N_RECT);
         }
         else
         {
@@ -410,11 +430,6 @@ void CyclicModel::retrainModel()
 //            if( !mConcurrent3.isRunning()) // not running
 //                mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered, m_omega0);
         }
-
-
-        elNsec = elTimer.nsecsElapsed();
-        std::cout << "Cycle recalc x2+x1 Nsec elapsed: " << elNsec << std::endl;
-        elTimer.restart();
 
         // get predictions based on the models
         double t0 = m_timeData_new.back();
@@ -459,6 +474,8 @@ double CyclicModel::getPrediction(const double timeShift, const EigenVectorPolar
     else
     {
         x_des = std::numeric_limits<double>::quiet_NaN();
+        printf("quiet_NaN!!!\n");
+        fflush(stdout);
     }
 
     return x_des ;
@@ -488,6 +505,8 @@ void CyclicModel::getPrediction7Axis(const double timeShift, const EigenMatrixPo
     {
         //X_des = EigenVector7d::Zero();
         X_des = EigenVector7d::Constant(std::numeric_limits<double>::quiet_NaN());
+        printf("quiet_NaN7!!!\n");
+        fflush(stdout);
     }
 }
 
@@ -642,7 +661,7 @@ double CyclicModel::peakDetector(const bool runForInit)
     // better not be empty
     if(peakTimesLeft.size() < 1)
     {
-        std::cout << "PeakDetector is in trouble 2!\n" << std::endl;
+        std::cout << "PeakDetector is in trouble 2!\n" << std::endl << std::flush;
         return BREATH_RATE;
     }
 
@@ -672,6 +691,7 @@ double CyclicModel::peakDetector(const bool runForInit)
     else
     {
         period = BREATH_RATE;
+        printf("Not enough means\n");
     }
 
     if(runForInit)
@@ -683,7 +703,7 @@ double CyclicModel::peakDetector(const bool runForInit)
         // between 4 - 5.5 seconds
         if(m_isInVivo)
         {   // clamp
-            if( (period < (BREATH_RATE*0.9)) || (period > (BREATH_RATE*1.1)) )
+            if( (period < (BREATH_RATE*0.8)) || (period > (BREATH_RATE*1.2)) )
                 period = BREATH_RATE;
         }
     }
@@ -726,28 +746,43 @@ double CyclicModel::peakDetector(const bool runForInit)
             {
                 peakTimeDiff(iMeanModel,jMeanMeas) = m_respPeakMean[iMeanModel] - mean[jMeanMeas];
             }
-            Eigen::VectorXd::Index maxIdx;
-            peakTimeDiff.row(iMeanModel).cwiseAbs().maxCoeff(&maxIdx);
-            timeDiff[iMeanModel] = peakTimeDiff(iMeanModel,maxIdx);
+//            Eigen::VectorXd::Index maxIdx;
+//            peakTimeDiff.row(iMeanModel).cwiseAbs().maxCoeff(&maxIdx);
+//            timeDiff[iMeanModel] = peakTimeDiff(iMeanModel,maxIdx);
+            timeDiff[iMeanModel] = peakTimeDiff.row(iMeanModel).cwiseAbs().minCoeff();
         }
         Eigen::VectorXd::Index minIdx;
         timeDiff.cwiseAbs().minCoeff(&minIdx);
         minTimeDiff = timeDiff[minIdx];
+//        minTimeDiff = timeDiff.cwiseAbs().minCoeff();
 
-        double period_new = period_old*(1.0 - minTimeDiff/(mean[0]-m_timeData_new[0])); // m_timeData_old[0]
+        // FFT method over
 
-        if(m_isInVivo) // in vivo mode
+        double period_new;
+        if(mean.size() > 0)
         {
-            if( (period_new < (BREATH_RATE*0.9)) || (period > (BREATH_RATE*1.1)) )
-                period_new = period_old;
-        }
-        else // benchtop mode
-        {
-            if( (period_new < (period_old*0.9)) || (period > (period_old*1.1)) )
-                period_new = period_old;
-        }
+            printf("period_old: %.3f | minTimeDiff: %.3f | mean[0]: %.3f | m_timeData_new[0]: %.3f\n",
+                   period_old, minTimeDiff, mean[0], m_timeData_new[0]);
+            period_new = period_old*(1.0 - minTimeDiff/(mean[0] - m_timeData_new[0])); // mean[minIdx]
 
-        period = period_new;
+            if(m_isInVivo) // in vivo mode
+            {
+                if( (period_new < (BREATH_RATE*0.9)) || (period_new > (BREATH_RATE*1.1)) )
+                    period_new = period_old;
+            }
+            else // benchtop mode
+            {
+                if( (period_new < (period_old*0.9)) || (period_new > (period_old*1.1)) )
+                {
+                    printf("New period %.3f is oob, setting to old.\n", period_new);
+                    period_new = period_old;
+                }
+            }
+
+            period = period_new;
+        }
+        else
+            printf("Mean is empty.\n");
     }
 
     std::cout << "Period: " << period << std::endl;

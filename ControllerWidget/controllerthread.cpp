@@ -30,7 +30,7 @@ ControllerThread::ControllerThread(QObject *parent) :
     m_input_delPsi = 0.0;
     m_dXYZPsi << 0.0, 0.0, 0.0, 0.0;
 
-    m_mutex = new QMutex(QMutex::Recursive);
+    m_mutex = new QMutex(QMutex::NonRecursive);
 
     m_isReady = true;
 
@@ -583,6 +583,7 @@ void ControllerThread::setUSangle(double usAngle)
 
 void ControllerThread::initializeRespModel()
 {
+    QMutexLocker locker(m_mutex);
     // TODO : start sending data to m_respModel
     m_respModelInitializing = true;
 
@@ -726,7 +727,7 @@ void ControllerThread::controlCycle()
 
         // emit logData(QTime::currentTime(), newData);
 
-        std::cout << QTime::currentTime().toString().toStdString() << "Cycle:" << m_numCycles << std::endl;
+        std::cout << QTime::currentTime().toString().toStdString() << " Cycle:" << m_numCycles << std::endl;
 
         m_numCycles++;
     }

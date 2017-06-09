@@ -16,6 +16,8 @@ TEMPLATE = app
 #DEFINES += EIGEN_QT_SUPPORT
 #DEFINES *= QT_USE_QSTRINGBUILDER
 
+#DEFINES += QCUSTOMPLOT_USE_OPENGL
+
 SOURCES += main.cpp\
         icebot_gui.cpp \
     OmniWidget/omni.cpp \
