@@ -1,6 +1,7 @@
 #include "cyclicmodel.h"
 
-CyclicModel::CyclicModel()
+CyclicModel::CyclicModel(QObject *parent) :
+    QObject(parent)
 {
     resetModel();
 
@@ -66,7 +67,7 @@ void CyclicModel::resetModel()
     m_numSamples = 0; // number of observations added IN TOTAL
 
     m_isTrained = false; // is the model trained
-    m_lastTrainingTimestamp = 0.0; // when last training was performed
+    m_lastTrainingTimestamp = 0; // when last training was performed
     m_isInVivo = false; // are we in IN VIVO mode
 }
 
@@ -123,6 +124,9 @@ void CyclicModel::addTrainingObservation(const EigenAffineTransform3d &T_BB_CT_c
         m_Bird4.push_back(tempBird4);
         m_timeData_init.push_back(sampleTime);
 
+        // send to plotter
+        emit sendToPlotBird4(0, sampleTime, tempBird4);
+
         m_numSamples++;
     }
     else
@@ -139,7 +143,6 @@ void CyclicModel::addTrainingObservation(const EigenAffineTransform3d &T_BB_CT_c
 void CyclicModel::addObservation(const EigenAffineTransform3d &T_Bird4, const double sampleTime)
 {
     printf("Entering addObservation\n");
-    fflush(stdout);
 
     if(m_isTrained)
     {
@@ -160,20 +163,25 @@ void CyclicModel::addObservation(const EigenAffineTransform3d &T_Bird4, const do
         m_Bird4_new.push_back(tempBird4);
         m_timeData_new.push_back(sampleTime);
 
+        // send to plotter
+        emit sendToPlotBird4(0, sampleTime, tempBird4);
+
         m_numSamples++;
 
         qint64 elNsec = elTimer.nsecsElapsed();
         printf("Insert new obs: %d ns\n", elNsec);
-        fflush(stdout);
 
         // up to here take about 3 microseconds
 
         // Retrain model
         std::cout << "Retrain model...";
-        fflush(stdout);
         retrainModel();
         std::cout << "...done." << std::endl;
-        fflush(stdout);
+
+        // send to plotter
+        emit sendToPlotBird4(1, m_timeData_new[N_FILTERED+EDGE_EFFECT-1], m_Bird4_filtered_new.tail(1)[0]);
+        emit sendToPlotBird4(2, m_timeData_new[N_FILTERED+EDGE_EFFECT-1], m_breathSignalFromModel.tail(1)[0]);
+
     }
     else
     {
@@ -283,6 +291,8 @@ void CyclicModel::trainModel()
 
         std::cout << "Model created.\n" << std::endl;
 
+        m_lastTrainingTimestamp = QDateTime::currentMSecsSinceEpoch();
+
         // ************************************************************* //
         //                                                               //
         // copy all of the init data over to the containers for new data //
@@ -350,26 +360,21 @@ void CyclicModel::retrainModel()
 //        std::cout << "mConcurrent2.resultCount() " << mConcurrent2.resultCount() << mConcurrent2.isRunning() << mConcurrent2.isFinished()<< std::endl;
 //        std::cout << "mConcurrent3.resultCount() " << mConcurrent3.resultCount() << mConcurrent3.isRunning() << mConcurrent3.isFinished()<< std::endl;
 
-
         if( (mConcurrent1.resultCount() > 0) && (mConcurrent2.resultCount() > 0) && (mConcurrent3.resultCount() > 0) )
         {
             m_BBfixed_CT_polarRect = mConcurrent1.result();
             // mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0);
             m_BBfixed_CT_polar = m_BBfixed_CT_polarRect.block(0,0, N_POLAR, 7);
             m_BBfixed_CT_rectangular = m_BBfixed_CT_polarRect.block(N_POLAR,0, N_RECT, 7);
-//        }
-//        if(mConcurrent2.resultCount() > 0)
-//        {
+
             m_BBfixed_BB_polarRect = mConcurrent2.result();
             // mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0);
             m_BBfixed_BB_polar = m_BBfixed_BB_polarRect.block(0,0, N_POLAR, 7);
             m_BBfixed_BB_rectangular = m_BBfixed_BB_polarRect.block(N_POLAR,0, N_RECT, 7);
-//        }
-//        if(mConcurrent3.resultCount() > 0)
-//        {
+
             m_Bird4_polarRect = mConcurrent3.result();
             // mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered_new, m_omega0); // m_Bird4_filtered
-            m_Bird4_polar = m_Bird4_polarRect.segment(0, N_POLAR);
+            m_Bird4_polar = m_Bird4_polarRect.segment(0, N_POLAR); // segment(i,n) : i = start idx, n = num elements
             m_Bird4_rectangular = m_Bird4_polarRect.segment(N_POLAR, N_RECT);
 
             elNsec = elTimer.nsecsElapsed();
@@ -393,7 +398,6 @@ void CyclicModel::retrainModel()
                 }
                 else
                 {
-
                     m_breathSignalFromModel(i) = getPrediction(t_minus_t_begin, m_Bird4_polar, m_Bird4_rectangular);
                 }
             }
@@ -403,7 +407,6 @@ void CyclicModel::retrainModel()
 
             elNsec = elTimer.nsecsElapsed();
             printf("Update period: %d ns\n", elNsec);
-            fflush(stdout);
             elTimer.restart();
 
 
@@ -421,14 +424,30 @@ void CyclicModel::retrainModel()
 //                std::cout << "Start concurrent." << std::endl;
             }
 
-//            // TODO : is this the best way to test this? what if one of them finishes during these checks?
-//            if( (!mConcurrent1.isRunning()) ) // not running
-//                mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0);
-//            if( !mConcurrent2.isRunning()) // not running
-//                mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0);
-//            if( !mConcurrent3.isRunning()) // not running
-//                mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered, m_omega0);
+            // TODO : is this the best way to test this? what if one of them finishes during these checks?
+
+            // update the prediction of m_breathSignalFromModel
+            double t_minus_t_begin;
+            for(size_t i = 0; i < N_FILTERED; i++)
+            {
+                t_minus_t_begin = m_timeData_new[i+EDGE_EFFECT] - m_timeData_init[EDGE_EFFECT];
+
+                if(m_isInVivo)
+                {
+                    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    // FIXME : do we need to differentiate b/w in vivo and benchtop?
+                    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    m_breathSignalFromModel(i) = -1.0*getPrediction(t_minus_t_begin, m_Bird4_polar, m_Bird4_rectangular);
+                    // WE'RE NOT SURE IF THIS -1.0 IS SUPPOSED TO BE HERE !!!!!!!!!!
+                }
+                else
+                {
+                    m_breathSignalFromModel(i) = getPrediction(t_minus_t_begin, m_Bird4_polar, m_Bird4_rectangular);
+                }
+            }
         }
+
+        m_lastTrainingTimestamp = QDateTime::currentMSecsSinceEpoch();
 
         // get predictions based on the models
         double t0 = m_timeData_new.back();
@@ -437,7 +456,6 @@ void CyclicModel::retrainModel()
         getPrediction7Axis(t1, m_BBfixed_CT_polar, m_BBfixed_CT_rectangular, m_BBfixed_CT_des);
         getPrediction7Axis(t2, m_BBfixed_CT_polar, m_BBfixed_CT_rectangular, m_BBfixed_CTtraj_future_des);
         getPrediction7Axis(t1, m_BBfixed_BB_polar, m_BBfixed_BB_rectangular, m_BBfixed_BB_des);
-
 
         elNsec = elTimer.nsecsElapsed();
         std::cout << "getPrediction Nsec elapsed: " << elNsec << std::endl;
@@ -460,13 +478,15 @@ double CyclicModel::getPrediction(const double timeShift, const EigenVectorPolar
     // Make sure the time coming in is already (t1[j] - t_begin)
     double x_des;
 
+    using namespace std;
+
     if(m_isTrained)
     {
         x_des = 0.0;
 
         for (size_t i = 0; i < N_HARMONICS; i++)
         {
-            x_des += x_polar(i+1) * sin( (i+1.0)*x_polar(N_HARMONICS+1)*timeShift + atan2( x_rect(i+N_HARMONICS+1), x_rect(i+1) ) );
+            x_des += x_polar(i+1) * sin( ((double)i+1.0)*x_polar(N_HARMONICS+1)*timeShift + atan2( x_rect(i+N_HARMONICS+1), x_rect(i+1) ) );
         }
         x_des += x_polar(0);
     }
@@ -474,7 +494,6 @@ double CyclicModel::getPrediction(const double timeShift, const EigenVectorPolar
     {
         x_des = std::numeric_limits<double>::quiet_NaN();
         printf("quiet_NaN!!!\n");
-        fflush(stdout);
     }
 
     return x_des ;
@@ -488,8 +507,8 @@ void CyclicModel::getPrediction7Axis(const double timeShift, const EigenMatrixPo
     {
         X_des = EigenVector7d::Zero();
 
-        if(X_des.size() != 7)
-            printf("X_des.size() != 7\n");
+//        if(X_des.size() != 7)
+//            printf("X_des.size() != 7\n");
 
         for(size_t j = 0; j < X_des.size(); j++)
         {
@@ -505,7 +524,6 @@ void CyclicModel::getPrediction7Axis(const double timeShift, const EigenMatrixPo
         //X_des = EigenVector7d::Zero();
         X_des = EigenVector7d::Constant(std::numeric_limits<double>::quiet_NaN());
         printf("quiet_NaN7!!!\n");
-        fflush(stdout);
     }
 }
 
@@ -528,6 +546,7 @@ void CyclicModel::filterTrainingData()
 
 void CyclicModel::filterNewObservations()
 {
+    // TODO : only filter for the last added point
     m_LowPassFilter.run(m_Bird4_new, m_Bird4_filtered_new);
 }
 
@@ -742,9 +761,6 @@ double CyclicModel::peakDetector(const bool runForInit)
 			return period_old;
 		}
 
-		printf(".");
-		std::cout << " ." << std::endl;
-
         Eigen::MatrixXd peakTimeDiff = Eigen::MatrixXd::Zero(m_respPeakMean.size(), mean.size());
 		Eigen::VectorXd timeDiff = Eigen::VectorXd::Zero(m_respPeakMean.size());
         double minTimeDiff;
@@ -767,8 +783,8 @@ double CyclicModel::peakDetector(const bool runForInit)
         double period_new;
         if(mean.size() > 0)
         {
-            printf("period_old: %.3f | minTimeDiff: %.3f | mean[0]: %.3f | m_timeData_new[0]: %.3f\n",
-                period_old, minTimeDiff, mean[0], m_timeData_new[0]); fflush(stdout);
+            printf("period_old: %.3f | minTimeDiff: %.3f | mean[0]: %.3f | m_timeData_new[EDGE_EFFECT]: %.3f\n",
+                     period_old, minTimeDiff, mean[0], m_timeData_new[EDGE_EFFECT]);
             period_new = period_old*(1.0 - minTimeDiff/(mean[0] - m_timeData_new[EDGE_EFFECT])); // mean[minIdx], m_timeData_init[EDGE_EFFECT]
             //period_new = period_old*(1.0 - minTimeDiff/(mean[0] - m_timeData_init[EDGE_EFFECT])); // mean[minIdx], m_timeData_init[EDGE_EFFECT]
 
@@ -786,7 +802,7 @@ double CyclicModel::peakDetector(const bool runForInit)
                 }
             }
 
-            period = period_new;
+            //period = period_new;
         }
         else
             printf("Mean is empty.\n");
@@ -820,7 +836,7 @@ void CyclicModel::peakDetectorForBreathModel()
     std::vector<double> peaksTime; peaksTime.reserve(peakIdx.size());
     // read m_timeData_new
     for(auto it = peakIdx.begin(); it != peakIdx.end(); ++it){
-        peaksTime.emplace_back(m_timeData_new[*it + EDGE_EFFECT]);
+        peaksTime.emplace_back(m_timeData_new[(*it) + EDGE_EFFECT]);
     }
 
 	if (peaksTime.size() == 0)
@@ -894,7 +910,7 @@ void CyclicModel::peakDetectorForBreathModel()
 
 void CyclicModel::cycle_recalculate(const EigenMatrixFiltered &z_init,
                                     EigenMatrixRectangular &x_rect,
-                                    EigenMatrixPolar &x_polar)
+                                    EigenMatrixPolar &x_polar, const double omega0)
 {
     // TODO: add error checking to ensure that the vector size is correct
     if( z_init.cols() != 7 )
@@ -907,7 +923,7 @@ void CyclicModel::cycle_recalculate(const EigenMatrixFiltered &z_init,
     double delta_t = SAMPLE_DELTA_TIME; // Time step for each collected data point
     size_t N_initpts = N_SAMPLES;  // number of initialization points
     size_t edge_effect = EDGE_EFFECT;
-    double omega_0 = m_omega0;
+    double omega_0 = omega0;
 
     // calculate things from inputs
     size_t num_states = m * 2 + 2;
@@ -1037,7 +1053,7 @@ void CyclicModel::cycle_recalculate(const EigenMatrixFiltered &z_init,
     x_polar.col(6) = x_polar_angle;
 }
 
-void CyclicModel::cycle_recalculate(const EigenVectorFiltered &z_init, EigenVectorRectangular &x_rect, EigenVectorPolar &x_polar)
+void CyclicModel::cycle_recalculate(const EigenVectorFiltered &z_init, EigenVectorRectangular &x_rect, EigenVectorPolar &x_polar, const double omega0)
 {
     // TODO: add error checking to ensure that the vector size is correct
     if( z_init.rows() != N_FILTERED )
@@ -1048,7 +1064,7 @@ void CyclicModel::cycle_recalculate(const EigenVectorFiltered &z_init, EigenVect
     double delta_t = SAMPLE_DELTA_TIME; // Time step for each collected data point
     size_t N_initpts = N_SAMPLES;  // number of initialization points
     size_t edge_effect = EDGE_EFFECT;
-    double omega_0 = m_omega0;
+    double omega_0 = omega0;
 
     // calculate things from inputs
     size_t num_states = m * 2 + 2;
@@ -1072,6 +1088,7 @@ void CyclicModel::cycle_recalculate(const EigenVectorFiltered &z_init, EigenVect
     // Step 2. Use least squares estimate to solve for x.
     //VectorXd x_init_x = pseudoInverse(A_init) * z_init;
     Eigen::VectorXd x_init = A_init.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(z_init);
+//    Eigen::VectorXd x_init = A_init.colPivHouseholderQr().solve(z_init); // maybe faster?
 
     x_rect = x_init;
 
@@ -1164,6 +1181,13 @@ Eigen::MatrixXd CyclicModel::cycle_recalculate_concurrentM(const EigenMatrixFilt
     Eigen::VectorXd x_init_yaxis = A_init_yaxis.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(z_init_yaxis);
     Eigen::VectorXd x_init_zaxis = A_init_zaxis.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(z_init_zaxis);
     Eigen::VectorXd x_init_angle = A_init_angle.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(z_init_angle);
+//    Eigen::VectorXd x_init_x = A_init_x.colPivHouseholderQr().solve(z_init_x);
+//    Eigen::VectorXd x_init_y = A_init_y.colPivHouseholderQr().solve(z_init_y);
+//    Eigen::VectorXd x_init_z = A_init_z.colPivHouseholderQr().solve(z_init_z);
+//    Eigen::VectorXd x_init_xaxis = A_init_xaxis.colPivHouseholderQr().solve(z_init_xaxis);
+//    Eigen::VectorXd x_init_yaxis = A_init_yaxis.colPivHouseholderQr().solve(z_init_yaxis);
+//    Eigen::VectorXd x_init_zaxis = A_init_zaxis.colPivHouseholderQr().solve(z_init_zaxis);
+//    Eigen::VectorXd x_init_angle = A_init_angle.colPivHouseholderQr().solve(z_init_angle);
 
     EigenMatrixRectangular x_rect;
     x_rect.col(0) = x_init_x;
@@ -1257,7 +1281,6 @@ Eigen::VectorXd CyclicModel::cycle_recalculate_concurrentV(const EigenVectorFilt
     EigenVectorPolar x_polar;
     EigenVectorRectangular x_rect;
 
-
     // get all of the constants
     size_t m = N_HARMONICS; // m = number of sinusoid components
     double delta_t = SAMPLE_DELTA_TIME; // Time step for each collected data point
@@ -1286,7 +1309,8 @@ Eigen::VectorXd CyclicModel::cycle_recalculate_concurrentV(const EigenVectorFilt
 
     // Step 2. Use least squares estimate to solve for x.
     //VectorXd x_init_x = pseudoInverse(A_init) * z_init;
-    Eigen::VectorXd x_init = A_init.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(z_init);
+    //Eigen::VectorXd x_init = A_init.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(z_init);
+    Eigen::VectorXd x_init = A_init.colPivHouseholderQr().solve(z_init); // maybe faster?
 
     x_rect = x_init;
 
@@ -1307,7 +1331,7 @@ Eigen::VectorXd CyclicModel::cycle_recalculate_concurrentV(const EigenVectorFilt
 
     for (int i = 0; i < m; i++)
     {
-        x_polar(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + atan2(x_init(i + m + 1), x_init(i + 1)); // theta = i*omega*T + phi, (rad)
+        x_polar(i + m + 2) = ((double)i + 1.0)*omega_0*N_initpts*delta_t + atan2(x_init(i + m + 1), x_init(i + 1)); // theta = i*omega*T + phi, (rad)
     }
 
     Eigen::VectorXd result(N_POLAR + N_RECT);

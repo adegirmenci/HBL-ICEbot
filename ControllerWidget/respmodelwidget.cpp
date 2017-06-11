@@ -39,6 +39,8 @@ respModelWidget::respModelWidget(QWidget *parent) :
     // make left and bottom axes transfer their ranges to right and top axes:
     connect(ui->plotWidget->xAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotWidget->xAxis2, SLOT(setRange(QCPRange)));
     connect(ui->plotWidget->yAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotWidget->yAxis2, SLOT(setRange(QCPRange)));
+
+    m_lastPlotKey = 0.0;
 }
 
 respModelWidget::~respModelWidget()
@@ -121,7 +123,26 @@ void respModelWidget::receiveDataFromRespModel(int numSamples,
 //    }
 //    // make key axis range scroll with the data (at a constant range size of 8):
 //    //ui->plotWidget->xAxis->setRange(key+0.25, 8, Qt::AlignRight);
-//    ui->plotWidget->replot();
+    //    ui->plotWidget->replot();
+}
+
+void respModelWidget::plotBird4(unsigned int plotID, double time, double value)
+{
+    // printf(">>> plotBird4 Received\n");
+    ui->plotWidget->graph(plotID)->addData(time, value);
+
+    if(plotID == 0)
+    {
+        // make key axis range scroll with the data (at a constant range size of 8):
+        ui->plotWidget->xAxis->setRange(time, 15.0, Qt::AlignRight);
+        ui->plotWidget->graph(0)->rescaleValueAxis();
+
+        if( (time - m_lastPlotKey) > 0.030) // plot every 30ms
+        {
+            ui->plotWidget->replot();
+            m_lastPlotKey = time;
+        }
+    }
 }
 
 

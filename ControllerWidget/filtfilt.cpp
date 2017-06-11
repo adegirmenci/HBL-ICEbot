@@ -35,7 +35,7 @@ filtfilt::filtfilt()
 //           -0.000341437553206024,       -0.000460005562187752,        -0.000569727095790538};
 
     size_t filterOrder = FILTER_ORDER + 1; // must be odd!
-    double deltaT = 0.0234; // = SAMPLE_DELTA_TIME;
+    double deltaT = SAMPLE_DELTA_TIME; // 0.0234
     double samplingFreq = 1.0/deltaT;
     double band = (HEART_RATE/60./2.)/(samplingFreq/2.);
 

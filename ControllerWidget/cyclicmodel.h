@@ -1,6 +1,7 @@
 #ifndef CYCLICMODEL_H
 #define CYCLICMODEL_H
 
+#include <QObject>
 #include <vector>
 #include <algorithm>
 #include <iostream>
@@ -18,15 +19,17 @@
 #include <QElapsedTimer>
 #include <QtConcurrent/QtConcurrentRun>
 #include <QFuture>
+#include <QDateTime>
 
 #include "filtfilt.h"
 
 #include "../icebot_definitions.h"
 
-class CyclicModel
+class CyclicModel : public QObject
 {
+    Q_OBJECT
 public:
-    CyclicModel();
+    explicit CyclicModel(QObject *parent = 0);
     ~CyclicModel();
 
     // void operator = (const CyclicModel &Other);
@@ -79,6 +82,9 @@ public:
 
     void testLPF();
 
+signals:
+    void sendToPlotBird4(unsigned int plotID, double time, double val);
+
 private:
     void retrainModel();
 
@@ -98,10 +104,10 @@ private:
 
     void cycle_recalculate(const EigenMatrixFiltered &z_init,
                            EigenMatrixRectangular &x_rect,
-                           EigenMatrixPolar &x_polar);
+                           EigenMatrixPolar &x_polar, const double omega0);
     void cycle_recalculate(const EigenVectorFiltered &z_init,
                            EigenVectorRectangular &x_rect,
-                           EigenVectorPolar &x_polar);
+                           EigenVectorPolar &x_polar, const double omega0);
 
     Eigen::MatrixXd cycle_recalculate_concurrentM(const EigenMatrixFiltered &z_init, const double omega0);
     Eigen::VectorXd cycle_recalculate_concurrentV(const EigenVectorFiltered &z_init, const double omega0);
@@ -167,7 +173,7 @@ private:
     size_t m_numSamples; // number of observations added IN TOTAL
 
     bool m_isTrained; // is the model trained
-    double m_lastTrainingTimestamp; // when last training was performed
+    qint64 m_lastTrainingTimestamp; // when last training was performed
     bool m_isInVivo; // are we in IN VIVO mode
 
     // concurrent execution

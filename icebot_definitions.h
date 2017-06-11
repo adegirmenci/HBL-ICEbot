@@ -373,8 +373,8 @@ static const int CONTROLLER_LOOP_TIMER_MSEC = 1;
 // *************************
 
 #define FILTER_ORDER      50                        // LPF filter order
-#define SAMPLE_DELTA_TIME 0.006667 // 0.005992                  // delta time b/w EM readings
-#define HEART_RATE        120                       // animal heartrate
+#define SAMPLE_DELTA_TIME 0.005992 //0.006667       // delta time b/w EM readings
+#define HEART_RATE        80                       // animal heartrate
 #define N_HARMONICS       4                         // number of Fourier decomp harmonics
 #define N_STATES          N_HARMONICS*2 + 2         // number of states
 #define N_RECT            N_STATES - 1              // NUM_STATES of Rectangular components

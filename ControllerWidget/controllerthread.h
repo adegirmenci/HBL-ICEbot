@@ -199,8 +199,10 @@ private:
     Eigen::Vector4d m_dXYZPsi, m_deltaXYZPsiToTarget;
     double m_currGamma;
 
-    // Respiration Model
+public:
+    // Respiration Model -- this is public for now, change later
     CyclicModel m_respModel;
+private:
     bool m_respModelInitializing;
 
     // gains

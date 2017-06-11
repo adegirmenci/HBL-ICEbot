@@ -53,6 +53,9 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
     connect(m_worker, SIGNAL(sendDataToRespModelWidget(int,bool,bool,double)),
             m_respModelWidget, SLOT(receiveDataFromRespModel(int,bool,bool,double)));
 
+    connect(&(m_worker->m_respModel), SIGNAL(sendToPlotBird4(unsigned int, double, double)),
+            m_respModelWidget, SLOT(plotBird4(unsigned int,double,double)));
+
     // Initalize gains and limits to defaults
     gainWidget->on_setGainsButton_clicked();
     gainWidget->on_setLimitsButton_clicked();

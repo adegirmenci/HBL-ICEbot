@@ -46,10 +46,14 @@ private slots:
                                    //EigenVectorFiltered Bird4_filtered_new,
                                    //EigenVectorFiltered breathSignalFromModel);
 
+    void plotBird4(unsigned int plotID, double time, double value);
+
 private:
     Ui::respModelWidget *ui;
 
     void closeEvent(QCloseEvent *event);
+
+    double m_lastPlotKey; // to limit update rate of plot
 };
 
 #endif // RESPMODELWIDGET_H
