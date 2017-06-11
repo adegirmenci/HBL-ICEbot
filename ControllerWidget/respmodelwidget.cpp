@@ -135,7 +135,8 @@ void respModelWidget::plotBird4(unsigned int plotID, double time, double value)
     {
         // make key axis range scroll with the data (at a constant range size of 8):
         ui->plotWidget->xAxis->setRange(time, 15.0, Qt::AlignRight);
-        ui->plotWidget->graph(0)->rescaleValueAxis();
+        //ui->plotWidget->graph(0)->rescaleValueAxis();
+        ui->plotWidget->yAxis->rescale();
 
         if( (time - m_lastPlotKey) > 0.030) // plot every 30ms
         {
@@ -144,7 +145,6 @@ void respModelWidget::plotBird4(unsigned int plotID, double time, double value)
         }
     }
 }
-
 
 void respModelWidget::closeEvent(QCloseEvent *event)
 {

@@ -110,17 +110,11 @@ private:
                            EigenVectorPolar &x_polar, const double omega0);
 
     Eigen::MatrixXd cycle_recalculate_concurrentM(const EigenMatrixFiltered &z_init, const double omega0);
-    Eigen::VectorXd cycle_recalculate_concurrentV(const EigenVectorFiltered &z_init, const double omega0);
+    Eigen::VectorXd cycle_recalculate_concurrentV(const EigenVectorFiltered &z_init, const double omega0, const std::vector<double> &timeData);
     // data members
 
     // Low Pass Filter
     filtfilt m_LowPassFilter;
-
-    // in order to use deque with Eigen Transform, we need the typedef above
-//    EigenDequeAffineTform3d m_BBfixed_CT,    // this stores all of the incoming CT points
-//                            m_BBfixed_Instr, // this stores all of the incoming instr_x points
-//                            m_BBfixed_BB,    // this stores all of the incoming BB points
-//                            m_Bird4;         // this stores all of the incoming 4th EM sensor points
 
     // UNFILTERED DATA
     // x,y,z,xaxis,yaxis,zaxis,angle - only needed for training
@@ -128,9 +122,6 @@ private:
     EigenStdVecVector7d m_BBfixed_CT,   // this stores all of the incoming CT points
                        m_BBfixed_Instr, // this stores all of the incoming instr_x points
                        m_BBfixed_BB;    // this stores all of the incoming BB points
-//    std::vector<std::vector<double>> m_BBfixed_CT,   // this stores all of the incoming CT points
-//                       m_BBfixed_Instr, // this stores all of the incoming instr_x points
-//                       m_BBfixed_BB;    // this stores all of the incoming BB points
     // for the chest tracker, we only the need the x (benchtop) or -z (in vivo) axis of this
     std::vector<double> m_Bird4,     // this remains constant after initialization
                         m_Bird4_new; // most recent chest tracker data

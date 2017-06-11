@@ -62,7 +62,7 @@ void CyclicModel::resetModel()
 
     m_nFutureSamples = EDGE_EFFECT;
 
-    m_omega0 = 2.*pi/BREATH_RATE; // frequency
+    m_omega0 = 2.*pi/BREATH_RATE; // frequency [rad/sec]
 
     m_numSamples = 0; // number of observations added IN TOTAL
 
@@ -262,7 +262,7 @@ void CyclicModel::trainModel()
 
         mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0);
         mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0);
-        mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered, m_omega0);
+        mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered, m_omega0, m_timeData_init);
 
         // 3 should finish first, process that while the others are running
         mConcurrent3.waitForFinished();
@@ -326,29 +326,7 @@ void CyclicModel::retrainModel()
         printf("filterNewObservations: %d ns\n", elNsec);
         elTimer.restart();
 
-        // calculate expected values from model
-//        // first copy the time list into an array
-//        copy(time_data_current.begin(),time_data_current.end(),&time_data_current_array[0]);
-//        // then put the time array into the loop
-//        for (int i=0; i<cycle_data_size; i++){
-//            t_minus_t_begin=time_data_current_array[i]-t_begin;
-
-//            if (m_flag_invivo_mode == 0){
-//                breathing_signal_value = cycle_model_predict(t_minus_t_begin, local_model_rect, local_model_polar);
-//            }
-//            else{
-//                breathing_signal_value = -1*cycle_model_predict(t_minus_t_begin, local_model_rect, local_model_polar);
-//            }
-
-//            breathing_signal_model.push_back(breathing_signal_value);
-//        }
-
-
-
         // update Fourier components
-//        cycle_recalculate(m_BBfixed_CT_filtered, m_BBfixed_CT_rectangular, m_BBfixed_CT_polar);
-//        cycle_recalculate(m_BBfixed_BB_filtered, m_BBfixed_BB_rectangular, m_BBfixed_BB_polar);
-//        cycle_recalculate(m_Bird4_filtered, m_Bird4_rectangular, m_Bird4_polar);
 
         // TODO : run these concurrently
 //        Eigen::MatrixXd m_BBfixed_CT_polarRect = cycle_recalculate_concurrent(m_BBfixed_CT_filtered, m_omega0);
@@ -377,23 +355,27 @@ void CyclicModel::retrainModel()
             m_Bird4_polar = m_Bird4_polarRect.segment(0, N_POLAR); // segment(i,n) : i = start idx, n = num elements
             m_Bird4_rectangular = m_Bird4_polarRect.segment(N_POLAR, N_RECT);
 
+            std::cout << "m_Bird4_polar\n" << m_Bird4_polar << std::endl;
+            std::cout << "m_Bird4_rectangular\n" << m_Bird4_rectangular << std::endl;
+
             elNsec = elTimer.nsecsElapsed();
             std::cout << "Cycle recalc x2+x1 Nsec elapsed: " << elNsec << std::endl;
             elTimer.restart();
 
 
             // update the prediction of m_breathSignalFromModel
-            double t_minus_t_begin;
+            double t_minus_t_begin; // m_breathSignalFromModel = EigenVectorFiltered::Zero(N_FILTERED);
             for(size_t i = 0; i < N_FILTERED; i++)
             {
                 t_minus_t_begin = m_timeData_new[i+EDGE_EFFECT] - m_timeData_init[EDGE_EFFECT];
+                // t_minus_t_begin = (m_numSamples - N_SAMPLES + i)*SAMPLE_DELTA_TIME;
 
                 if(m_isInVivo)
                 {
                     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     // FIXME : do we need to differentiate b/w in vivo and benchtop?
                     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    m_breathSignalFromModel(i) = -1.0*getPrediction(t_minus_t_begin, m_Bird4_polar, m_Bird4_rectangular);
+                    m_breathSignalFromModel(i) = getPrediction(t_minus_t_begin, m_Bird4_polar, m_Bird4_rectangular);
                     // WE'RE NOT SURE IF THIS -1.0 IS SUPPOSED TO BE HERE !!!!!!!!!!
                 }
                 else
@@ -409,35 +391,36 @@ void CyclicModel::retrainModel()
             printf("Update period: %d ns\n", elNsec);
             elTimer.restart();
 
-
+            // update Fourier components
             mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0);
             mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0);
-            mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered_new, m_omega0); // m_Bird4_filtered
+            mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered_new, m_omega0, m_timeData_new);
         }
         else
         {
             if( (!mConcurrent1.isRunning()) && (!mConcurrent2.isRunning()) && (!mConcurrent3.isRunning()) )
             {
+                //                std::cout << "Start concurrent." << std::endl;
                 mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0);
                 mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0);
-                mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered_new, m_omega0); // m_Bird4_filtered
-//                std::cout << "Start concurrent." << std::endl;
+                mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered_new, m_omega0, m_timeData_new);
             }
 
             // TODO : is this the best way to test this? what if one of them finishes during these checks?
 
             // update the prediction of m_breathSignalFromModel
-            double t_minus_t_begin;
+            double t_minus_t_begin; // m_breathSignalFromModel = EigenVectorFiltered::Zero(N_FILTERED);
             for(size_t i = 0; i < N_FILTERED; i++)
             {
                 t_minus_t_begin = m_timeData_new[i+EDGE_EFFECT] - m_timeData_init[EDGE_EFFECT];
+                // t_minus_t_begin = (m_numSamples - N_SAMPLES + i)*SAMPLE_DELTA_TIME;
 
                 if(m_isInVivo)
                 {
                     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     // FIXME : do we need to differentiate b/w in vivo and benchtop?
                     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    m_breathSignalFromModel(i) = -1.0*getPrediction(t_minus_t_begin, m_Bird4_polar, m_Bird4_rectangular);
+                    m_breathSignalFromModel(i) = getPrediction(t_minus_t_begin, m_Bird4_polar, m_Bird4_rectangular);
                     // WE'RE NOT SURE IF THIS -1.0 IS SUPPOSED TO BE HERE !!!!!!!!!!
                 }
                 else
@@ -471,60 +454,6 @@ void CyclicModel::updatePeriod(const double period)
         m_omega0 = 2.0*pi/BREATH_RATE;
     else
         m_omega0 = 2.0*pi/period;
-}
-
-double CyclicModel::getPrediction(const double timeShift, const EigenVectorPolar &x_polar, const EigenVectorRectangular &x_rect)
-{
-    // Make sure the time coming in is already (t1[j] - t_begin)
-    double x_des;
-
-    using namespace std;
-
-    if(m_isTrained)
-    {
-        x_des = 0.0;
-
-        for (size_t i = 0; i < N_HARMONICS; i++)
-        {
-            x_des += x_polar(i+1) * sin( ((double)i+1.0)*x_polar(N_HARMONICS+1)*timeShift + atan2( x_rect(i+N_HARMONICS+1), x_rect(i+1) ) );
-        }
-        x_des += x_polar(0);
-    }
-    else
-    {
-        x_des = std::numeric_limits<double>::quiet_NaN();
-        printf("quiet_NaN!!!\n");
-    }
-
-    return x_des ;
-}
-
-void CyclicModel::getPrediction7Axis(const double timeShift, const EigenMatrixPolar &x_polar, const EigenMatrixRectangular &x_rect, EigenVector7d &X_des)
-{
-    // Make sure the time coming in is already (t1[j] - t_begin)
-
-    if(m_isTrained)
-    {
-        X_des = EigenVector7d::Zero();
-
-//        if(X_des.size() != 7)
-//            printf("X_des.size() != 7\n");
-
-        for(size_t j = 0; j < X_des.size(); j++)
-        {
-            for (size_t i = 0; i < N_HARMONICS; i++)
-            {
-                X_des(j) = X_des(j) + x_polar(i+1,j) * sin( (i+1.0)*x_polar(N_HARMONICS+1,j)*timeShift + atan2( x_rect(i+N_HARMONICS+1,j), x_rect(i+1,j) ) );
-            }
-            X_des(j) = X_des(j) + x_polar(0,j);
-        }
-    }
-    else
-    {
-        //X_des = EigenVector7d::Zero();
-        X_des = EigenVector7d::Constant(std::numeric_limits<double>::quiet_NaN());
-        printf("quiet_NaN7!!!\n");
-    }
 }
 
 void CyclicModel::setInVivo(const bool isInVivo)
@@ -1247,13 +1176,13 @@ Eigen::MatrixXd CyclicModel::cycle_recalculate_concurrentM(const EigenMatrixFilt
 
     for (int i = 0; i < m; i++)
     {
-        x_polar_x(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + atan2(x_init_x(i + m + 1), x_init_x(i + 1)); // theta = i*omega*T + phi, (rad)
-        x_polar_y(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + atan2(x_init_y(i + m + 1), x_init_y(i + 1)); // theta = i*omega*T + phi, (rad)
-        x_polar_z(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + atan2(x_init_z(i + m + 1), x_init_z(i + 1)); // theta = i*omega*T + phi, (rad)
-        x_polar_xaxis(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + atan2(x_init_xaxis(i + m + 1), x_init_xaxis(i + 1)); // theta = i*omega*T + phi, (rad)
-        x_polar_yaxis(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + atan2(x_init_yaxis(i + m + 1), x_init_yaxis(i + 1)); // theta = i*omega*T + phi, (rad)
-        x_polar_zaxis(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + atan2(x_init_zaxis(i + m + 1), x_init_zaxis(i + 1)); // theta = i*omega*T + phi, (rad)
-        x_polar_angle(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + atan2(x_init_angle(i + m + 1), x_init_angle(i + 1)); // theta = i*omega*T + phi, (rad)
+        x_polar_x(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + std::atan2(x_init_x(i + m + 1), x_init_x(i + 1)); // theta = i*omega*T + phi, (rad)
+        x_polar_y(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + std::atan2(x_init_y(i + m + 1), x_init_y(i + 1)); // theta = i*omega*T + phi, (rad)
+        x_polar_z(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + std::atan2(x_init_z(i + m + 1), x_init_z(i + 1)); // theta = i*omega*T + phi, (rad)
+        x_polar_xaxis(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + std::atan2(x_init_xaxis(i + m + 1), x_init_xaxis(i + 1)); // theta = i*omega*T + phi, (rad)
+        x_polar_yaxis(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + std::atan2(x_init_yaxis(i + m + 1), x_init_yaxis(i + 1)); // theta = i*omega*T + phi, (rad)
+        x_polar_zaxis(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + std::atan2(x_init_zaxis(i + m + 1), x_init_zaxis(i + 1)); // theta = i*omega*T + phi, (rad)
+        x_polar_angle(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + std::atan2(x_init_angle(i + m + 1), x_init_angle(i + 1)); // theta = i*omega*T + phi, (rad)
     }
 
     EigenMatrixPolar x_polar;
@@ -1272,7 +1201,7 @@ Eigen::MatrixXd CyclicModel::cycle_recalculate_concurrentM(const EigenMatrixFilt
     return result;
 }
 
-Eigen::VectorXd CyclicModel::cycle_recalculate_concurrentV(const EigenVectorFiltered &z_init, const double omega0)
+Eigen::VectorXd CyclicModel::cycle_recalculate_concurrentV(const EigenVectorFiltered &z_init, const double omega0, const std::vector<double> &timeData)
 {
     // TODO: add error checking to ensure that the vector size is correct
     if( z_init.rows() != N_FILTERED )
@@ -1284,7 +1213,7 @@ Eigen::VectorXd CyclicModel::cycle_recalculate_concurrentV(const EigenVectorFilt
     // get all of the constants
     size_t m = N_HARMONICS; // m = number of sinusoid components
     double delta_t = SAMPLE_DELTA_TIME; // Time step for each collected data point
-    size_t N_initpts = N_SAMPLES;  // number of initialization points
+    size_t N_initpts = N_SAMPLES;  // number of initialization points -> should this be N_FILTERED?
     //size_t edge_effect = EDGE_EFFECT;
     double omega_0 = omega0;
 
@@ -1298,19 +1227,23 @@ Eigen::VectorXd CyclicModel::cycle_recalculate_concurrentV(const EigenVectorFilt
     // allocate zero matrices
     Eigen::MatrixXd A_init(N_FILTERED, num_states - 1); A_init.setZero(); A_init.col(0).setOnes();
 
+    double t;
     for (int i = 0; i < N_FILTERED; i++)
     {
+        t = timeData[i+EDGE_EFFECT] - timeData[EDGE_EFFECT];
         for (int j = 1; j <= m; j++)
         {
-            A_init(i, j)			= sin(j*omega_0*i*delta_t);
-            A_init(i, j + m)		= cos(j*omega_0*i*delta_t);
+//            A_init(i, j)			= sin(j*omega_0*i*delta_t);
+//            A_init(i, j + m)		= cos(j*omega_0*i*delta_t);
+            A_init(i, j)			= std::sin(j*omega_0*t);
+            A_init(i, j + m)		= std::cos(j*omega_0*t);
         }
     }
 
     // Step 2. Use least squares estimate to solve for x.
     //VectorXd x_init_x = pseudoInverse(A_init) * z_init;
-    //Eigen::VectorXd x_init = A_init.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(z_init);
-    Eigen::VectorXd x_init = A_init.colPivHouseholderQr().solve(z_init); // maybe faster?
+    Eigen::VectorXd x_init = A_init.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(z_init);
+    //Eigen::VectorXd x_init = A_init.colPivHouseholderQr().solve(z_init); // maybe faster?
 
     x_rect = x_init;
 
@@ -1327,17 +1260,75 @@ Eigen::VectorXd CyclicModel::cycle_recalculate_concurrentV(const EigenVectorFilt
         x_polar(i) = std::sqrt(std::pow(x_init(i), 2) + std::pow(x_init(i + m), 2)); // r_i, convert rectangular coords back to polar
     }
 
-    x_polar(m + 1) = omega_0; // omega_0, (rad / sec)
+    x_polar(m + 1) = omega_0; // (rad / sec)
 
+    t = timeData[N_FILTERED + EDGE_EFFECT - 1] - timeData[EDGE_EFFECT];
     for (int i = 0; i < m; i++)
     {
-        x_polar(i + m + 2) = ((double)i + 1.0)*omega_0*N_initpts*delta_t + atan2(x_init(i + m + 1), x_init(i + 1)); // theta = i*omega*T + phi, (rad)
+        x_polar(i + m + 2) = std::fmod(((double)i + 1.0)*omega_0*t + std::atan2(x_init(i + m + 1), x_init(i + 1)), 2*pi); // theta = i*omega*T + phi, (rad)
     }
 
     Eigen::VectorXd result(N_POLAR + N_RECT);
     result << x_polar, x_rect;
 
     return result;
+}
+
+
+double CyclicModel::getPrediction(const double timeShift, const EigenVectorPolar &x_polar, const EigenVectorRectangular &x_rect)
+{
+    // Make sure the time coming in is already (t1[j] - t_begin)
+    double x_des;
+
+    using namespace std;
+
+    if(m_isTrained)
+    {
+        x_des = 0.0;
+
+        for (size_t i = 0; i < N_HARMONICS; i++)
+        {
+            //x_des += x_polar(i+1) * std::sin( ((double)i+1.0)*x_polar(N_HARMONICS+1)*timeShift + std::atan2( x_rect(i+N_HARMONICS+1), x_rect(i+1) ) );
+            //x_des += x_polar(i+1) * std::sin( ( ((double)i+1.0)*x_polar(N_HARMONICS+1)*timeShift + std::atan2( x_rect(i+N_HARMONICS+1), x_rect(i+1) ) )/2.0 );
+            x_des += x_polar(i+1) * std::sin( (i+1.0)*(x_polar(N_HARMONICS+1)*timeShift + x_polar(i+N_HARMONICS+1)) );
+        }
+        x_des += x_polar(0);
+    }
+    else
+    {
+        x_des = std::numeric_limits<double>::quiet_NaN();
+        printf("quiet_NaN!!!\n");
+    }
+
+    return x_des ;
+}
+
+void CyclicModel::getPrediction7Axis(const double timeShift, const EigenMatrixPolar &x_polar, const EigenMatrixRectangular &x_rect, EigenVector7d &X_des)
+{
+    // Make sure the time coming in is already (t1[j] - t_begin)
+
+    if(m_isTrained)
+    {
+        X_des = EigenVector7d::Zero();
+
+//        if(X_des.size() != 7)
+//            printf("X_des.size() != 7\n");
+
+        for(size_t j = 0; j < X_des.size(); j++)
+        {
+            for (size_t i = 0; i < N_HARMONICS; i++)
+            {
+                X_des(j) = X_des(j) + x_polar(i+1,j) * sin( (i+1.0)*x_polar(N_HARMONICS+1,j)*timeShift + atan2( x_rect(i+N_HARMONICS+1,j), x_rect(i+1,j) ) );
+            }
+            X_des(j) = X_des(j) + x_polar(0,j);
+        }
+    }
+    else
+    {
+        //X_des = EigenVector7d::Zero();
+        X_des = EigenVector7d::Constant(std::numeric_limits<double>::quiet_NaN());
+        printf("quiet_NaN7!!!\n");
+    }
 }
 
 void CyclicModel::loadData(QString filename, std::vector<double> &X)

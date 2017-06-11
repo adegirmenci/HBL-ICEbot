@@ -379,7 +379,7 @@ static const int CONTROLLER_LOOP_TIMER_MSEC = 1;
 #define N_STATES          N_HARMONICS*2 + 2         // number of states
 #define N_RECT            N_STATES - 1              // NUM_STATES of Rectangular components
 #define N_POLAR           N_STATES                  // NUM_STATES of Polar components
-#define N_SAMPLES         3000                      // CYCLE_DATA_SIZE
+#define N_SAMPLES         2750                      // CYCLE_DATA_SIZE
 #define EDGE_EFFECT       35                        // extent of edge effects
 #define N_FILTERED        N_SAMPLES - 2*EDGE_EFFECT // Filtered data length
 #define BREATH_RATE       5.0                       // respiration period (seconds)
