@@ -60,7 +60,7 @@ void CyclicModel::resetModel()
     m_timeData_init.reserve(N_SAMPLES);    // stores the time vector for the model initialization observations
     m_timeData_new .resize(N_SAMPLES, 0.0); // stores time for the most recent observations
 
-    m_nFutureSamples = EDGE_EFFECT;
+    m_nFutureSamples = 2*EDGE_EFFECT;
 
     m_omega0 = 2.*pi/BREATH_RATE; // frequency [rad/sec]
 
@@ -128,6 +128,8 @@ void CyclicModel::addTrainingObservation(const EigenAffineTransform3d &T_BB_CT_c
         emit sendToPlotBird4(0, sampleTime, tempBird4);
 
         m_numSamples++;
+
+        printf("x: %.3f\n",m_BBfixed_CT.back()(0));
     }
     else
     {
@@ -260,8 +262,8 @@ void CyclicModel::trainModel()
 //        m_BBfixed_BB_polarRect = cycle_recalculate_concurrentM(m_BBfixed_BB_filtered, m_omega0);
 //        m_Bird4_polarRect = cycle_recalculate_concurrentV(m_Bird4_filtered, m_omega0);
 
-        mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0);
-        mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0);
+        mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0, m_timeData_init);
+        mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0, m_timeData_init);
         mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered, m_omega0, m_timeData_init);
 
         // 3 should finish first, process that while the others are running
@@ -367,7 +369,7 @@ void CyclicModel::retrainModel()
             double t_minus_t_begin; // m_breathSignalFromModel = EigenVectorFiltered::Zero(N_FILTERED);
             for(size_t i = 0; i < N_FILTERED; i++)
             {
-                t_minus_t_begin = m_timeData_new[i+EDGE_EFFECT] - m_timeData_init[EDGE_EFFECT];
+                t_minus_t_begin = m_timeData_new[i+EDGE_EFFECT] - m_timeData_new[EDGE_EFFECT];//- m_timeData_init[N_FILTERED + EDGE_EFFECT - 1];
                 // t_minus_t_begin = (m_numSamples - N_SAMPLES + i)*SAMPLE_DELTA_TIME;
 
                 if(m_isInVivo)
@@ -392,8 +394,8 @@ void CyclicModel::retrainModel()
             elTimer.restart();
 
             // update Fourier components
-            mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0);
-            mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0);
+            mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0, m_timeData_new);
+            mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0, m_timeData_new);
             mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered_new, m_omega0, m_timeData_new);
         }
         else
@@ -401,8 +403,8 @@ void CyclicModel::retrainModel()
             if( (!mConcurrent1.isRunning()) && (!mConcurrent2.isRunning()) && (!mConcurrent3.isRunning()) )
             {
                 //                std::cout << "Start concurrent." << std::endl;
-                mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0);
-                mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0);
+                mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0, m_timeData_new);
+                mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0, m_timeData_new);
                 mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered_new, m_omega0, m_timeData_new);
             }
 
@@ -412,7 +414,7 @@ void CyclicModel::retrainModel()
             double t_minus_t_begin; // m_breathSignalFromModel = EigenVectorFiltered::Zero(N_FILTERED);
             for(size_t i = 0; i < N_FILTERED; i++)
             {
-                t_minus_t_begin = m_timeData_new[i+EDGE_EFFECT] - m_timeData_init[EDGE_EFFECT];
+                t_minus_t_begin = m_timeData_new[i+EDGE_EFFECT] - m_timeData_new[EDGE_EFFECT];//- m_timeData_init[N_FILTERED + EDGE_EFFECT - 1];
                 // t_minus_t_begin = (m_numSamples - N_SAMPLES + i)*SAMPLE_DELTA_TIME;
 
                 if(m_isInVivo)
@@ -433,12 +435,14 @@ void CyclicModel::retrainModel()
         m_lastTrainingTimestamp = QDateTime::currentMSecsSinceEpoch();
 
         // get predictions based on the models
-        double t0 = m_timeData_new.back();
+        double t0 = m_timeData_new.back() - m_timeData_init[EDGE_EFFECT];
         double t1 = t0; // + 0.0; fudge factor may be needed?
         double t2 = t1 + (m_nFutureSamples - EDGE_EFFECT)*SAMPLE_DELTA_TIME;
         getPrediction7Axis(t1, m_BBfixed_CT_polar, m_BBfixed_CT_rectangular, m_BBfixed_CT_des);
         getPrediction7Axis(t2, m_BBfixed_CT_polar, m_BBfixed_CT_rectangular, m_BBfixed_CTtraj_future_des);
         getPrediction7Axis(t1, m_BBfixed_BB_polar, m_BBfixed_BB_rectangular, m_BBfixed_BB_des);
+
+        printf("CT_des_x %.3f CTtraj_future_des %.3f BB_des %.3f\n", m_BBfixed_CT_des(0), m_BBfixed_CTtraj_future_des(0), m_BBfixed_BB_des(0));
 
         elNsec = elTimer.nsecsElapsed();
         std::cout << "getPrediction Nsec elapsed: " << elNsec << std::endl;
@@ -655,87 +659,87 @@ double CyclicModel::peakDetector(const bool runForInit)
                 period = BREATH_RATE;
         }
     }
-    else
-    {
-        double period_old = 2.0*pi/m_omega0;
+//    else
+//    {
+//        double period_old = 2.0*pi/m_omega0;
 
-        // Get the time difference between peaks
-//        % All of these steps account for the fact that there could be multiple
-//        % peaks detected for the model or for the measured values. We need to find
-//        % the smallest absolute value peak time difference, but then preserve the
-//        % sign on that time difference to know whether the period should be faster
-//        % or slower.
-//        for j=1:size(tops_peak_times_means_model,1)
-//            for i=1:size(tops_peak_times_means_meas,1)
-//                peak_time_diff(i,j) = tops_peak_times_means_model(j)-tops_peak_times_means_meas(i);
-//            end
-//            [~, idx(j)]=min(abs(peak_time_diff(:,j)));
-//            time_diff(j)=peak_time_diff(idx(j),j);
-//        end
-//        [~,idx2]=min(abs(time_diff));
-//        min_time_diff=time_diff(idx2);
+//        // Get the time difference between peaks
+////        % All of these steps account for the fact that there could be multiple
+////        % peaks detected for the model or for the measured values. We need to find
+////        % the smallest absolute value peak time difference, but then preserve the
+////        % sign on that time difference to know whether the period should be faster
+////        % or slower.
+////        for j=1:size(tops_peak_times_means_model,1)
+////            for i=1:size(tops_peak_times_means_meas,1)
+////                peak_time_diff(i,j) = tops_peak_times_means_model(j)-tops_peak_times_means_meas(i);
+////            end
+////            [~, idx(j)]=min(abs(peak_time_diff(:,j)));
+////            time_diff(j)=peak_time_diff(idx(j),j);
+////        end
+////        [~,idx2]=min(abs(time_diff));
+////        min_time_diff=time_diff(idx2);
 
-        peakDetectorForBreathModel(); // filter the breathing signal
-        m_respPeakMean = m_breathSignalPeakMean;
+//        peakDetectorForBreathModel(); // filter the breathing signal
+//        m_respPeakMean = m_breathSignalPeakMean;
 
-        if(m_respPeakMean.size() < 1)
-        {
-            std::cout << "PeakDetector is in trouble 3!\n" << std::endl;
-            return period_old;
-        }
+//        if(m_respPeakMean.size() < 1)
+//        {
+//            std::cout << "PeakDetector is in trouble 3!\n" << std::endl;
+//            return period_old;
+//        }
 
-		if (mean.size() == 0)
-		{
-			printf("mean.size() == 0");
-			return period_old;
-		}
+//		if (mean.size() == 0)
+//		{
+//			printf("mean.size() == 0");
+//			return period_old;
+//		}
 
-        Eigen::MatrixXd peakTimeDiff = Eigen::MatrixXd::Zero(m_respPeakMean.size(), mean.size());
-		Eigen::VectorXd timeDiff = Eigen::VectorXd::Zero(m_respPeakMean.size());
-        double minTimeDiff;
-        Eigen::VectorXd::Index minIdx;
+//        Eigen::MatrixXd peakTimeDiff = Eigen::MatrixXd::Zero(m_respPeakMean.size(), mean.size());
+//		Eigen::VectorXd timeDiff = Eigen::VectorXd::Zero(m_respPeakMean.size());
+//        double minTimeDiff;
+//        Eigen::VectorXd::Index minIdx;
 
-        for(size_t iMeanModel = 0; iMeanModel < m_respPeakMean.size(); iMeanModel++)
-        {
-            for(size_t jMeanMeas = 0; jMeanMeas < mean.size(); jMeanMeas++)
-            {
-                peakTimeDiff(iMeanModel,jMeanMeas) = m_respPeakMean[iMeanModel] - mean[jMeanMeas];
-            }
+//        for(size_t iMeanModel = 0; iMeanModel < m_respPeakMean.size(); iMeanModel++)
+//        {
+//            for(size_t jMeanMeas = 0; jMeanMeas < mean.size(); jMeanMeas++)
+//            {
+//                peakTimeDiff(iMeanModel,jMeanMeas) = m_respPeakMean[iMeanModel] - mean[jMeanMeas];
+//            }
 
-            peakTimeDiff.row(iMeanModel).cwiseAbs().minCoeff(&minIdx);
-            timeDiff[iMeanModel] = peakTimeDiff(iMeanModel,minIdx);
-        }
-        timeDiff.cwiseAbs().minCoeff(&minIdx);
-        minTimeDiff = timeDiff(minIdx);
-//        minTimeDiff = timeDiff.cwiseAbs().minCoeff();
+//            peakTimeDiff.row(iMeanModel).cwiseAbs().minCoeff(&minIdx);
+//            timeDiff[iMeanModel] = peakTimeDiff(iMeanModel,minIdx);
+//        }
+//        timeDiff.cwiseAbs().minCoeff(&minIdx);
+//        minTimeDiff = timeDiff(minIdx);
+////        minTimeDiff = timeDiff.cwiseAbs().minCoeff();
 
-        double period_new;
-        if(mean.size() > 0)
-        {
-            printf("period_old: %.3f | minTimeDiff: %.3f | mean[0]: %.3f | m_timeData_new[EDGE_EFFECT]: %.3f\n",
-                     period_old, minTimeDiff, mean[0], m_timeData_new[EDGE_EFFECT]);
-            period_new = period_old*(1.0 - minTimeDiff/(mean[0] - m_timeData_new[EDGE_EFFECT])); // mean[minIdx], m_timeData_init[EDGE_EFFECT]
-            //period_new = period_old*(1.0 - minTimeDiff/(mean[0] - m_timeData_init[EDGE_EFFECT])); // mean[minIdx], m_timeData_init[EDGE_EFFECT]
+//        double period_new;
+//        if(mean.size() > 0)
+//        {
+//            printf("period_old: %.3f | minTimeDiff: %.3f | mean[0]: %.3f | m_timeData_new[EDGE_EFFECT]: %.3f\n",
+//                     period_old, minTimeDiff, mean[0], m_timeData_new[EDGE_EFFECT]);
+//            period_new = period_old*(1.0 - minTimeDiff/(mean[0] - m_timeData_new[EDGE_EFFECT])); // mean[minIdx], m_timeData_init[EDGE_EFFECT]
+//            //period_new = period_old*(1.0 - minTimeDiff/(mean[0] - m_timeData_init[EDGE_EFFECT])); // mean[minIdx], m_timeData_init[EDGE_EFFECT]
 
-            if(m_isInVivo) // in vivo mode
-            {
-                if( (period_new < (BREATH_RATE*0.9)) || (period_new > (BREATH_RATE*1.1)) )
-                    period_new = period_old;
-            }
-            else // benchtop mode
-            {
-                if( (period_new < (period_old*0.9)) || (period_new > (period_old*1.1)) )
-                {
-                    printf("New period %.3f is oob, setting to old.\n", period_new);
-                    period_new = period_old;
-                }
-            }
+//            if(m_isInVivo) // in vivo mode
+//            {
+//                if( (period_new < (BREATH_RATE*0.9)) || (period_new > (BREATH_RATE*1.1)) )
+//                    period_new = period_old;
+//            }
+//            else // benchtop mode
+//            {
+//                if( (period_new < (period_old*0.9)) || (period_new > (period_old*1.1)) )
+//                {
+//                    printf("New period %.3f is oob, setting to old.\n", period_new);
+//                    period_new = period_old;
+//                }
+//            }
 
-            //period = period_new;
-        }
-        else
-            printf("Mean is empty.\n");
-    }
+//            // period = period_new;
+//        }
+//        else
+//            printf("Mean is empty.\n");
+//    }
 
     std::cout << "Period: " << period << std::endl << std::flush;
 
@@ -1044,7 +1048,7 @@ void CyclicModel::cycle_recalculate(const EigenVectorFiltered &z_init, EigenVect
     //x_polar = x_polar;
 }
 
-Eigen::MatrixXd CyclicModel::cycle_recalculate_concurrentM(const EigenMatrixFiltered &z_init, const double omega0)
+Eigen::MatrixXd CyclicModel::cycle_recalculate_concurrentM(const EigenMatrixFiltered &z_init, const double omega0, const std::vector<double> &timeData)
 {
     if( z_init.cols() != 7 )
         printf("cycle_recalculate: Wrong column size!\n");
@@ -1080,24 +1084,28 @@ Eigen::MatrixXd CyclicModel::cycle_recalculate_concurrentM(const EigenMatrixFilt
     Eigen::MatrixXd A_init_zaxis(N_FILTERED, num_states - 1); A_init_zaxis.setZero(); A_init_zaxis.col(0).setOnes();
     Eigen::MatrixXd A_init_angle(N_FILTERED, num_states - 1); A_init_angle.setZero(); A_init_angle.col(0).setOnes();
 
+    double t, s, c;
     for (int i = 0; i < N_FILTERED; i++)
     {
+        t = timeData[i+EDGE_EFFECT] - timeData[EDGE_EFFECT];
         for (int j = 1; j <= m; j++)
         {
-            A_init_x(i, j)			= sin(j*omega_0*i*delta_t);
-            A_init_y(i, j)			= sin(j*omega_0*i*delta_t);
-            A_init_z(i, j)			= sin(j*omega_0*i*delta_t);
-            A_init_xaxis(i, j)		= sin(j*omega_0*i*delta_t);
-            A_init_yaxis(i, j)		= sin(j*omega_0*i*delta_t);
-            A_init_zaxis(i, j)		= sin(j*omega_0*i*delta_t);
-            A_init_angle(i, j)		= sin(j*omega_0*i*delta_t);
-            A_init_x(i, j + m)		= cos(j*omega_0*i*delta_t);
-            A_init_y(i, j + m)		= cos(j*omega_0*i*delta_t);
-            A_init_z(i, j + m)		= cos(j*omega_0*i*delta_t);
-            A_init_xaxis(i, j + m)	= cos(j*omega_0*i*delta_t);
-            A_init_yaxis(i, j + m)	= cos(j*omega_0*i*delta_t);
-            A_init_zaxis(i, j + m)	= cos(j*omega_0*i*delta_t);
-            A_init_angle(i, j + m)	= cos(j*omega_0*i*delta_t);
+            s = sin(j*omega_0*t);
+            c = cos(j*omega_0*t);
+            A_init_x(i, j)			= s;
+            A_init_y(i, j)			= s;
+            A_init_z(i, j)			= s;
+            A_init_xaxis(i, j)		= s;
+            A_init_yaxis(i, j)		= s;
+            A_init_zaxis(i, j)		= s;
+            A_init_angle(i, j)		= s;
+            A_init_x(i, j + m)		= c;
+            A_init_y(i, j + m)		= c;
+            A_init_z(i, j + m)		= c;
+            A_init_xaxis(i, j + m)	= c;
+            A_init_yaxis(i, j + m)	= c;
+            A_init_zaxis(i, j + m)	= c;
+            A_init_angle(i, j + m)	= c;
         }
     }
 
@@ -1174,15 +1182,16 @@ Eigen::MatrixXd CyclicModel::cycle_recalculate_concurrentM(const EigenMatrixFilt
     x_polar_zaxis(m + 1) = omega_0; // omega_0, (rad / sec)
     x_polar_angle(m + 1) = omega_0; // omega_0, (rad / sec)
 
+    t = timeData[N_FILTERED + EDGE_EFFECT - 1] - timeData[EDGE_EFFECT];
     for (int i = 0; i < m; i++)
     {
-        x_polar_x(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + std::atan2(x_init_x(i + m + 1), x_init_x(i + 1)); // theta = i*omega*T + phi, (rad)
-        x_polar_y(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + std::atan2(x_init_y(i + m + 1), x_init_y(i + 1)); // theta = i*omega*T + phi, (rad)
-        x_polar_z(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + std::atan2(x_init_z(i + m + 1), x_init_z(i + 1)); // theta = i*omega*T + phi, (rad)
-        x_polar_xaxis(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + std::atan2(x_init_xaxis(i + m + 1), x_init_xaxis(i + 1)); // theta = i*omega*T + phi, (rad)
-        x_polar_yaxis(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + std::atan2(x_init_yaxis(i + m + 1), x_init_yaxis(i + 1)); // theta = i*omega*T + phi, (rad)
-        x_polar_zaxis(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + std::atan2(x_init_zaxis(i + m + 1), x_init_zaxis(i + 1)); // theta = i*omega*T + phi, (rad)
-        x_polar_angle(i + m + 2) = (i + 1.0)*omega_0*N_initpts*delta_t + std::atan2(x_init_angle(i + m + 1), x_init_angle(i + 1)); // theta = i*omega*T + phi, (rad)
+        x_polar_x(i + m + 2) = (i + 1.0)*omega_0*t + std::atan2(x_init_x(i + m + 1), x_init_x(i + 1)); // theta = i*omega*T + phi, (rad)
+        x_polar_y(i + m + 2) = (i + 1.0)*omega_0*t + std::atan2(x_init_y(i + m + 1), x_init_y(i + 1)); // theta = i*omega*T + phi, (rad)
+        x_polar_z(i + m + 2) = (i + 1.0)*omega_0*t + std::atan2(x_init_z(i + m + 1), x_init_z(i + 1)); // theta = i*omega*T + phi, (rad)
+        x_polar_xaxis(i + m + 2) = (i + 1.0)*omega_0*t + std::atan2(x_init_xaxis(i + m + 1), x_init_xaxis(i + 1)); // theta = i*omega*T + phi, (rad)
+        x_polar_yaxis(i + m + 2) = (i + 1.0)*omega_0*t + std::atan2(x_init_yaxis(i + m + 1), x_init_yaxis(i + 1)); // theta = i*omega*T + phi, (rad)
+        x_polar_zaxis(i + m + 2) = (i + 1.0)*omega_0*t + std::atan2(x_init_zaxis(i + m + 1), x_init_zaxis(i + 1)); // theta = i*omega*T + phi, (rad)
+        x_polar_angle(i + m + 2) = (i + 1.0)*omega_0*t + std::atan2(x_init_angle(i + m + 1), x_init_angle(i + 1)); // theta = i*omega*T + phi, (rad)
     }
 
     EigenMatrixPolar x_polar;
@@ -1288,9 +1297,9 @@ double CyclicModel::getPrediction(const double timeShift, const EigenVectorPolar
 
         for (size_t i = 0; i < N_HARMONICS; i++)
         {
-            //x_des += x_polar(i+1) * std::sin( ((double)i+1.0)*x_polar(N_HARMONICS+1)*timeShift + std::atan2( x_rect(i+N_HARMONICS+1), x_rect(i+1) ) );
-            //x_des += x_polar(i+1) * std::sin( ( ((double)i+1.0)*x_polar(N_HARMONICS+1)*timeShift + std::atan2( x_rect(i+N_HARMONICS+1), x_rect(i+1) ) )/2.0 );
-            x_des += x_polar(i+1) * std::sin( (i+1.0)*(x_polar(N_HARMONICS+1)*timeShift + x_polar(i+N_HARMONICS+1)) );
+            x_des += x_polar(i+1) * std::sin( (i+1.0)*x_polar(N_HARMONICS+1)*timeShift + std::atan2( x_rect(i+N_HARMONICS+1), x_rect(i+1) ) );
+            //x_des += x_polar(i+1) * std::sin( ( (i+1.0)*x_polar(N_HARMONICS+1)*timeShift + std::atan2( x_rect(i+N_HARMONICS+1), x_rect(i+1) ) )/2.0 );
+            //x_des += x_polar(i+1) * std::sin( (i+1.0)*(x_polar(N_HARMONICS+1)*timeShift) + x_polar(i+N_HARMONICS+1) );
         }
         x_des += x_polar(0);
     }

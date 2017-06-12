@@ -47,6 +47,7 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
     connect(m_respModelWidget, SIGNAL(closeRespModelWindow()), this, SLOT(on_respModelButton_clicked()));
     connect(m_respModelWidget, SIGNAL(initializeRespModel()), m_worker, SLOT(initializeRespModel()));
     connect(m_respModelWidget, SIGNAL(re_initializeRespModel()), m_worker, SLOT(re_initializeRespModel()));
+    connect(m_respModelWidget, SIGNAL(stopRespModel()), m_worker, SLOT(stopRespModel()));
     connect(m_respModelWidget, SIGNAL(newFutureSamplesValue(int)), m_worker, SLOT(updateFutureSamples(int)));
 //    connect(m_worker, SIGNAL(sendDataToRespModelWidget(int,bool,bool,double,EigenVectorFiltered,EigenVectorFiltered,EigenVectorFiltered)),
 //            m_respModelWidget, SLOT(receiveDataFromRespModel(int,bool,bool,double,EigenVectorFiltered,EigenVectorFiltered,EigenVectorFiltered)));

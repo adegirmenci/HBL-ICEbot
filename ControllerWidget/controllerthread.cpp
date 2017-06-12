@@ -461,7 +461,7 @@ void ControllerThread::startControlCycle()
         {
             qDebug() << "Controller is not ready.";
             emit statusChanged(CONTROLLER_INITIALIZE_FAILED);
-            emit logError(SRC_CONTROLLER, LOG_ERROR, QTime::currentTime(), CONTROLLER_INITIALIZE_FAILED, QString("LabJack is not ready."));
+            emit logError(SRC_CONTROLLER, LOG_ERROR, QTime::currentTime(), CONTROLLER_INITIALIZE_FAILED, QString("Controller is not ready."));
         }
     }
 }
@@ -594,9 +594,20 @@ void ControllerThread::initializeRespModel()
 
 void ControllerThread::re_initializeRespModel()
 {
-    // TODO : test these
-//    m_respModel.resetModel();
-//    m_respModelInitializing = true;
+    QMutexLocker locker(m_mutex);
+    m_respModel.resetModel();
+    m_respModelInitializing = true;
+
+    emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_RESP_MODEL_INIT_BEGIN);
+}
+
+void ControllerThread::stopRespModel()
+{
+    QMutexLocker locker(m_mutex);
+    m_respModel.resetModel();
+    m_respModelInitializing = false;
+
+    emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_RESP_MODEL_STOPPED);
 }
 
 void ControllerThread::updateFutureSamples(int n)
@@ -610,9 +621,6 @@ void ControllerThread::updateFutureSamples(int n)
 void ControllerThread::controlCycle()
 {
     //QMutexLocker locker(m_mutex); // already locked by calling function
-
-    // TODO : should we check if the resp model is collecting training data here?
-    // this way, all other control code will be bypassed
 
     if(m_isReady && m_keepControlling)
     {
@@ -776,7 +784,6 @@ void ControllerThread::computeCoordFrameWorld()
             m_deltaXYZPsiToTarget(0) = m_input_AbsXYZ(0) - m_BBfixed_CTorig(0,3);
             m_deltaXYZPsiToTarget(1) = m_input_AbsXYZ(1) - m_BBfixed_CTorig(1,3);
             m_deltaXYZPsiToTarget(2) = m_input_AbsXYZ(2) - m_BBfixed_CTorig(2,3);
-            std::cout << "Running this." << std::endl;
             break;
         case MODE_RELATIVE:
             m_deltaXYZPsiToTarget(0) = m_input_RelXYZ(0);
@@ -894,6 +901,7 @@ void ControllerThread::computeCoordFrameMobile()
     Eigen::AngleAxis<double> rotCTdes(CT_des(6), Eigen::Vector3d(CT_des(3),CT_des(4),CT_des(5)));
     Eigen::Translation3d transCTdes(CT_des(0),CT_des(1),CT_des(2));
     EigenAffineTransform3d T_BBfixed_CT_des = transCTdes * rotCTdes;
+    printf("transCTdes: x %.3f y %.3f z %.3f\n",CT_des(0),CT_des(1),CT_des(2));
 
     Eigen::AngleAxis<double> rotCTtraj(CT_future_des(6), Eigen::Vector3d(CT_future_des(3),CT_future_des(4),CT_future_des(5)));
     Eigen::Translation3d transCTtraj(CT_future_des(0),CT_future_des(1),CT_future_des(2));
@@ -974,6 +982,8 @@ void ControllerThread::computeCoordFrameMobile()
             m_dXYZPsi(1) = m_input_AbsXYZ(1) + T_BBfixed_CT_des(1,3) - m_BB_CT_curTipPos(1,3);
             m_dXYZPsi(2) = m_input_AbsXYZ(2) + T_BBfixed_CT_des(2,3) - m_BB_CT_curTipPos(2,3);
             m_dXYZPsi(3) = m_input_delPsi - total_psy;
+
+            printf("m_dXYZPsi - x %.3f y %.3f z %.3f psi %.3f\n", m_dXYZPsi(0), m_dXYZPsi(1), m_dXYZPsi(2), m_dXYZPsi(3));
 
             break;
         default:

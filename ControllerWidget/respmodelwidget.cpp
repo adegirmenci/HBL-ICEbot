@@ -57,6 +57,7 @@ void respModelWidget::on_initializeButton_clicked()
 {
     ui->initializeButton->setEnabled(false);
     ui->reInitButton->setEnabled(false);
+    ui->stopButton->setEnabled(true);
 
     emit initializeRespModel();
 }
@@ -65,8 +66,18 @@ void respModelWidget::on_reInitButton_clicked()
 {
     ui->initializeButton->setEnabled(false);
     ui->reInitButton->setEnabled(false);
+    ui->stopButton->setEnabled(true);
 
     emit re_initializeRespModel();
+}
+
+void respModelWidget::on_stopButton_clicked()
+{
+    ui->initializeButton->setEnabled(false);
+    ui->reInitButton->setEnabled(true);
+    ui->stopButton->setEnabled(false);
+
+    emit stopRespModel();
 }
 
 void respModelWidget::receiveDataFromRespModel(int numSamples,

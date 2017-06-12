@@ -27,6 +27,8 @@ signals:
 
     void re_initializeRespModel();
 
+    void stopRespModel();
+
     void newFutureSamplesValue(int n);
 
 private slots:
@@ -47,6 +49,8 @@ private slots:
                                    //EigenVectorFiltered breathSignalFromModel);
 
     void plotBird4(unsigned int plotID, double time, double value);
+
+    void on_stopButton_clicked();
 
 private:
     Ui::respModelWidget *ui;

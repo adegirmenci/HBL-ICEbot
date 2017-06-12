@@ -109,7 +109,7 @@ private:
                            EigenVectorRectangular &x_rect,
                            EigenVectorPolar &x_polar, const double omega0);
 
-    Eigen::MatrixXd cycle_recalculate_concurrentM(const EigenMatrixFiltered &z_init, const double omega0);
+    Eigen::MatrixXd cycle_recalculate_concurrentM(const EigenMatrixFiltered &z_init, const double omega0, const std::vector<double> &timeData);
     Eigen::VectorXd cycle_recalculate_concurrentV(const EigenVectorFiltered &z_init, const double omega0, const std::vector<double> &timeData);
     // data members
 

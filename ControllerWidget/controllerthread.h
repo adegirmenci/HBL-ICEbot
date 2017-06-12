@@ -136,6 +136,7 @@ public slots:
 
     void initializeRespModel();
     void re_initializeRespModel();
+    void stopRespModel();
     void updateFutureSamples(int n);
 
 private slots:
