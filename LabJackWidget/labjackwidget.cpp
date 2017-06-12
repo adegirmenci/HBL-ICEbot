@@ -50,6 +50,11 @@ LabJackWidget::LabJackWidget(QWidget *parent) :
 
     // setup a timer that repeatedly calls MainWindow::realtimeDataSlot:
     connect(m_worker, SIGNAL(logData(QTime,std::vector<double>)), this, SLOT(addDataToPlot(QTime,std::vector<double>)));
+
+    // Heart Rate Widget
+    connect(m_worker, SIGNAL(logData(QTime,std::vector<double>)), ui->HRwidget, SLOT(receiveECG(QTime,std::vector<double>)));
+
+    // qDebug() << "LabJack Widget Thread ID: " << reinterpret_cast<int>(QThread::currentThreadId()) << ".";
 }
 
 LabJackWidget::~LabJackWidget()
@@ -66,7 +71,7 @@ void LabJackWidget::addDataToPlot(QTime timeStamp, std::vector<double> data)
     //TODO : automatically add more lines depending on the size of 'data'
     double key = timeStamp.msecsSinceStartOfDay()/1000.0;
     static double lastPointKey = 0;
-    if( (key - lastPointKey) > 0.01) // at most add point every 10 ms
+    if( (key - lastPointKey) > 0.010) // at most add point every 10 ms
     {
       // add data to lines:
       ui->plotWidget->graph(0)->addData(key, data[0]);
@@ -75,10 +80,11 @@ void LabJackWidget::addDataToPlot(QTime timeStamp, std::vector<double> data)
       // rescale value (vertical) axis to fit the current data:
       ui->plotWidget->graph(0)->rescaleValueAxis();
       lastPointKey = key;
+
+      // make key axis range scroll with the data (at a constant range size of 8):
+      ui->plotWidget->xAxis->setRange(key+0.25, 8, Qt::AlignRight);
+      ui->plotWidget->replot();
     }
-    // make key axis range scroll with the data (at a constant range size of 8):
-    ui->plotWidget->xAxis->setRange(key+0.25, 8, Qt::AlignRight);
-    ui->plotWidget->replot();
 }
 
 void LabJackWidget::workerStatusChanged(int status)

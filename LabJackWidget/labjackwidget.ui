@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>560</width>
+    <width>550</width>
     <height>430</height>
    </rect>
   </property>
@@ -18,7 +18,7 @@
     <rect>
      <x>210</x>
      <y>0</y>
-     <width>191</width>
+     <width>141</width>
      <height>111</height>
     </rect>
    </property>
@@ -30,7 +30,7 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>174</width>
+      <width>121</width>
       <height>81</height>
      </rect>
     </property>
@@ -46,28 +46,24 @@
       </widget>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QPushButton" name="startRecordButton">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Start Recording</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="stopRecordButton">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Stop Recording</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <widget class="QPushButton" name="startRecordButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Start Recording</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="stopRecordButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Stop Recording</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -540,7 +536,7 @@
     <rect>
      <x>210</x>
      <y>120</y>
-     <width>341</width>
+     <width>331</width>
      <height>291</height>
     </rect>
    </property>
@@ -552,8 +548,31 @@
      <rect>
       <x>10</x>
       <y>30</y>
-      <width>321</width>
+      <width>311</width>
       <height>251</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_2">
+   <property name="geometry">
+    <rect>
+     <x>360</x>
+     <y>0</y>
+     <width>181</width>
+     <height>111</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Heart Rate</string>
+   </property>
+   <widget class="HeartRateWidget" name="HRwidget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>20</y>
+      <width>180</width>
+      <height>80</height>
      </rect>
     </property>
    </widget>
@@ -565,6 +584,12 @@
    <class>QCustomPlot</class>
    <extends>QWidget</extends>
    <header>qcustomplot.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>HeartRateWidget</class>
+   <extends>QWidget</extends>
+   <header>HeartRateWidget/heartratewidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

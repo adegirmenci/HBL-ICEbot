@@ -17,18 +17,18 @@ diffECGpeaks = diff(ECGpeakTimes);
 validDiffECGpeaks = diffECGpeaks(diffECGpeaks < 1.2);
 meanECGpeaks = mean(validDiffECGpeaks); % anything larger means a gap in the data
 stdECGpeaks = std(validDiffECGpeaks);
-avgHR = 0; stdHR = 0;
-if(numel(meanECGpeaks))
+avgHR = 0; stdHR = 0; phase = 0;
+if(numel(validDiffECGpeaks))
     avgHR = 60./meanECGpeaks;
     stdHR = 60.*stdECGpeaks/(meanECGpeaks+stdECGpeaks);
+    
+    % find the distance from the last peak
+    lastPeakTime = ECGpeakTimes(end);
+    currTime = ECG_time(end);
+    
+    % convert to phase
+    phase = (currTime - lastPeakTime)/ meanECGpeaks;
 end
 % fprintf('Average heartrate: %.2f +- %.2f BPM\n', avgHR, stdHR);
-
-% find the distance from the last peak
-lastPeakTime = ECGpeakTimes(end);
-currTime = ECG_time(end);
-
-% convert to phase
-phase = (currTime - lastPeakTime)/ meanECGpeaks;
 
 end

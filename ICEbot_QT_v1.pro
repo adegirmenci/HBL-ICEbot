@@ -48,7 +48,8 @@ SOURCES += main.cpp\
     ControllerWidget/gainswidget.cpp \
     ControllerWidget/filtfilt.cpp \
     ControllerWidget/cyclicmodel.cpp \
-    ControllerWidget/respmodelwidget.cpp
+    ControllerWidget/respmodelwidget.cpp \
+    HeartRateWidget/heartratewidget.cpp
 
 HEADERS  += icebot_gui.h \
     OmniWidget/omni.h \
@@ -78,7 +79,8 @@ HEADERS  += icebot_gui.h \
     ControllerWidget/gainswidget.h \
     ControllerWidget/filtfilt.h \
     ControllerWidget/cyclicmodel.h \
-    ControllerWidget/respmodelwidget.h
+    ControllerWidget/respmodelwidget.h \
+    HeartRateWidget/heartratewidget.h
 
 FORMS    += icebot_gui.ui \
     OmniWidget/omni.ui \
@@ -91,7 +93,8 @@ FORMS    += icebot_gui.ui \
     FrameClientWidget/frameclientwidget.ui \
     ControllerWidget/controllerwidget.ui \
     ControllerWidget/gainswidget.ui \
-    ControllerWidget/respmodelwidget.ui
+    ControllerWidget/respmodelwidget.ui \
+    HeartRateWidget/heartratewidget.ui
 
 RC_FILE = ICEbotGUI.rc
 
@@ -101,18 +104,7 @@ INCLUDEPATH += "D:\\Eigen"
 # Boost
 INCLUDEPATH += "D:\\boost_1_61_0"
 
-## KFR
-#INCLUDEPATH += "D:\\kfr-1.0.0\include"
-
-# FIR - Mochima
-INCLUDEPATH += "D:\\firMochima"
-
-# Spuce
-#INCLUDEPATH += "D:\\spuceDSPlibrary"
-
-#LIBS += -L"D:\\spuceDSPlibrary\\lib\\Win32\\Release" \
-#    -lspuce
-
+# OpenHaptics
 win32 {
     INCLUDEPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/include
     DEPENDPATH += $$PWD/../../../../../OpenHaptics/Developer/3.4.0/include
@@ -131,17 +123,19 @@ win32 {
     }
 }
 
+# LabJack
 win32: LIBS += -L$$PWD/LabJackWidget/LabJackLibs/ -lLabJackUD
 
 INCLUDEPATH += $$PWD/LabJackWidget/LabJackLibs
 DEPENDPATH += $$PWD/LabJackWidget/LabJackLibs
 
-
+# Maxon
 win32: LIBS += -L$$PWD/EPOS2Widget/MaxonLibs/ -lEposCmd
 
 INCLUDEPATH += $$PWD/EPOS2Widget/MaxonLibs
 DEPENDPATH += $$PWD/EPOS2Widget/MaxonLibs
 
+# OpenCV
 win32 {
     INCLUDEPATH += "C:\\opencv\\build\\include" \
 
@@ -164,6 +158,7 @@ win32 {
     }
 }
 
+# Epiphan
 #win32: LIBS += -L$$PWD/epiphan/frmgrab/lib/win/Win32/ -lfrmgrab
 
 #INCLUDEPATH += $$PWD/epiphan/include
@@ -175,12 +170,29 @@ win32 {
 #INCLUDEPATH += "C:\\epiphan_sdk_32800009\\epiphan\\include"
 #INCLUDEPATH += "C:\\epiphan_sdk_32800009\\epiphan\\\frmgrab\\include"
 
+# Ascension trakSTAR
 win32: LIBS += -L$$PWD/AscensionWidget/3DGAPI/ -lATC3DG
 
 INCLUDEPATH += $$PWD/AscensionWidget/3DGAPI
 DEPENDPATH += $$PWD/AscensionWidget/3DGAPI
 
-## Eigen
-#INCLUDEPATH += "D:\\Eigen\\Eigen"
-#INCLUDEPATH += "D:\\Eigen"
-#DEPENDPATH += "D:\\Eigen\\Eigen"
+# MATLAB
+
+LIBS += -L$$PWD/MATLAB/ECGpeakDetection/codegen/dll/ECGgating -lECGgating
+
+INCLUDEPATH += $$PWD/MATLAB/ECGpeakDetection/codegen/dll/ECGgating
+DEPENDPATH += $$PWD/MATLAB/ECGpeakDetection/codegen/dll/ECGgating
+
+# ----- NOT USED -----
+
+## KFR
+#INCLUDEPATH += "D:\\kfr-1.0.0\include"
+
+# FIR - Mochima
+#INCLUDEPATH += "D:\\firMochima"
+
+# Spuce
+#INCLUDEPATH += "D:\\spuceDSPlibrary"
+
+#LIBS += -L"D:\\spuceDSPlibrary\\lib\\Win32\\Release" \
+#    -lspuce
