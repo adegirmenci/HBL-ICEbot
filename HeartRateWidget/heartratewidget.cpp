@@ -45,9 +45,9 @@ void HeartRateWidget::receiveECG(QTime timeStamp, std::vector<double> data)
     m_counter = m_counter % 16;
 
     // peak detection
-    ECGgating(&m_voltage[0], &m_time[0], minPeakDist, minPeakHei,
-              ECGpeakVals_data, ECGpeakVals_size,
-              ECGpeakTimes_data, ECGpeakTimes_size, &m_HR, &m_stdHR, &m_phaseHR);
+//    ECGgating(&m_voltage[0], &m_time[0], minPeakDist, minPeakHei,
+//              ECGpeakVals_data, ECGpeakVals_size,
+//              ECGpeakTimes_data, ECGpeakTimes_size, &m_HR, &m_stdHR, &m_phaseHR);
 
     if(m_counter == 0)
     {

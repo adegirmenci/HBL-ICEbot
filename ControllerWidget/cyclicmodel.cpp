@@ -355,12 +355,12 @@ void CyclicModel::retrainModel()
             m_Bird4_polar = m_Bird4_polarRect.segment(0, N_POLAR); // segment(i,n) : i = start idx, n = num elements
             m_Bird4_rectangular = m_Bird4_polarRect.segment(N_POLAR, N_RECT);
 
-            std::cout << "m_Bird4_polar\n" << m_Bird4_polar << std::endl;
-            std::cout << "m_Bird4_rectangular\n" << m_Bird4_rectangular << std::endl;
+//            std::cout << "m_Bird4_polar\n" << m_Bird4_polar << std::endl;
+//            std::cout << "m_Bird4_rectangular\n" << m_Bird4_rectangular << std::endl;
 
-            elNsec = elTimer.nsecsElapsed();
-            std::cout << "Cycle recalc x2+x1 Nsec elapsed: " << elNsec << std::endl;
-            elTimer.restart();
+//            elNsec = elTimer.nsecsElapsed();
+//            std::cout << "Cycle recalc x2+x1 Nsec elapsed: " << elNsec << std::endl;
+//            elTimer.restart();
 
 
             // update the prediction of m_breathSignalFromModel
