@@ -25,6 +25,7 @@
 
 #include <vector>
 #include <memory>
+#include <valarray>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -34,6 +35,7 @@
 #include "../AscensionWidget/3DGAPI/ATC3DG.h"
 #include "../FrmGrabWidget/frmgrabthread.h"
 
+#define N_PHASES 500 // keep track of the last N_PHASES cardiac phases and corresponding time stamps
 
 struct FrameExtd{
     QString image_; /*!< Image data. */
@@ -108,6 +110,7 @@ public slots:
                           DOUBLE_POSITION_MATRIX_TIME_Q_RECORD data);
     void receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD> readings);
     void receive_T_CT(std::vector<double> T_BB_CT, double time);
+    void receivePhase(qint64 timeStamp, double phase);
     void handleTcpError(QAbstractSocket::SocketError error);
     void connectedToHost();
     void disconnectedFromHost();
@@ -149,7 +152,11 @@ private:
 
     FrameExtd m_currExtdFrame;
     std::shared_ptr<Frame> m_currFrame;
+    double m_currFramePhase;
     EMreading m_currBird;
+
+    std::vector<double> m_cardiacPhases;
+    std::vector<qint64> m_phaseTimes;
 };
 
 #endif // FRAMECLIENTTHREAD_H

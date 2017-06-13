@@ -16,7 +16,11 @@ FrameClientThread::FrameClientThread(QObject *parent) : QObject(parent)
 
     m_currExtdFrame = FrameExtd();
     m_currFrame = nullptr;
+    m_currFramePhase = 0.0;
     m_currBird = EMreading();
+
+    m_cardiacPhases.resize(N_PHASES,0.0);
+    m_phaseTimes.resize(N_PHASES,0.0);
 
     m_mutex = new QMutex(QMutex::Recursive);
 }
@@ -82,6 +86,7 @@ void FrameClientThread::sendFrame()
         QVector3D v = tform.translation();
         m_currExtdFrame.EMq_ = q;
         m_currExtdFrame.EMv_ = v;
+        m_currExtdFrame.phaseHR_ = (float)m_currFramePhase;
         m_currExtdFrame.image_ = saveFrame(m_currFrame); // write to disk
         m_currExtdFrame.index_ = m_currFrame->index_;
         m_currExtdFrame.mask_ = tr("C:\\Users\\Alperen\\Documents\\QT Projects\\RT3DReconst_GUI\\Acuson_Epiphan.bin");
@@ -122,6 +127,15 @@ void FrameClientThread::receiveFrame(std::shared_ptr<Frame> frame)
     // qDebug() << "FrameClientThread: receiveFrame";
 
     m_currFrame = frame;
+
+    // determine phase
+    // take the difference of time stamps
+    std::valarray<qint64> Tdiff(m_phaseTimes.data(), m_phaseTimes.size());
+    Tdiff = std::abs(Tdiff - m_currFrame->timestamp_);
+
+    // find closest timestamp
+    auto idx = std::distance(std::begin(Tdiff), std::min_element(std::begin(Tdiff), std::end(Tdiff)));
+    m_currFramePhase = m_cardiacPhases[idx];
 }
 
 void FrameClientThread::receiveEMreading(QTime timeStamp, int sensorID, DOUBLE_POSITION_MATRIX_TIME_Q_RECORD data)
@@ -209,6 +223,15 @@ void FrameClientThread::receive_T_CT(std::vector<double> T_BB_CT, double time)
         m_keepStreaming = true;
 }
 
+void FrameClientThread::receivePhase(qint64 timeStamp, double phase)
+{
+    m_cardiacPhases.erase(m_cardiacPhases.begin());
+    m_phaseTimes.erase(m_phaseTimes.begin());
+
+    m_cardiacPhases.push_back(phase);
+    m_phaseTimes.push_back(timeStamp);
+}
+
 void FrameClientThread::connectedToHost()
 {
     emit statusChanged(FRMCLNT_CONNECTED);
@@ -251,7 +274,8 @@ QString FrameClientThread::saveFrame(std::shared_ptr<Frame> frm)
                   .arg(m_currExtdFrame.EMq_.y())
                   .arg(m_currExtdFrame.EMq_.z())
                   .arg(m_currExtdFrame.EMq_.scalar());
-        txtout << "Line 1: QVector3D, Line2: QQuaternion";
+        txtout << QString::number(m_currExtdFrame.phaseHR_, 'f', 3);
+        txtout << "\nLine 1: QVector3D, Line2: QQuaternion, Line3: (float)phaseHR_";
     }
     txtfile.close();
 

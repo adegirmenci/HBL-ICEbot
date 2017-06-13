@@ -7,6 +7,7 @@
 #include <QThread>
 #include <QString>
 #include <QTime>
+#include <QDateTime>
 #include <QTimer>
 #include <QDebug>
 #include <QSharedPointer>
@@ -32,7 +33,7 @@ public:
 signals:
     void statusChanged(int status);
     //void EM_Ready(bool status); // tells the widget that the EM tracker is ready
-    void logData(QTime timeStamp,
+    void logData(qint64 timeStamp,
                  std::vector<double> data);
     void logEvent(int source, // LOG_SOURCE
                   int logType, // LOG_TYPES

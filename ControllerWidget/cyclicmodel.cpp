@@ -126,6 +126,7 @@ void CyclicModel::addTrainingObservation(const EigenAffineTransform3d &T_BB_CT_c
 
         // send to plotter
         emit sendToPlotBird4(0, sampleTime, tempBird4);
+        //emit sendToPlotBird4(0, sampleTime, tempCT(0));
 
         m_numSamples++;
 
@@ -183,6 +184,9 @@ void CyclicModel::addObservation(const EigenAffineTransform3d &T_Bird4, const do
         // send to plotter
         emit sendToPlotBird4(1, m_timeData_new[N_FILTERED+EDGE_EFFECT-1], m_Bird4_filtered_new.tail(1)[0]);
         emit sendToPlotBird4(2, m_timeData_new[N_FILTERED+EDGE_EFFECT-1], m_breathSignalFromModel.tail(1)[0]);
+        //emit sendToPlotBird4(1, m_timeData_new.back(), m_BBfixed_CTtraj_future_des(0));
+        //emit sendToPlotBird4(2, m_timeData_new.back(), m_BBfixed_CT_des(0));
+
 
     }
     else

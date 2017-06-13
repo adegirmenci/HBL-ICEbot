@@ -31,14 +31,14 @@ HeartRateWidget::~HeartRateWidget()
     delete ui;
 }
 
-void HeartRateWidget::receiveECG(QTime timeStamp, std::vector<double> data)
+void HeartRateWidget::receiveECG(qint64 timeStamp, std::vector<double> data)
 {
     // remove first element
     m_time.erase(m_time.begin());
     m_voltage.erase(m_voltage.begin());
 
     // add new reading
-    m_time.push_back(timeStamp.msecsSinceStartOfDay());
+    m_time.push_back((double)timeStamp);
     m_voltage.push_back(data[0]);
 
     m_counter++;

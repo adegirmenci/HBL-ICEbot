@@ -49,10 +49,10 @@ LabJackWidget::LabJackWidget(QWidget *parent) :
     connect(ui->plotWidget->yAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotWidget->yAxis2, SLOT(setRange(QCPRange)));
 
     // setup a timer that repeatedly calls MainWindow::realtimeDataSlot:
-    connect(m_worker, SIGNAL(logData(QTime,std::vector<double>)), this, SLOT(addDataToPlot(QTime,std::vector<double>)));
+    connect(m_worker, SIGNAL(logData(qint64,std::vector<double>)), this, SLOT(addDataToPlot(qint64,std::vector<double>)));
 
     // Heart Rate Widget
-    connect(m_worker, SIGNAL(logData(QTime,std::vector<double>)), ui->HRwidget, SLOT(receiveECG(QTime,std::vector<double>)));
+    connect(m_worker, SIGNAL(logData(qint64,std::vector<double>)), ui->HRwidget, SLOT(receiveECG(qint64,std::vector<double>)));
 
     // qDebug() << "LabJack Widget Thread ID: " << reinterpret_cast<int>(QThread::currentThreadId()) << ".";
 }
@@ -66,10 +66,10 @@ LabJackWidget::~LabJackWidget()
     delete ui;
 }
 
-void LabJackWidget::addDataToPlot(QTime timeStamp, std::vector<double> data)
+void LabJackWidget::addDataToPlot(qint64 timeStamp, std::vector<double> data)
 {
     //TODO : automatically add more lines depending on the size of 'data'
-    double key = timeStamp.msecsSinceStartOfDay()/1000.0;
+    double key = timeStamp/1000.0;
     static double lastPointKey = 0;
     if( (key - lastPointKey) > 0.010) // at most add point every 10 ms
     {

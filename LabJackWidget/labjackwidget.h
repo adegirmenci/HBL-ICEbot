@@ -29,7 +29,7 @@ signals:
 
 private slots:
     void workerStatusChanged(int status);
-    void addDataToPlot(QTime timeStamp, std::vector<double> data);
+    void addDataToPlot(qint64 timeStamp, std::vector<double> data);
 
     void on_connectButton_clicked();
 

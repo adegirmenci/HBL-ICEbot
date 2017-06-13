@@ -178,13 +178,11 @@ void FrmGrabThread::grabFrame()
 {
     QMutexLocker locker(m_mutex);
 
-    //int msec = m_epoch.elapsed();
-    qint64 msec = QDateTime::currentMSecsSinceEpoch();
-    //qint64 msec = QDateTime::currentMSecsSinceEpoch() - m_epoch.toMSecsSinceEpoch();
-
     // capture frame
     m_cap >> m_src;
     //m_cap.read(m_src);
+
+    qint64 msec = QDateTime::currentMSecsSinceEpoch();
 
     // convert to grayscale
     cv::cvtColor(m_src, m_dst, CV_BGR2GRAY);

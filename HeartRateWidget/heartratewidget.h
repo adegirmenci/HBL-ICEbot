@@ -38,7 +38,7 @@ signals:
     void reportPhase(double phase);
 
 public slots:
-    void receiveECG(QTime timeStamp,
+    void receiveECG(qint64 timeStamp,
                     std::vector<double> data);
 
 private:

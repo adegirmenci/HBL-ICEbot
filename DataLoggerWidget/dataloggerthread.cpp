@@ -263,9 +263,9 @@ void DataLoggerThread::logFrmGrabImage(std::shared_ptr<Frame> frm)
 
 }
 
-void DataLoggerThread::logLabJackData(QTime timeStamp, std::vector<double> data)
+void DataLoggerThread::logLabJackData(qint64 timeStamp, std::vector<double> data)
 {
-    QString output = QString("%1").arg(timeStamp.msecsSinceStartOfDay());
+    QString output = QString("%1").arg(timeStamp);
     for(const double &d : data)
     {
         output.append("\t");
