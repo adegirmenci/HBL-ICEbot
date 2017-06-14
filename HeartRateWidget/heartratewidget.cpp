@@ -38,17 +38,15 @@ void HeartRateWidget::receiveECG(qint64 timeStamp, std::vector<double> data)
     m_voltage.erase(m_voltage.begin());
 
     // add new reading
-    m_time.push_back((double)timeStamp);
+    m_time.push_back((double)timeStamp/1000.);
     m_voltage.push_back(data[0]);
 
-    m_counter++;
-    m_counter = m_counter % 16;
-
     // peak detection
-//    ECGgating(&m_voltage[0], &m_time[0], minPeakDist, minPeakHei,
-//              ECGpeakVals_data, ECGpeakVals_size,
-//              ECGpeakTimes_data, ECGpeakTimes_size, &m_HR, &m_stdHR, &m_phaseHR);
+    ECGgating(&m_voltage[0], &m_time[0], minPeakDist, minPeakHei,
+              ECGpeakVals_data, ECGpeakVals_size,
+              ECGpeakTimes_data, ECGpeakTimes_size, &m_HR, &m_stdHR, &m_phaseHR);
 
+    m_counter = (m_counter + 1) % 60;
     if(m_counter == 0)
     {
         ui->HRlineEdit->setText(QString::number(m_HR,'f',1));

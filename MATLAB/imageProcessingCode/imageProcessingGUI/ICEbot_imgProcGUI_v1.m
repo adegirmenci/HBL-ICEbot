@@ -20,6 +20,7 @@ function varargout = ICEbot_imgProcGUI_v1(varargin)
 %
 %      Written by Alperen Degirmenci
 %      Harvard Biorobotics Lab
+%      Last Update: 6/14/2017
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 

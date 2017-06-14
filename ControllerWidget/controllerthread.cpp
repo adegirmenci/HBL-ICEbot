@@ -901,7 +901,7 @@ void ControllerThread::computeCoordFrameMobile()
     Eigen::AngleAxis<double> rotCTdes(CT_des(6), Eigen::Vector3d(CT_des(3),CT_des(4),CT_des(5)));
     Eigen::Translation3d transCTdes(CT_des(0),CT_des(1),CT_des(2));
     EigenAffineTransform3d T_BBfixed_CT_des = transCTdes * rotCTdes;
-    printf("transCTdes: x %.3f y %.3f z %.3f\n",CT_des(0),CT_des(1),CT_des(2));
+    //printf("transCTdes: x %.3f y %.3f z %.3f\n",CT_des(0),CT_des(1),CT_des(2));
 
     Eigen::AngleAxis<double> rotCTtraj(CT_future_des(6), Eigen::Vector3d(CT_future_des(3),CT_future_des(4),CT_future_des(5)));
     Eigen::Translation3d transCTtraj(CT_future_des(0),CT_future_des(1),CT_future_des(2));

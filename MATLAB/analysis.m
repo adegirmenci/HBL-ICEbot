@@ -1,7 +1,9 @@
 close all; clear all; clc
 
+folder = 'D:\Dropbox\Harvard\ICEbot share\Current working directory\2017-06-13 Sample data\20170613_151802814\20170613_151802814';
+
 [CycleNum,Time,Type,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16] = ...
-  importControllerFile('D:\BIDMC_Exp4\Behemoth\20161215_152131413\20161215_152131413_Controller.txt');
+  importControllerFile([folder,'_Controller.txt']);
 % importControllerFile('../20170104_144907123/20170104_144907123_Controller.txt');
 
 
@@ -23,12 +25,12 @@ plot(relevantTime, dxyzpsi(:,2))
 plot(relevantTime, dxyzpsi(:,3))
 plot(relevantTime, dxyzpsi(:,4))
 
-legend('x','y','z','\psi')
+legend('x','y','z','$\psi$')
 
 %% Import EM
 
 [sensorID,time,x,y,z,r11,r12,r13,r21,r22,r23,r31,r32,r33,quality] = ...
-    importEMfile('D:\BIDMC_Exp4\Behemoth\20161215_152131413\20161215_152131413_EM.txt');
+    importEMfile([folder,'_EM.txt']);
 
 time = (time - time(1))/1000.0; % seconds
 
@@ -61,6 +63,7 @@ hold on
 plot(time(1:4:end), squeeze(T_BT(2,4,:)))
 plot(time(1:4:end), squeeze(T_BT(3,4,:)))
 legend('x','y','z')
+axis equal
 
 figure
 plot3(squeeze(T_BT(1,4,:)),squeeze(T_BT(2,4,:)),squeeze(T_BT(3,4,:)))

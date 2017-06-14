@@ -1,7 +1,7 @@
 close all; clear all; clc
 
 % Written by Alperen Degirmenci
-% 1/12/2017 - Harvard Biorobotics Lab
+% 6/14/2017 - Harvard Biorobotics Lab
 
 %% Select Study Directory
 
@@ -101,7 +101,24 @@ load(['.',filesep,'cropMasks',filesep,'Acuson_Epiphan.mat']);
 % gives us a variable named cropSettings
 cropSettings.mask_uint8 = uint8(cropSettings.mask);
 
+
 %% Interpolate images
+
+n4Dframes = 15;
+
+binCounts = zeros(nSweeps,n4Dframes);
+temp = linspace(0,1,n4Dframes+1);
+binMins = temp(1:end-1);
+binMaxs = temp(2:end);
+% find the best aligned ECG spot
+for i = 1:nSweeps
+    inSweepIdx = (sweepIdx == i); % in this sweep
+    ecgs = percentECG(inSweepIdx);
+    for j = 1:n4Dframes
+        isItTrue = (ecgs < binMaxs(j)) & (ecgs > binMins(j));
+        binCounts(i,j) = sum(isItTrue);
+    end
+end
 
 nSlicesToStitch = length(imageTimestamps);
 
