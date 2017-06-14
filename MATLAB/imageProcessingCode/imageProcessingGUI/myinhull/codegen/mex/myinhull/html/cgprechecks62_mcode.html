@@ -1,0 +1,40 @@
+<!-- saved from url=(0014)about:internet -->
+<pre class="code">
+<span class="srcline"><span class="lineno"><a href="31,1" id="srcline1"> 1</a></span><span class="line"><span class="keyword">function</span> cgprechecks(<span class="var type1" id="S2T3U5">x</span>, <span class="var type1" id="S3T4U6">num_cgargs</span>)</span></span>
+<span class="srcline"><span class="lineno"><a href="31,2" id="srcline2"> 2</a></span><span class="line"><span class="comment">%CGPRECHECKS  Sanity checks for the Computational Geometry commands.</span></span></span>
+<span class="srcline"><span class="lineno"><a href="31,3" id="srcline3"> 3</a></span><span class="line"><span class="comment">% The checks are applied to DELAUNAY, VORONOI, CONVHULL</span></span></span>
+<span class="srcline"><span class="lineno"><a href="31,4" id="srcline4"> 4</a></span><span class="line"></span></span>
+<span class="srcline"><span class="lineno"><a href="31,5" id="srcline5"> 5</a></span><span class="line"></span></span>
+<span class="srcline"><span class="lineno"><a href="31,6" id="srcline6"> 6</a></span><span class="line"><span class="comment">%   Copyright 1984-2007 The MathWorks, Inc.</span></span></span>
+<span class="srcline"><span class="lineno"><a href="31,7" id="srcline7"> 7</a></span><span class="line"></span></span>
+<span class="srcline"><span class="lineno"><a href="31,8" id="srcline8"> 8</a></span><span class="line"><span class="keyword">if</span> <span class="mxinfo " id="T5:U4"><span class="var type1" id="S3T4U10">num_cgargs</span> &lt; <span class="mxinfo " id="T4:U6">1</span></span></span></span>
+<span class="srcline"><span class="lineno"><a href="31,9" id="srcline9"> 9</a></span><span class="line">    error(<span class="string">'MATLAB:cgprechecks:NotEnoughInputs'</span>);</span></span>
+<span class="srcline"><span class="lineno"><a href="31,10" id="srcline10">10</a></span><span class="line"><span class="keyword">end</span></span></span>
+<span class="srcline"><span class="lineno"><a href="31,11" id="srcline11">11</a></span><span class="line"></span></span>
+<span class="srcline"><span class="lineno"><a href="31,12" id="srcline12">12</a></span><span class="line"><span class="keyword">if</span> <span class="mxinfo " id="T5:U7">~<span class="mxinfo " id="T5:U8">isnumeric(<span class="var type1" id="S2T3U21">x</span>)</span></span></span></span>
+<span class="srcline"><span class="lineno"><a href="31,13" id="srcline13">13</a></span><span class="line">    error(<span class="string">'MATLAB:cgprechecks:NonNumericInput'</span>);</span></span>
+<span class="srcline"><span class="lineno"><a href="31,14" id="srcline14">14</a></span><span class="line"><span class="keyword">end</span>    </span></span>
+<span class="srcline"><span class="lineno"><a href="31,15" id="srcline15">15</a></span><span class="line"></span></span>
+<span class="srcline"><span class="lineno"><a href="31,16" id="srcline16">16</a></span><span class="line"><span class="keyword">if</span> <span class="mxinfo " id="T5:U10">issparse(<span class="var type1" id="S2T3U30">x</span>)</span></span></span>
+<span class="srcline"><span class="lineno"><a href="31,17" id="srcline17">17</a></span><span class="line">    error(<span class="string">'MATLAB:cgprechecks:Sparse'</span>);</span></span>
+<span class="srcline"><span class="lineno"><a href="31,18" id="srcline18">18</a></span><span class="line"><span class="keyword">end</span>  </span></span>
+<span class="srcline"><span class="lineno"><a href="31,19" id="srcline19">19</a></span><span class="line"></span></span>
+<span class="srcline"><span class="lineno"><a href="31,20" id="srcline20">20</a></span><span class="line"><span class="keyword">if</span> <span class="mxinfo " id="T5:U12">~<span class="mxinfo " id="T5:U13">isreal(<span class="var type1" id="S2T3U40">x</span>)</span></span></span></span>
+<span class="srcline"><span class="lineno"><a href="31,21" id="srcline21">21</a></span><span class="line">    error(<span class="string">'MATLAB:cgprechecks:Complex'</span>);</span></span>
+<span class="srcline"><span class="lineno"><a href="31,22" id="srcline22">22</a></span><span class="line"><span class="keyword">end</span>  </span></span>
+<span class="srcline"><span class="lineno"><a href="31,23" id="srcline23">23</a></span><span class="line">    </span></span>
+<span class="srcline"><span class="lineno"><a href="31,24" id="srcline24">24</a></span><span class="line"><span class="keyword">if</span> <span class="mxinfo " id="T5:U15">any(<span class="mxinfo " id="T21:U16"><span class="mxinfo " id="T21:U17">isinf(<span class="mxinfo " id="T22:U18"><span class="var type1" id="S2T3U53">x</span>(:)</span>)</span> | <span class="mxinfo " id="T21:U20">isnan(<span class="mxinfo " id="T22:U21"><span class="var type1" id="S2T3U58">x</span>(:)</span>)</span></span>)</span></span></span>
+<span class="srcline"><span class="lineno"><a href="31,25" id="srcline25">25</a></span><span class="line">  error(<span class="string">'MATLAB:cgprechecks:CannotAcceptInfOrNaN'</span>);</span></span>
+<span class="srcline"><span class="lineno"><a href="31,26" id="srcline26">26</a></span><span class="line"><span class="keyword">end</span></span></span>
+<span class="srcline"><span class="lineno"><a href="31,27" id="srcline27">27</a></span><span class="line"></span></span>
+<span class="srcline"><span class="lineno"><a href="31,28" id="srcline28">28</a></span><span class="line"><span class="keyword">if</span> <span class="mxinfo " id="T5:U23"><span class="mxinfo " id="T4:U24">ndims(<span class="var type1" id="S2T3U69">x</span>)</span> &gt; <span class="mxinfo " id="T4:U26">2</span></span></span></span>
+<span class="srcline"><span class="lineno"><a href="31,29" id="srcline29">29</a></span><span class="line">    error(<span class="string">'MATLAB:cgprechecks:NonTwoDInput'</span>);</span></span>
+<span class="srcline"><span class="lineno"><a href="31,30" id="srcline30">30</a></span><span class="line"><span class="keyword">end</span>      </span></span>
+<span class="srcline"><span class="lineno"><a href="31,31" id="srcline31">31</a></span><span class="line">    </span></span>
+<span class="srcline"><span class="lineno"><a href="31,32" id="srcline32">32</a></span><span class="line"><span class="mxinfo " id="T1:U27">[<span class="var type1" id="S12T4U78">m</span>,<span class="var type1" id="S13T4U79">n</span>] = size(<span class="var type1" id="S2T3U82">x</span>)</span>;</span></span>
+<span class="srcline"><span class="lineno"><a href="31,33" id="srcline33">33</a></span><span class="line"></span></span>
+<span class="srcline"><span class="lineno"><a href="31,34" id="srcline34">34</a></span><span class="line"><span class="keyword">if</span> <span class="mxinfo " id="T5:U31"><span class="var type1" id="S12T4U86">m</span> &lt; <span class="mxinfo " id="T4:U33"><span class="var type1" id="S13T4U88">n</span>+1</span></span>,</span></span>
+<span class="srcline"><span class="lineno"><a href="31,35" id="srcline35">35</a></span><span class="line">  error(<span class="string">'MATLAB:cgprechecks:NotEnoughPts'</span>);</span></span>
+<span class="srcline"><span class="lineno"><a href="31,36" id="srcline36">36</a></span><span class="line"><span class="keyword"><span class="keyword">end</span></span></span></span>
+<span class="srcline"><span class="lineno"><a href="31,37" id="srcline37">37</a></span><span class="line"></span></span>
+</pre>
