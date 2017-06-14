@@ -93,6 +93,6 @@ void FrameClientWidget::on_toggleAutoButton_clicked()
     {
         m_keepTransmitting = true;
         ui->toggleAutoButton->setText("Stop Automatic Collection");
-        m_transmitTimer->start(250);
+        m_transmitTimer->start(30);
     }
 }

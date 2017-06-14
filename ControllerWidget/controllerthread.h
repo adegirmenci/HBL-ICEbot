@@ -35,6 +35,7 @@
 #include "../icebot_definitions.h"
 #include "../AscensionWidget/3DGAPI/ATC3DG.h"
 #include "gainswidget.h"
+#include "sweep.h"
 
 struct ModeFlags
 {
@@ -93,7 +94,7 @@ signals:
                   QTime timeStamp,
                   int eventID, // FRMGRAB_EVENT_IDS
                   QString &message);
-    void sendMsgToWidget(QString msg);
+    void sendMsgToWidget(QString msg, int destination);
     void logError(int source, // LOG_SOURCE
                   int logType, // LOG_TYPES
                   QTime timeStamp,
@@ -138,6 +139,12 @@ public slots:
     void re_initializeRespModel();
     void stopRespModel();
     void updateFutureSamples(int n);
+
+    void startSweep(unsigned int nSteps_,
+                    double stepAngle_,
+                    double convLimit_,
+                    qint64 imgDuration_);
+    void abortSweep();
 
 private slots:
     void controlCycle(); // on a timer
@@ -221,6 +228,9 @@ private:
 
     // Kinematics oject
     Kinematics_4DOF m_cathKin;
+
+    // Sweep object
+    Sweep m_sweep;
 
     // --- Private methods ---
 

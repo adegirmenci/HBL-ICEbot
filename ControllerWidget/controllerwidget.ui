@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>560</width>
-    <height>450</height>
+    <height>661</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <rect>
      <x>10</x>
      <y>230</y>
-     <width>141</width>
+     <width>231</width>
      <height>51</height>
     </rect>
    </property>
@@ -30,7 +30,7 @@
      <rect>
       <x>10</x>
       <y>25</y>
-      <width>121</width>
+      <width>211</width>
       <height>20</height>
      </rect>
     </property>
@@ -40,10 +40,13 @@
    </widget>
   </widget>
   <widget class="QPushButton" name="testButton">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
-     <x>160</x>
-     <y>240</y>
+     <x>190</x>
+     <y>540</y>
      <width>80</width>
      <height>21</height>
     </rect>
@@ -57,7 +60,7 @@
     <rect>
      <x>250</x>
      <y>10</y>
-     <width>171</width>
+     <width>181</width>
      <height>251</height>
     </rect>
    </property>
@@ -72,7 +75,7 @@
    <property name="geometry">
     <rect>
      <x>430</x>
-     <y>90</y>
+     <y>480</y>
      <width>121</width>
      <height>171</height>
     </rect>
@@ -616,8 +619,8 @@
   <widget class="QGroupBox" name="jointSpaceGroupBox">
    <property name="geometry">
     <rect>
-     <x>280</x>
-     <y>270</y>
+     <x>310</x>
+     <y>480</y>
      <width>121</width>
      <height>171</height>
     </rect>
@@ -903,9 +906,9 @@
   <widget class="QPushButton" name="adjustGainsButton">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>410</y>
-     <width>80</width>
+     <x>440</x>
+     <y>100</y>
+     <width>111</width>
      <height>31</height>
     </rect>
    </property>
@@ -1308,10 +1311,10 @@
   <widget class="QGroupBox" name="USangleGroupBox">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>280</y>
-     <width>141</width>
-     <height>51</height>
+     <x>440</x>
+     <y>10</y>
+     <width>111</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="title">
@@ -1322,7 +1325,7 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>81</width>
+      <width>91</width>
       <height>22</height>
      </rect>
     </property>
@@ -1339,10 +1342,10 @@
    <widget class="QPushButton" name="setUSangleButton">
     <property name="geometry">
      <rect>
-      <x>100</x>
-      <y>20</y>
-      <width>31</width>
-      <height>20</height>
+      <x>10</x>
+      <y>50</y>
+      <width>91</width>
+      <height>21</height>
      </rect>
     </property>
     <property name="text">
@@ -1353,10 +1356,10 @@
   <widget class="QPushButton" name="respModelButton">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>410</y>
-     <width>141</width>
-     <height>31</height>
+     <x>440</x>
+     <y>140</y>
+     <width>111</width>
+     <height>121</height>
     </rect>
    </property>
    <property name="text">
@@ -1364,10 +1367,13 @@
    </property>
   </widget>
   <widget class="QGroupBox" name="trajectoryGroupBox">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>350</y>
+     <y>480</y>
      <width>261</width>
      <height>51</height>
     </rect>
@@ -1419,6 +1425,382 @@
     <property name="placeholderText">
      <string>0 of 0</string>
     </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_2">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>280</y>
+     <width>231</width>
+     <height>161</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Sweep</string>
+   </property>
+   <widget class="QPushButton" name="sweepButton">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>101</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Start Sweep</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="gridLayoutWidget_4">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>40</y>
+      <width>211</width>
+      <height>112</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="0" column="0">
+      <widget class="QLabel" name="numSweepsLabel">
+       <property name="text">
+        <string>Num Sweeps</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="sweepStepLabel">
+       <property name="text">
+        <string>Step (deg)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="sweepThreshLabel">
+       <property name="text">
+        <string>Error Thresh (deg)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QDoubleSpinBox" name="sweepStepDblSpinBox">
+       <property name="minimum">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>10.000000000000000</double>
+       </property>
+       <property name="value">
+        <double>2.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="acqTimeLabel">
+       <property name="text">
+        <string>Acq Time (ms)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QSpinBox" name="acqTimeMsSpinBox">
+       <property name="maximum">
+        <number>60000</number>
+       </property>
+       <property name="singleStep">
+        <number>250</number>
+       </property>
+       <property name="value">
+        <number>3000</number>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QDoubleSpinBox" name="sweepThreshDblSpinBox">
+       <property name="minimum">
+        <double>0.010000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>90.000000000000000</double>
+       </property>
+       <property name="value">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QSpinBox" name="numSweepsSpinBox">
+       <property name="maximum">
+        <number>360</number>
+       </property>
+       <property name="value">
+        <number>30</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QPushButton" name="abortSweepButton">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>20</y>
+      <width>91</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Abort!</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_3">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>280</y>
+     <width>131</width>
+     <height>141</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Current XYZPSI</string>
+   </property>
+   <widget class="QWidget" name="gridLayoutWidget_5">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>111</width>
+      <height>112</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_5">
+     <item row="3" column="1">
+      <widget class="QDoubleSpinBox" name="currDelPsiSpinbox">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="suffix">
+        <string notr="true"> deg</string>
+       </property>
+       <property name="decimals">
+        <number>2</number>
+       </property>
+       <property name="minimum">
+        <double>-180.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>180.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="currXLabel">
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="sizeIncrement">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>MS Shell Dlg 2</family>
+        </font>
+       </property>
+       <property name="text">
+        <string>X</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="currYLabel">
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="sizeIncrement">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>MS Shell Dlg 2</family>
+        </font>
+       </property>
+       <property name="text">
+        <string>Y</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QDoubleSpinBox" name="currZspinbox">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="suffix">
+        <string notr="true"> mm</string>
+       </property>
+       <property name="decimals">
+        <number>2</number>
+       </property>
+       <property name="minimum">
+        <double>-100.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>100.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>1.000000000000000</double>
+       </property>
+       <property name="value">
+        <double>0.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QDoubleSpinBox" name="currXspinbox">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="suffix">
+        <string notr="true"> mm</string>
+       </property>
+       <property name="decimals">
+        <number>2</number>
+       </property>
+       <property name="minimum">
+        <double>-50.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>50.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="currZLabel">
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="sizeIncrement">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>MS Shell Dlg 2</family>
+        </font>
+       </property>
+       <property name="text">
+        <string>Z</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QDoubleSpinBox" name="currYspinbox">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="suffix">
+        <string notr="true"> mm</string>
+       </property>
+       <property name="decimals">
+        <number>2</number>
+       </property>
+       <property name="minimum">
+        <double>-50.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>50.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="currDelPsiLabel">
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="sizeIncrement">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>Lucida Console</family>
+        </font>
+       </property>
+       <property name="text">
+        <string>Δψ</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
  </widget>

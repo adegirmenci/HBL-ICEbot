@@ -78,7 +78,10 @@ allImages = struct('FileName',imageFileNames,... % file name of image
                    'TimeStamp',num2cell(imageTimestamps),... % time stamp of image
                    'poseEM',[],... % interpolated pose
                    'EMidx',[],... % index of closest EM reading
-                   'errorPsi',[]); % angular error from desired pose
+                   'sweepIdx',[],... % sweep that the image belongs to
+                   'errorPsi',[],... % angular error from desired pose
+                   'ECGcycleIdx',[],... % ECG cycle that the image belongs to
+                   'percentECG',[]); % location in the ECG cycle, value b/w 0.0 and 1.0
 
 %% Align image and EM timestamps
 
@@ -94,10 +97,46 @@ hold on;
 plot(imageTimestamps/1000.,zeros(length(imageTimestamps),1),'o')
 figure
 
+%% Load ECG
+
+[handles.ECG_time, handles.ECGvoltage] = ...
+    importECG([handles.ECGpathName,handles.ECGfileName]);
+
+if(~isempty(handles.ECG_time))
+    set(handles.ECGgatingButton, 'Enable','on');
+    axes(handles.axes1);
+    plot(handles.ECG_time, handles.ECGvoltage);
+else
+    set(handles.ECGgatingButton, 'Enable','off');
+end
+
+msg = sprintf('Loaded %d ECG readings.\n', length(handles.ECG_time));
+set(handles.numECGtextbox, 'String', msg);
+
+%% ECG Gating
+
+minPeakDist = 60/100/2;
+minPeakHei = 0.2;
+
+[handles.ECGpeakLocs, handles.ECGpeakTime, avgHR, stdHR] = ...
+    ECGgating(handles.ECGvoltage, handles.ECG_time, handles.axes1, minPeakDist, minPeakHei);
+
+msg = sprintf('Average heartrate: %.2f +- %.2f BPM\n', avgHR, stdHR);
+
+%% Align ECG with images
+
+[allImgs, reorderedImgs, accurateImgs, nSweeps] = EM_ECG_matching(handles);
+
+handles.allImages = allImgs;
+handles.reorderedImgs = reorderedImgs;
+handles.accurateImgs = accurateImgs;
+handles.nSweeps = nSweeps;
+
 %% Load crop mask
 
-load(['.',filesep,'cropMasks',filesep,'Acuson_Epiphan.mat']);
-%load(['.',filesep,'cropMasks',filesep,'Sequoia_StarTech_Size 1 (largest).mat']);
+cropMask = 'Acuson_Epiphan.mat';
+% cropMask = 'Sequoia_StarTech_Size 1 (largest).mat';
+load(['.',filesep,'cropMasks',filesep,cropMask]);
 % gives us a variable named cropSettings
 cropSettings.mask_uint8 = uint8(cropSettings.mask);
 
@@ -120,97 +159,122 @@ for i = 1:nSweeps
     end
 end
 
-nSlicesToStitch = length(imageTimestamps);
+% find bin with max count
+[maxBinCount,maxBinIdx] = max(sum(logical(binCounts),1));
+fprintf('%d out of %d sweeps align well at bin number %d\n', maxBinCount,nSweeps,maxBinIdx);
+
+goodSweepIdx = binCounts > 0;
+nSlicesToStitch4D = sum(goodSweepIdx,1);
+
+
+% find the most common time by making a vector of ECG pctg 
+% then do a most likelihood estimate
+
+listOfECGs = cell(n4Dframes,1);
+phat = zeros(n4Dframes,2);
+for i = 1:n4Dframes
+    nSlicesToStich = nSlicesToStitch4D(i);
+    
+    sub_goodSweepIdx = find(goodSweepIdx(:,i));
+    
+    for j = 1:nSlicesToStich
+        currSweepIdx = sub_goodSweepIdx(j);
+        inSweepIdx = sweepIdx == currSweepIdx; % in this sweep
+        ecgs = percentECG(inSweepIdx);
+        
+        idxs = (ecgs < binMaxs(i)) & (ecgs >= binMins(i));
+        listOfECGs{i} = [listOfECGs{i}, ecgs(idxs)];
+    end
+    phat(i,:) = mle(listOfECGs{i});
+    fprintf(['Frame %d: Mean ECG phase is: %.3f ', char(177) ' %.3f\n'], i, phat(i,1), phat(i,2));
+end
 
 % stitch
-for i = 1:nSlicesToStitch
-    imIdx = i;
+interpCube = [];
+dt = datestr(datetime('now'),'_yymmdd_HHMMss');
+for k = 1:n4Dframes
+    nSlicesToStitch = nSlicesToStitch4D(k);
+    sub_goodSweepIdx = find(goodSweepIdx(:,k));
     
-    fileName = allImages(imIdx).FileName;
-
-    % Load image to memory
-    fullName = [folder,filesep,'images',filesep,fileName];
-    %fprintf('%s\n',fullName);
-    stitch.imageOriginal{i} = imread(fullName);
-  
-    imH = size(stitch.imageOriginal{i},1);
-    imW = size(stitch.imageOriginal{i},2);
-    if(i == 1)
-        % get frame size
-        stitch.imHeightOrig = imH;
-        stitch.imWidthOrig = imW;
-    else
-        % check image size
-        if(~(stitch.imHeightOrig == imH) || ~(stitch.imWidthOrig == imW) )
-            error('Images have different sizes!')
+    for i = 1:nSlicesToStitch
+        currSweepIdx = sub_goodSweepIdx(i);
+        inSweepIdx = sweepIdx == currSweepIdx; % in this sweep
+        ecgs = percentECG(inSweepIdx);
+        
+        isItTrue = (ecgs < binMaxs(k)) & (ecgs > binMins(k));
+        ecgvals = ecgs(isItTrue);
+        diff_ = abs(ecgvals - phat(k,1));
+        [~,imIdx] = min(diff_);
+        
+        theseImgs = allImages(inSweepIdx);
+        theseImgs = theseImgs(isItTrue);
+        fileName = theseImgs(imIdx).FileName;
+        
+        reportECG = theseImgs(imIdx).percentECG;
+        fprintf('ECG: %.2f\n', reportECG);
+        
+        % Load image to memory
+        fullName = [handles.studyDirPath,filesep,fileName];
+        %fprintf('%s\n',fullName);
+        stitch.imageOriginal{i} = imread(fullName);
+        
+        imH = size(stitch.imageOriginal{i},1);
+        imW = size(stitch.imageOriginal{i},2);
+        if(i == 1)
+            % get frame size
+            stitch.imHeightOrig = imH;
+            stitch.imWidthOrig = imW;
+        else
+            % check image size
+            if(~(stitch.imHeightOrig == imH) || ~(stitch.imWidthOrig == imW) )
+                error('Images have different sizes!')
+            end
         end
+        % Check to make sure mask size and image size fit
+        if(cropSettings.imHeight ~= stitch.imHeightOrig)
+            error('Image height not compatible with mask!')
+        end
+        if(cropSettings.imWidth ~= stitch.imWidthOrig)
+            error('Image width not compatible with mask!')
+            % disp(['[' 8 'Image width not compatible with mask!]' 8])
+        end
+        
+        stitch.imageCropped{i} = imcrop(stitch.imageOriginal{i}, cropSettings.cropROI);
+        
+        stitch.imageCropped{i} = stitch.imageCropped{i}.*cropSettings.mask_uint8; %apply mask
+        
+        stitch.originalEM{i} = theseImgs(imIdx).poseEM;
+        
+        imshow(stitch.imageCropped{i});
+        drawnow
     end
-    % Check to make sure mask size and image size fit
-    if(cropSettings.imHeight ~= stitch.imHeightOrig)
-        error('Image height not compatible with mask!')
-    end
-    if(cropSettings.imWidth ~= stitch.imWidthOrig)
-        error('Image width not compatible with mask!')
-        % disp(['[' 8 'Image width not compatible with mask!]' 8])
-    end
-    
-    stitch.imageCropped{i} = imcrop(stitch.imageOriginal{i}, cropSettings.cropROI);
 
-    stitch.imageCropped{i} = stitch.imageCropped{i}.*cropSettings.mask_uint8; %apply mask
-    
-    stitch.originalEM{i} = allImages(imIdx).poseEM;
-    
-    imshow(stitch.imageCropped{i});
-    drawnow
-end
 stitch.imHeightOrig = size(cropSettings.mask,1);
 stitch.imWidthOrig = size(cropSettings.mask,2);
 
-%% initialize container 
+%%%%% need respiration compensation / tissue based tracking
+
+% initialize container 
 stitch.imageLocXYZval = cell(nSlicesToStitch,1);
 stitch.nFrames = nSlicesToStitch;
 
-%% interpolate
-[CdZeroed] = interpolateSlices(stitch, 'Acuson_Epiphan', true');
+% interpolate
+[CdZeroed,interpCube] = interpolateSlices4D(stitch, cropMask, 'true', interpCube);
 
-dt = datestr(datetime('now'),'_yymmdd_HHMMss');
-outfilePre = ['.',filesep,'volumes',filesep,'volume_',study(2:end),dt];
+outfilePre = ['volume_',handles.studyName,dt,'_',num2str(k)];
 
-%% save as .RAW
-volumeFileName = [outfilePre,'_1.raw'];
+% save as .RAW
+volumeFileName = [outfilePre,'.raw'];
 saveStitched2RawFile(CdZeroed, volumeFileName)
 
-%% save as .mat
+% save as .mat
 save([outfilePre,'.mat'],'CdZeroed')
 
-%% save volume size to text file
+% save volume size to text file
 [xn,yn,zn] = size(CdZeroed);
 
 fileID = fopen([outfilePre,'.txt'],'w');
 fprintf(fileID,'%d\t%d\t%d\n',xn,yn,zn);
 fclose(fileID);
 
-fprintf('Done!\n')
-
-%% if acquiring images once at a time, at each target
-
-% import tip data
-
-% import images
-
-% align image timestamp with EM and select the pertinent readings
-
-% reconstruct
-
-
-%% else, if acquiring images continuously
-
-% import tip data
-
-% import images
-
-% align image timestamps with EM, put readings into memory
-
-% figure out when the angle between images is greater than a threshold
-
-% reconstruct
+end

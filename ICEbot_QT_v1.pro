@@ -49,7 +49,8 @@ SOURCES += main.cpp\
     ControllerWidget/filtfilt.cpp \
     ControllerWidget/cyclicmodel.cpp \
     ControllerWidget/respmodelwidget.cpp \
-    HeartRateWidget/heartratewidget.cpp
+    HeartRateWidget/heartratewidget.cpp \
+    ControllerWidget/sweep.cpp
 
 HEADERS  += icebot_gui.h \
     OmniWidget/omni.h \
@@ -80,7 +81,8 @@ HEADERS  += icebot_gui.h \
     ControllerWidget/filtfilt.h \
     ControllerWidget/cyclicmodel.h \
     ControllerWidget/respmodelwidget.h \
-    HeartRateWidget/heartratewidget.h
+    HeartRateWidget/heartratewidget.h \
+    ControllerWidget/sweep.h
 
 FORMS    += icebot_gui.ui \
     OmniWidget/omni.ui \

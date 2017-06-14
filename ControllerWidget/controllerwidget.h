@@ -38,11 +38,16 @@ signals:
     void stopControlCycle(); // stop control loop in worker
     void updateModeFlags(ModeFlags flags);
     void updateUSangle(double usAngle);
+    void workerStartSweep(unsigned int nSteps_,
+                          double stepAngle_,
+                          double convLimit_,
+                          qint64 imgDuration_);
+    void workerAbortSweep();
 
 
 private slots:
     void workerStatusChanged(int status);
-    void receiveMsgFromWorker(QString msg);
+    void receiveMsgFromWorker(QString msg, int destination);
 
     void on_testButton_clicked();
 
@@ -82,6 +87,10 @@ private slots:
 
     void driveTrajectory();
 
+    void on_sweepButton_clicked();
+
+    void on_abortSweepButton_clicked();
+
 private:
     Ui::ControllerWidget *ui;
 
@@ -91,6 +100,7 @@ private:
     QThread m_thread; // Controller Thread will live in here
 
     XYZPSI m_currXYZPSI;
+    unsigned int m_ctr;
 
     // trajectory
     std::vector<XYZPSI> m_XYZPSIs;

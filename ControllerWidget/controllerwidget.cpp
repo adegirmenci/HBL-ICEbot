@@ -17,8 +17,8 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
 
     connect(this, SIGNAL(tellWorkerToPrintThreadID()), m_worker, SLOT(printThreadID()));
 
-    connect(m_worker, SIGNAL(sendMsgToWidget(QString)),
-            this, SLOT(receiveMsgFromWorker(QString)));
+    connect(m_worker, SIGNAL(sendMsgToWidget(QString,int)),
+            this, SLOT(receiveMsgFromWorker(QString,int)));
 
     connect(m_worker, SIGNAL(statusChanged(int)),
             this, SLOT(workerStatusChanged(int)));
@@ -57,6 +57,12 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
     connect(&(m_worker->m_respModel), SIGNAL(sendToPlotBird4(unsigned int, double, double)),
             m_respModelWidget, SLOT(plotBird4(unsigned int,double,double)));
 
+    // Sweep
+    connect(this, SIGNAL(workerStartSweep(uint,double,double,qint64)),
+            m_worker, SLOT(startSweep(uint,double,double,qint64)));
+    connect(this, SIGNAL(workerAbortSweep()),
+            m_worker, SLOT(abortSweep()));
+
     // Initalize gains and limits to defaults
     gainWidget->on_setGainsButton_clicked();
     gainWidget->on_setLimitsButton_clicked();
@@ -73,6 +79,8 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
     // trajectory
     m_keepDriving = false;
     m_currTrajIdx = 0;
+
+    m_ctr = 0;
 
     connect(m_worker, SIGNAL(reportCurrentXYZPSI(XYZPSI)), this, SLOT(receiveCurrentXYZPSI(XYZPSI)));
 
@@ -129,10 +137,17 @@ void ControllerWidget::workerStatusChanged(int status)
     }
 }
 
-void ControllerWidget::receiveMsgFromWorker(QString msg)
+void ControllerWidget::receiveMsgFromWorker(QString msg, int destination)
 {
-    ui->statusTextEdit->clear();
-    ui->statusTextEdit->appendPlainText(msg);
+    if(destination == 0)
+    {
+        ui->statusTextEdit->clear();
+        ui->statusTextEdit->appendPlainText(msg);
+    }
+    else
+    {
+        ui->statusLineEdit->setText(msg);
+    }
 }
 
 void ControllerWidget::on_testButton_clicked()
@@ -354,6 +369,16 @@ void ControllerWidget::on_respModelButton_clicked()
 void ControllerWidget::receiveCurrentXYZPSI(XYZPSI currXYZPSI)
 {
     m_currXYZPSI = currXYZPSI;
+
+    if( (m_ctr % 5) == 0 )
+    {
+        ui->currXspinbox->setValue(currXYZPSI.x);
+        ui->currYspinbox->setValue(currXYZPSI.y);
+        ui->currZspinbox->setValue(currXYZPSI.z);
+        ui->currDelPsiSpinbox->setValue(currXYZPSI.psi);
+    }
+
+    m_ctr++;
 }
 
 void ControllerWidget::on_trajOpenFileButton_clicked()
@@ -475,4 +500,19 @@ void ControllerWidget::driveTrajectory()
         }
     }
 
+}
+
+void ControllerWidget::on_sweepButton_clicked()
+{
+    unsigned int nSteps = ui->numSweepsSpinBox->value();
+    double stepAngle = ui->sweepStepDblSpinBox->value() * piOverDeg180;
+    double convLimit = ui->sweepThreshDblSpinBox->value() * piOverDeg180;
+    qint64 imgDuration = ui->acqTimeMsSpinBox->value();
+
+    emit workerStartSweep(nSteps, stepAngle, convLimit, imgDuration);
+}
+
+void ControllerWidget::on_abortSweepButton_clicked()
+{
+    emit workerAbortSweep();
 }

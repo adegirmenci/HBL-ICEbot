@@ -468,6 +468,13 @@ void DataLoggerThread::logControllerData(QTime timeStamp, int loopIdx, int dataT
         output.append(QString("USANGLE\t%1")
                              .arg(QString::number(data[0],'f',m_prec)));
         break;
+    case CONTROLLER_SWEEP_START: // 4 values
+        output.append(QString("SWEEP\t%1\t%2\t%3\t%4")
+                             .arg(QString::number(data[0],'f',1)) // nSteps_
+                             .arg(QString::number(data[1],'f',m_prec)) // stepAngle_
+                             .arg(QString::number(data[2],'f',m_prec)) // convLimit_
+                             .arg(QString::number(data[3],'f',1))); // imgDuration_
+        break;
     default:
         output.append(QString("UNKNOWN"));
         break;

@@ -310,7 +310,7 @@ void ControllerThread::receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX
        + QString::number(m_BB_targetPos(3,2), 'f', 3) + "  "
        + QString::number(m_BB_targetPos(3,3), 'f', 2);
 
-    emit sendMsgToWidget(msg);
+    emit sendMsgToWidget(msg, 0);
 
     //emit logEventWithMessage(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), 0, msg);
 
@@ -618,6 +618,30 @@ void ControllerThread::updateFutureSamples(int n)
         qDebug() << "updateFutureSamples: n < EDGE_EFFECT";
 }
 
+void ControllerThread::startSweep(unsigned int nSteps_, double stepAngle_, double convLimit_, qint64 imgDuration_)
+{
+    if(!m_sweep.getIsActive())
+    {
+        m_sweep = Sweep(nSteps_, stepAngle_, convLimit_, imgDuration_);
+        m_sweep.activate();
+
+        std::vector<double> sweepParams = {(double)nSteps_,
+                                           stepAngle_*deg180overPi,
+                                           convLimit_*deg180overPi,
+                                           (double)imgDuration_};
+        emit logData(QTime::currentTime(), m_numCycles, CONTROLLER_SWEEP_START, sweepParams);
+        emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_SWEEP_STARTED);
+    }
+    else
+        qDebug() << "Already sweeping!";
+}
+
+void ControllerThread::abortSweep()
+{
+    m_sweep.abort();
+    emit logEvent(SRC_CONTROLLER, LOG_INFO, QTime::currentTime(), CONTROLLER_SWEEP_ABORTED);
+}
+
 void ControllerThread::controlCycle()
 {
     //QMutexLocker locker(m_mutex); // already locked by calling function
@@ -636,6 +660,19 @@ void ControllerThread::controlCycle()
             computeCoordFrameWorld();
             qCritical() << "Unknown Coord Frame Mode! Defaulting to World";
             break;
+        }
+
+        // handle sweep
+        if(m_sweep.getIsActive())
+        {
+            if(m_sweep.update( m_dXYZPsi(3) ))
+            {
+                // if done collecting
+                m_input_delPsi += m_sweep.getStepAngle();
+
+                QString msg = QString("%1 sweeps remaining.").arg(m_sweep.getRemainingSteps());
+                emit sendMsgToWidget(msg, 1); // update status text
+            }
         }
 
         // calculate gains
@@ -983,8 +1020,6 @@ void ControllerThread::computeCoordFrameMobile()
             m_dXYZPsi(2) = m_input_AbsXYZ(2) + T_BBfixed_CT_des(2,3) - m_BB_CT_curTipPos(2,3);
             m_dXYZPsi(3) = m_input_delPsi - total_psy;
 
-            printf("m_dXYZPsi - x %.3f y %.3f z %.3f psi %.3f\n", m_dXYZPsi(0), m_dXYZPsi(1), m_dXYZPsi(2), m_dXYZPsi(3));
-
             break;
         default:
             qCritical() << "Unknown Mode! MOBILE - INST_TRACK_OFF.";
@@ -1076,7 +1111,7 @@ void ControllerThread::computeCoordFrameMobile()
         break;
     }
 
-    //printf("dx : %.3f dy : %.3f dz : %.3f dpsi : %.3f\n", m_dXYZPsi(0), m_dXYZPsi(1), m_dXYZPsi(2), m_dXYZPsi(3)* deg180overPi);
+    //printf("m_dXYZPsi - x %.3f y %.3f z %.3f psi %.3f\n", m_dXYZPsi(0), m_dXYZPsi(1), m_dXYZPsi(2), m_dXYZPsi(3)*deg180overPi);
     std::vector<double> dxyzpsi = {m_dXYZPsi(0), m_dXYZPsi(1), m_dXYZPsi(2), m_dXYZPsi(3)*deg180overPi};
     emit logData(QTime::currentTime(), m_numCycles, CONTROLLER_DXYZPSI, dxyzpsi);
 }
