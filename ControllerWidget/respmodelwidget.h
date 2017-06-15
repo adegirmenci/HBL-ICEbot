@@ -31,6 +31,8 @@ signals:
 
     void newFutureSamplesValue(int n);
 
+    void changePlotFocus(int idx);
+
 private slots:
     void on_closeButton_clicked();
 
@@ -51,6 +53,10 @@ private slots:
     void plotBird4(unsigned int plotID, double time, double value);
 
     void on_stopButton_clicked();
+
+    void on_bird4RadioButton_clicked();
+
+    void on_CTradioButton_clicked();
 
 private:
     Ui::respModelWidget *ui;

@@ -57,6 +57,9 @@ ControllerWidget::ControllerWidget(QWidget *parent) :
     connect(&(m_worker->m_respModel), SIGNAL(sendToPlotBird4(unsigned int, double, double)),
             m_respModelWidget, SLOT(plotBird4(unsigned int,double,double)));
 
+    connect(m_respModelWidget, SIGNAL(changePlotFocus(int)),
+            &(m_worker->m_respModel), SLOT(setPlotFocus(int)));
+
     // Sweep
     connect(this, SIGNAL(workerStartSweep(uint,double,double,qint64)),
             m_worker, SLOT(startSweep(uint,double,double,qint64)));

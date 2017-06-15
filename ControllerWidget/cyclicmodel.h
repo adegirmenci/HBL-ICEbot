@@ -82,6 +82,9 @@ public:
 
     void testLPF();
 
+public slots:
+    void setPlotFocus(int idx);
+
 signals:
     void sendToPlotBird4(unsigned int plotID, double time, double val);
 
@@ -100,7 +103,8 @@ private:
     void getPrediction7Axis(const double timeShift,
                             const EigenMatrixPolar &x_polar,
                             const EigenMatrixRectangular &x_rect,
-                            EigenVector7d &X_des);
+                            EigenVector7d &X_des,
+                            const double phase);
 
     void cycle_recalculate(const EigenMatrixFiltered &z_init,
                            EigenMatrixRectangular &x_rect,
@@ -160,12 +164,16 @@ private:
     size_t m_nFutureSamples; // how much into the future should we look?
 
     double m_omega0; // frequency
+    double m_omega0_init;
+    std::vector<double> m_periods;
 
     size_t m_numSamples; // number of observations added IN TOTAL
 
     bool m_isTrained; // is the model trained
     qint64 m_lastTrainingTimestamp; // when last training was performed
     bool m_isInVivo; // are we in IN VIVO mode
+
+    int m_plotFocus;
 
     // concurrent execution
     QFuture<Eigen::MatrixXd> mConcurrent1, mConcurrent2;

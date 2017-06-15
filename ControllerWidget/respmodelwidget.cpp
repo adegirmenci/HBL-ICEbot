@@ -171,3 +171,13 @@ void respModelWidget::on_futureSamplesSpinBox_valueChanged(int arg1)
 {
     emit newFutureSamplesValue(arg1);
 }
+
+void respModelWidget::on_bird4RadioButton_clicked()
+{
+    emit changePlotFocus(RESP_MODEL_PLOT_BIRD4);
+}
+
+void respModelWidget::on_CTradioButton_clicked()
+{
+    emit changePlotFocus(RESP_MODEL_PLOT_CT);
+}

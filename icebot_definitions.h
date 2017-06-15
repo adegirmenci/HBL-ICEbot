@@ -268,6 +268,8 @@ static const int FRMGRAB_FPS = 60;
 // ******  CONTROLLER  ******
 // **************************
 
+#define PERIOD_FILTER_SIZE 150
+
 enum CONTROLLER_ERROR_CODES
 {
     CONTROLLER_SUCCESS = 0,     //
@@ -368,6 +370,12 @@ enum IN_VIVO_MODE
 {
     IN_VIVO_OFF = 0,
     IN_VIVO_ON
+};
+
+enum MODEL_PLOT_INDEX
+{
+    RESP_MODEL_PLOT_BIRD4 = 0,
+    RESP_MODEL_PLOT_CT
 };
 
 static const int CONTROLLER_LOOP_TIMER_MSEC = 1;

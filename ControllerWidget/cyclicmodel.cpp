@@ -63,6 +63,8 @@ void CyclicModel::resetModel()
     m_nFutureSamples = 2*EDGE_EFFECT;
 
     m_omega0 = 2.*pi/BREATH_RATE; // frequency [rad/sec]
+    m_omega0_init = 2.*pi/BREATH_RATE;
+    m_periods.clear(); // averaging filter for period
 
     m_numSamples = 0; // number of observations added IN TOTAL
 
@@ -125,8 +127,18 @@ void CyclicModel::addTrainingObservation(const EigenAffineTransform3d &T_BB_CT_c
         m_timeData_init.push_back(sampleTime);
 
         // send to plotter
-        emit sendToPlotBird4(0, sampleTime, tempBird4);
-        //emit sendToPlotBird4(0, sampleTime, tempCT(0));
+        switch (m_plotFocus)
+        {
+        case RESP_MODEL_PLOT_BIRD4:
+            emit sendToPlotBird4(0, sampleTime, tempBird4);
+            break;
+        case RESP_MODEL_PLOT_CT:
+            emit sendToPlotBird4(0, sampleTime, tempCT(0));
+            break;
+        default:
+            emit sendToPlotBird4(0, sampleTime, tempBird4);
+            break;
+        }
 
         m_numSamples++;
 
@@ -167,7 +179,18 @@ void CyclicModel::addObservation(const EigenAffineTransform3d &T_Bird4, const do
         m_timeData_new.push_back(sampleTime);
 
         // send to plotter
-        emit sendToPlotBird4(0, sampleTime, tempBird4);
+        switch (m_plotFocus)
+        {
+        case RESP_MODEL_PLOT_BIRD4:
+            emit sendToPlotBird4(0, sampleTime, tempBird4);
+            break;
+        case RESP_MODEL_PLOT_CT:
+            emit sendToPlotBird4(0, sampleTime, tempBird4 - 270.0);
+            break;
+        default:
+            emit sendToPlotBird4(0, sampleTime, tempBird4);
+            break;
+        }
 
         m_numSamples++;
 
@@ -182,11 +205,21 @@ void CyclicModel::addObservation(const EigenAffineTransform3d &T_Bird4, const do
         std::cout << "...done." << std::endl;
 
         // send to plotter
-        emit sendToPlotBird4(1, m_timeData_new[N_FILTERED+EDGE_EFFECT-1], m_Bird4_filtered_new.tail(1)[0]);
-        emit sendToPlotBird4(2, m_timeData_new[N_FILTERED+EDGE_EFFECT-1], m_breathSignalFromModel.tail(1)[0]);
-        //emit sendToPlotBird4(1, m_timeData_new.back(), m_BBfixed_CTtraj_future_des(0));
-        //emit sendToPlotBird4(2, m_timeData_new.back(), m_BBfixed_CT_des(0));
-
+        switch (m_plotFocus)
+        {
+        case RESP_MODEL_PLOT_BIRD4:
+            emit sendToPlotBird4(1, m_timeData_new[N_FILTERED+EDGE_EFFECT-1], m_Bird4_filtered_new.tail(1)[0]);
+            emit sendToPlotBird4(2, m_timeData_new[N_FILTERED+EDGE_EFFECT-1], m_breathSignalFromModel.tail(1)[0]);
+            break;
+        case RESP_MODEL_PLOT_CT:
+            emit sendToPlotBird4(1, m_timeData_new.back(), m_BBfixed_CTtraj_future_des(0));
+            emit sendToPlotBird4(2, m_timeData_new.back(), m_BBfixed_CT_des(0));
+            break;
+        default:
+            emit sendToPlotBird4(1, m_timeData_new[N_FILTERED+EDGE_EFFECT-1], m_Bird4_filtered_new.tail(1)[0]);
+            emit sendToPlotBird4(2, m_timeData_new[N_FILTERED+EDGE_EFFECT-1], m_breathSignalFromModel.tail(1)[0]);
+            break;
+        }
 
     }
     else
@@ -344,17 +377,18 @@ void CyclicModel::retrainModel()
 //        std::cout << "mConcurrent2.resultCount() " << mConcurrent2.resultCount() << mConcurrent2.isRunning() << mConcurrent2.isFinished()<< std::endl;
 //        std::cout << "mConcurrent3.resultCount() " << mConcurrent3.resultCount() << mConcurrent3.isRunning() << mConcurrent3.isFinished()<< std::endl;
 
-        if( (mConcurrent1.resultCount() > 0) && (mConcurrent2.resultCount() > 0) && (mConcurrent3.resultCount() > 0) )
+//        if( (mConcurrent1.resultCount() > 0) && (mConcurrent2.resultCount() > 0) && (mConcurrent3.resultCount() > 0) )
+        if( mConcurrent3.resultCount() > 0 )
         {
-            m_BBfixed_CT_polarRect = mConcurrent1.result();
-            // mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0);
-            m_BBfixed_CT_polar = m_BBfixed_CT_polarRect.block(0,0, N_POLAR, 7);
-            m_BBfixed_CT_rectangular = m_BBfixed_CT_polarRect.block(N_POLAR,0, N_RECT, 7);
+//            m_BBfixed_CT_polarRect = mConcurrent1.result();
+//            // mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0);
+//            m_BBfixed_CT_polar = m_BBfixed_CT_polarRect.block(0,0, N_POLAR, 7);
+//            m_BBfixed_CT_rectangular = m_BBfixed_CT_polarRect.block(N_POLAR,0, N_RECT, 7);
 
-            m_BBfixed_BB_polarRect = mConcurrent2.result();
-            // mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0);
-            m_BBfixed_BB_polar = m_BBfixed_BB_polarRect.block(0,0, N_POLAR, 7);
-            m_BBfixed_BB_rectangular = m_BBfixed_BB_polarRect.block(N_POLAR,0, N_RECT, 7);
+//            m_BBfixed_BB_polarRect = mConcurrent2.result();
+//            // mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0);
+//            m_BBfixed_BB_polar = m_BBfixed_BB_polarRect.block(0,0, N_POLAR, 7);
+//            m_BBfixed_BB_rectangular = m_BBfixed_BB_polarRect.block(N_POLAR,0, N_RECT, 7);
 
             m_Bird4_polarRect = mConcurrent3.result();
             // mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered_new, m_omega0); // m_Bird4_filtered
@@ -398,17 +432,18 @@ void CyclicModel::retrainModel()
             elTimer.restart();
 
             // update Fourier components
-            mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0, m_timeData_new);
-            mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0, m_timeData_new);
+//            mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0, m_timeData_new);
+//            mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0, m_timeData_new);
             mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered_new, m_omega0, m_timeData_new);
         }
         else
         {
-            if( (!mConcurrent1.isRunning()) && (!mConcurrent2.isRunning()) && (!mConcurrent3.isRunning()) )
+//            if( (!mConcurrent1.isRunning()) && (!mConcurrent2.isRunning()) && (!mConcurrent3.isRunning()) )
+            if( !mConcurrent3.isRunning() )
             {
                 //                std::cout << "Start concurrent." << std::endl;
-                mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0, m_timeData_new);
-                mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0, m_timeData_new);
+//                mConcurrent1 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_CT_filtered, m_omega0, m_timeData_new);
+//                mConcurrent2 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentM, m_BBfixed_BB_filtered, m_omega0, m_timeData_new);
                 mConcurrent3 = QtConcurrent::run(this, &CyclicModel::cycle_recalculate_concurrentV, m_Bird4_filtered_new, m_omega0, m_timeData_new);
             }
 
@@ -438,13 +473,19 @@ void CyclicModel::retrainModel()
 
         m_lastTrainingTimestamp = QDateTime::currentMSecsSinceEpoch();
 
+        std::cout << "m_Bird4_polar: " << m_Bird4_polar(6);
+
         // get predictions based on the models
-        double t0 = m_timeData_new.back() - m_timeData_init[EDGE_EFFECT];
+        //double t0 = m_timeData_new.back() - m_timeData_init[EDGE_EFFECT];
+//        double t0 = m_timeData_init.back() - m_timeData_init[EDGE_EFFECT];
+//        double t1 = t0; // + 0.0; fudge factor may be needed?
+//        double t2 = t1 + (m_nFutureSamples - EDGE_EFFECT)*SAMPLE_DELTA_TIME;
+        double t0 = m_timeData_init.back() - m_timeData_init[N_FILTERED + EDGE_EFFECT - 1];
         double t1 = t0; // + 0.0; fudge factor may be needed?
         double t2 = t1 + (m_nFutureSamples - EDGE_EFFECT)*SAMPLE_DELTA_TIME;
-        getPrediction7Axis(t1, m_BBfixed_CT_polar, m_BBfixed_CT_rectangular, m_BBfixed_CT_des);
-        getPrediction7Axis(t2, m_BBfixed_CT_polar, m_BBfixed_CT_rectangular, m_BBfixed_CTtraj_future_des);
-        getPrediction7Axis(t1, m_BBfixed_BB_polar, m_BBfixed_BB_rectangular, m_BBfixed_BB_des);
+        getPrediction7Axis(t1, m_BBfixed_CT_polar, m_BBfixed_CT_rectangular, m_BBfixed_CT_des, m_Bird4_polar(6));
+        getPrediction7Axis(t2, m_BBfixed_CT_polar, m_BBfixed_CT_rectangular, m_BBfixed_CTtraj_future_des, m_Bird4_polar(6));
+        getPrediction7Axis(t1, m_BBfixed_BB_polar, m_BBfixed_BB_rectangular, m_BBfixed_BB_des, m_Bird4_polar(6));
 
         printf("CT_des_x %.3f CTtraj_future_des %.3f BB_des %.3f\n", m_BBfixed_CT_des(0), m_BBfixed_CTtraj_future_des(0), m_BBfixed_BB_des(0));
 
@@ -462,6 +503,11 @@ void CyclicModel::updatePeriod(const double period)
         m_omega0 = 2.0*pi/BREATH_RATE;
     else
         m_omega0 = 2.0*pi/period;
+}
+
+void CyclicModel::setPlotFocus(int idx)
+{
+    m_plotFocus = idx;
 }
 
 void CyclicModel::setInVivo(const bool isInVivo)
@@ -662,9 +708,14 @@ double CyclicModel::peakDetector(const bool runForInit)
             if( (period < (BREATH_RATE*0.8)) || (period > (BREATH_RATE*1.2)) )
                 period = BREATH_RATE;
         }
+
+        m_periods.clear();
+        m_periods.resize(PERIOD_FILTER_SIZE, period);
+        m_periods.push_back(0); // index for circular buffer
+        m_omega0_init = 2.0*pi/period;;
     }
-//    else
-//    {
+    else
+    {
 //        double period_old = 2.0*pi/m_omega0;
 
 //        // Get the time difference between peaks
@@ -743,7 +794,10 @@ double CyclicModel::peakDetector(const bool runForInit)
 //        }
 //        else
 //            printf("Mean is empty.\n");
-//    }
+        m_periods[m_periods[PERIOD_FILTER_SIZE]] = period; // add new period to filter
+        m_periods[PERIOD_FILTER_SIZE] = (double)(((int)(m_periods[PERIOD_FILTER_SIZE] + 1)) % (PERIOD_FILTER_SIZE)); // increment and mod counter
+        period = std::accumulate(m_periods.begin(),m_periods.end()-1,0.0) / (double)(PERIOD_FILTER_SIZE); // mean
+    }
 
     std::cout << "Period: " << period << std::endl << std::flush;
 
@@ -1316,10 +1370,14 @@ double CyclicModel::getPrediction(const double timeShift, const EigenVectorPolar
     return x_des ;
 }
 
-void CyclicModel::getPrediction7Axis(const double timeShift, const EigenMatrixPolar &x_polar, const EigenMatrixRectangular &x_rect, EigenVector7d &X_des)
+void CyclicModel::getPrediction7Axis(const double timeShift, const EigenMatrixPolar &x_polar, const EigenMatrixRectangular &x_rect, EigenVector7d &X_des, const double phase)
 {
     // Make sure the time coming in is already (t1[j] - t_begin)
 
+//    double period_orig = 2*pi/m_omega0_init;
+//    double period_new = 2*pi/m_omega0;
+//    double dif = (period_orig - period_new)/period_orig;
+    double phDif = m_omega0_init * timeShift;
     if(m_isTrained)
     {
         X_des = EigenVector7d::Zero();
@@ -1331,7 +1389,13 @@ void CyclicModel::getPrediction7Axis(const double timeShift, const EigenMatrixPo
         {
             for (size_t i = 0; i < N_HARMONICS; i++)
             {
-                X_des(j) = X_des(j) + x_polar(i+1,j) * sin( (i+1.0)*x_polar(N_HARMONICS+1,j)*timeShift + atan2( x_rect(i+N_HARMONICS+1,j), x_rect(i+1,j) ) );
+                //X_des(j) = X_des(j) + x_polar(i+1,j) * sin( (i+1.0)*x_polar(N_HARMONICS+1,j)*timeShift + atan2( x_rect(i+N_HARMONICS+1,j), x_rect(i+1,j) ) );
+                //X_des(j) = X_des(j) + x_polar(i+1,j) * sin( (i+1.0)*m_omega0*(phase/2.0/pi * period_orig) + atan2( x_rect(i+N_HARMONICS+1,j), x_rect(i+1,j) ) );
+                //X_des(j) = X_des(j) + x_polar(i+1,j) * sin( (i+1.0)*m_omega0*((phase/2.0/pi-dif) * period_orig) + atan2( x_rect(i+N_HARMONICS+1,j), x_rect(i+1,j) ) );
+                //X_des(j) = X_des(j) + x_polar(i+1,j) * sin( (i+1.0)*phase + atan2( x_rect(i+N_HARMONICS+1,j), x_rect(i+1,j) ) );
+                //X_des(j) = X_des(j) + x_polar(i+1,j) * sin( (i+1.0)*(phase + m_omega0_init*(m_timeData_init.back() - m_timeData_init.front())) );
+                //X_des(j) = X_des(j) + x_polar(i+1,j) * sin( phase + (i+1.0)*( m_omega0_init*(m_timeData_init.back() - m_timeData_init[EDGE_EFFECT])));
+                X_des(j) = X_des(j) + x_polar(i+1,j) * sin( (i+1.0)*(phase + phDif - atan2( x_rect(N_HARMONICS+1,j), x_rect(1,j) )) + atan2( x_rect(i+N_HARMONICS+1,j), x_rect(i+1,j) ) );
             }
             X_des(j) = X_des(j) + x_polar(0,j);
         }
