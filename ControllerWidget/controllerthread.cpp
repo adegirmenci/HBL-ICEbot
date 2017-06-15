@@ -665,13 +665,36 @@ void ControllerThread::controlCycle()
         // handle sweep
         if(m_sweep.getIsActive())
         {
-            if(m_sweep.update( m_dXYZPsi(3) ))
-            {
-                // if done collecting
+            QString msg;
+            int status = m_sweep.update( m_dXYZPsi(3) );
+            switch (status) {
+            case SWEEP_INACTIVE: // shouldn't happen
+                break;
+            case SWEEP_WAIT_TO_CONVERGE: // ignore
+                break;
+            case SWEEP_CONVERGED:
+                // emit signal to turn on frame transmission
+                emit toggleFrameClientContinuousStreaming(true);
+                break;
+            case SWEEP_CONVERGED_ACQUIRING: // ignore
+                break;
+            case SWEEP_NEXT: // done collecting
+                // emit signal to turn off frame transmission
+                emit toggleFrameClientContinuousStreaming(false);
+
                 m_input_delPsi += m_sweep.getStepAngle();
 
-                QString msg = QString("%1 sweeps remaining.").arg(m_sweep.getRemainingSteps());
+                msg = QString("%1 sweeps remaining.").arg(m_sweep.getRemainingSteps());
                 emit sendMsgToWidget(msg, 1); // update status text
+                break;
+            case SWEEP_DONE:
+                msg = QString("Sweep complete after %1 s.").arg(m_sweep.getOverallTimeElapsed()/1000);
+                emit sendMsgToWidget(msg, 1); // update status text
+                break;
+            default:
+                msg = QString("Sweep unknown state!");
+                emit sendMsgToWidget(msg, 1); // update status text
+                break;
             }
         }
 

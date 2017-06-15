@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QElapsedTimer>
 #include "kinematics_4dof.h"
+#include "../icebot_definitions.h"
 
 class Sweep
 {
@@ -17,12 +18,14 @@ public:
     void abort() {reset();}
     void reset();
 
-    bool update(const double currPsy);
+    int update(const double currPsy);
     double getStepAngle() { return stepAngle; }
 
     unsigned int getRemainingSteps() { return remSteps; }
     bool getIsConverged() { return isConverged; }
     bool getIsActive() { return isActive; }
+    unsigned int getNumControlCycles() { return nControlCycles; }
+    qint64 getOverallTimeElapsed() { return overallTimer.elapsed(); }
 
 private:
     bool isActive; // are we currently sweeping?
@@ -34,6 +37,7 @@ private:
     bool isConverged; // did we converge?
     qint64 imagingDuration; // how many ms to image for at current angle once converged
     QElapsedTimer timer;  // keep track of ms spent at current angle after convergence
+    QElapsedTimer overallTimer;
 };
 
 #endif // SWEEP_H

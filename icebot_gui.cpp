@@ -76,6 +76,8 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
 //            ui->frameClientWidget->m_worker, SLOT(receiveLatestEMreading(std::vector<DOUBLE_POSITION_MATRIX_TIME_Q_RECORD>)));
     connect(ui->controlWidget->m_worker, SIGNAL(send_CT_toFrameClient(std::vector<double>,double)),
             ui->frameClientWidget->m_worker, SLOT(receive_T_CT(std::vector<double>,double)));
+    connect(ui->controlWidget->m_worker, SIGNAL(toggleFrameClientContinuousStreaming(bool)),
+            ui->frameClientWidget->m_worker, SLOT(toggleContinuousSteaming(bool)));
 
     // Controller to EPOS
     connect(ui->controlWidget->m_worker, SIGNAL(setEPOSservoTargetPos(std::vector<long>,bool)),

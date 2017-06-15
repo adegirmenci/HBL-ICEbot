@@ -117,6 +117,8 @@ public slots:
     const QHostAddress getServerAddress() { return m_serverAddress; }
     const quint16 getServerPort() { return m_serverPort; }
 
+    void toggleContinuousSteaming(bool state) { m_continuousStreaming = state; }
+
 private:
     QString saveFrame(std::shared_ptr<Frame>);
 
@@ -138,6 +140,7 @@ private:
 
     // Flag to tell that we are still streaming
     bool m_keepStreaming;
+    bool m_continuousStreaming;
 
     // Flag to abort actions (e.g. initialize, acquire, etc.)
     bool m_abort;

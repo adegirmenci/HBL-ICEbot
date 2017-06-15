@@ -112,6 +112,8 @@ signals:
 
     void reportCurrentXYZPSI(XYZPSI currXYZPSI);
 
+    void toggleFrameClientContinuousStreaming(bool turnOn);
+
 public slots:
     void setEpoch(const QDateTime &epoch);
     void printThreadID();

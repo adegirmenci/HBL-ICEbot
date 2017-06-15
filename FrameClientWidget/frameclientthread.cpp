@@ -7,6 +7,7 @@ FrameClientThread::FrameClientThread(QObject *parent) : QObject(parent)
     m_isEpochSet = false;
     m_isReady = false;
     m_keepStreaming = false;
+    m_continuousStreaming = false;
     m_frameCount = 0;
     m_abort = false;
     m_serverAddress = QHostAddress(QHostAddress::LocalHost);
@@ -31,6 +32,7 @@ FrameClientThread::~FrameClientThread()
     m_abort = true;
     m_isReady = false;
     m_keepStreaming = false;
+    m_continuousStreaming = false;
     if(m_TcpSocket)
     {
         m_TcpSocket->flush();
@@ -136,6 +138,9 @@ void FrameClientThread::receiveFrame(std::shared_ptr<Frame> frame)
     // find closest timestamp
     auto idx = std::distance(std::begin(Tdiff), std::min_element(std::begin(Tdiff), std::end(Tdiff)));
     m_currFramePhase = m_cardiacPhases[idx];
+
+    if(m_continuousStreaming)
+        sendFrame();
 }
 
 void FrameClientThread::receiveEMreading(QTime timeStamp, int sensorID, DOUBLE_POSITION_MATRIX_TIME_Q_RECORD data)

@@ -378,6 +378,16 @@ enum MODEL_PLOT_INDEX
     RESP_MODEL_PLOT_CT
 };
 
+enum SWEEP_MODES
+{
+    SWEEP_INACTIVE = 0,
+    SWEEP_WAIT_TO_CONVERGE,
+    SWEEP_CONVERGED,
+    SWEEP_CONVERGED_ACQUIRING,
+    SWEEP_NEXT,
+    SWEEP_DONE
+};
+
 static const int CONTROLLER_LOOP_TIMER_MSEC = 1;
 
 // *************************
