@@ -73,6 +73,7 @@ void FrameClientThread::sendFrame()
 
     if(m_keepStreaming && (m_currFramePhase < 0.06))
     {
+        m_continuousStreaming = false;
         // construct frame - rot matrix from Ascension is transposed
         QMatrix4x4 tmp(m_currBird.data.s[0][0], m_currBird.data.s[0][1], m_currBird.data.s[0][2], m_currBird.data.x,
                        m_currBird.data.s[1][0], m_currBird.data.s[1][1], m_currBird.data.s[1][2], m_currBird.data.y,

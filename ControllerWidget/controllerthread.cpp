@@ -688,6 +688,7 @@ void ControllerThread::controlCycle()
                 emit sendMsgToWidget(msg, 1); // update status text
                 break;
             case SWEEP_DONE:
+                emit toggleFrameClientContinuousStreaming(false);
                 msg = QString("Sweep complete after %1 s.").arg(m_sweep.getOverallTimeElapsed()/1000);
                 emit sendMsgToWidget(msg, 1); // update status text
                 break;
