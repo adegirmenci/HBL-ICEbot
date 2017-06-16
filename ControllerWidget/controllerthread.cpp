@@ -30,8 +30,8 @@ ControllerThread::ControllerThread(QObject *parent) :
     m_input_delPsi = 0.0;
     m_dXYZPsi << 0.0, 0.0, 0.0, 0.0;
 
-    // FOR IN VIVO EXP 5!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    setUSangle(75.00);
+    // FOR IN VIVO EXP 6!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    setUSangle(49.00); // 75 deg for Exp 5, used 108 for ablation tracking at one point
     m_modeFlags.inVivoMode = IN_VIVO_ON;
 
     m_mutex = new QMutex(QMutex::NonRecursive);
@@ -669,7 +669,7 @@ void ControllerThread::controlCycle()
         // handle sweep
         if(m_sweep.getIsActive())
         {
-            QString msg;
+            QString msg; std::vector<double> convd; std::vector<double> newDelPsi;
             int status = m_sweep.update( m_dXYZPsi(3) );
             switch (status) {
             case SWEEP_INACTIVE: // shouldn't happen
@@ -679,6 +679,9 @@ void ControllerThread::controlCycle()
             case SWEEP_CONVERGED:
                 // emit signal to turn on frame transmission
                 emit toggleFrameClientContinuousStreaming(true);
+
+                convd = {(double)m_sweep.getRemainingSteps()};
+                emit logData(QTime::currentTime(), m_numCycles, CONTROLLER_SWEEP_CONVERGED, convd);
                 break;
             case SWEEP_CONVERGED_ACQUIRING: // ignore
                 break;
@@ -687,6 +690,9 @@ void ControllerThread::controlCycle()
                 emit toggleFrameClientContinuousStreaming(false);
 
                 m_input_delPsi += m_sweep.getStepAngle();
+
+                newDelPsi = {m_input_delPsi};
+                emit logData(QTime::currentTime(), m_numCycles, CONTROLLER_NEXT_SWEEP, newDelPsi);
 
                 msg = QString("%1 sweeps remaining.").arg(m_sweep.getRemainingSteps());
                 emit sendMsgToWidget(msg, 1); // update status text

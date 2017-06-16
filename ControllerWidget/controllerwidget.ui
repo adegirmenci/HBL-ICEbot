@@ -1342,7 +1342,7 @@
      <double>180.000000000000000</double>
     </property>
     <property name="value">
-     <double>75.000000000000000</double>
+     <double>49.000000000000000</double>
     </property>
    </widget>
    <widget class="QPushButton" name="setUSangleButton">
@@ -1492,7 +1492,7 @@
      <item row="1" column="1">
       <widget class="QDoubleSpinBox" name="sweepStepDblSpinBox">
        <property name="minimum">
-        <double>0.100000000000000</double>
+        <double>-10.000000000000000</double>
        </property>
        <property name="maximum">
         <double>10.000000000000000</double>

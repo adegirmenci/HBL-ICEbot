@@ -70,6 +70,66 @@ else
     disp('No T_BB_CT in file. Must be older format.');
 end
 
+%% Find SWEEP
+
+mask = strcmp(Type,'SWEEPCONVD');
+maks2 = strcmp(Type,'SWEEPNEXT');
+if(~isempty(mask))
+    sweepIdx = find(strcmp(Type,'SWEEP'));
+    sweepIdx = sweepIdx(end);
+    Time_SWEEP_Start = Time(sweepIdx);
+    
+    relevantIdx = find(mask);
+    relevantIdx = relevantIdx(relevantIdx>sweepIdx);
+    Time_SWEEP_conv = Time(relevantIdx);
+    
+    relevantIdx2 = find(mask2);
+    relevantIdx2 = relevantIdx2(relevantIdx2>sweepIdx);
+    Time_SWEEP = Time(relevantIdx);
+    
+    % convert to posix time
+    hrsOffet = 5;
+    if(isdst(datetime('today','TimeZone','America/New_York')))
+        hrsOffet = 4;
+    end
+    Time_SWEEP_Start = posixtime(datetime(str2num(study(1:4)),str2num(study(5:6)),str2num(study(7:8)))...
+                             + hours(hrsOffet) + milliseconds(Time_SWEEP_Start));
+    Time_SWEEP = posixtime(datetime(str2num(study(1:4)),str2num(study(5:6)),str2num(study(7:8)))...
+                             + hours(hrsOffet) + milliseconds(Time_SWEEP));
+                         
+    sweepSettings.nSweeps = x1(sweepIdx);
+    sweepSettings.stepSize = x2(sweepIdx);
+    sweepSettings.errorThresh = x3(sweepIdx);
+    sweepSettings.imagingDuration = x4(sweepIdx);
+    
+    nSweeps = sweepSettings.nSweeps;
+    
+    % Find sweep boundaries
+    for i = 1:nSweeps
+        sweepStartIdx = 
+    end
+    
+    T_BB_CT = zeros(4,4,length(Time_T_BB_CT));
+    T_BB_CT(1,1,:) = x1(relevantIdx);
+    T_BB_CT(2,1,:) = x2(relevantIdx);
+    T_BB_CT(3,1,:) = x3(relevantIdx);
+    T_BB_CT(4,1,:) = x4(relevantIdx);
+    T_BB_CT(1,2,:) = x5(relevantIdx);
+    T_BB_CT(2,2,:) = x6(relevantIdx);
+    T_BB_CT(3,2,:) = x7(relevantIdx);
+    T_BB_CT(4,2,:) = x8(relevantIdx);
+    T_BB_CT(1,3,:) = x9(relevantIdx);
+    T_BB_CT(2,3,:) = x10(relevantIdx);
+    T_BB_CT(3,3,:) = x11(relevantIdx);
+    T_BB_CT(4,3,:) = x12(relevantIdx);
+    T_BB_CT(1,4,:) = x13(relevantIdx);
+    T_BB_CT(2,4,:) = x14(relevantIdx);
+    T_BB_CT(3,4,:) = x15(relevantIdx);
+    T_BB_CT(4,4,:) = x16(relevantIdx);
+else
+    disp('No T_BB_CT in file. Must be older format.');
+end
+
 %% Import Images
 
 [imageFileNames,imageTimestamps] = importImageTimestamps([folder,filesep,study,'_FrmGrab.txt']);

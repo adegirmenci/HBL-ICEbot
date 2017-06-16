@@ -475,6 +475,14 @@ void DataLoggerThread::logControllerData(QTime timeStamp, int loopIdx, int dataT
                              .arg(QString::number(data[2],'f',m_prec)) // convLimit_
                              .arg(QString::number(data[3],'f',1))); // imgDuration_
         break;
+    case CONTROLLER_NEXT_SWEEP: // 1 value
+        output.append(QString("SWEEPNEXT\t%1")
+                             .arg(QString::number(data[0],'f',m_prec)));
+        break;
+    case CONTROLLER_SWEEP_CONVERGED: // 1 value
+        output.append(QString("SWEEPCONVD\t%1")
+                             .arg(QString::number(data[0],'f',m_prec)));
+        break;
     default:
         output.append(QString("UNKNOWN"));
         break;

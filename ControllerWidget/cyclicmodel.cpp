@@ -70,7 +70,7 @@ void CyclicModel::resetModel()
 
     m_isTrained = false; // is the model trained
     m_lastTrainingTimestamp = 0; // when last training was performed
-    m_isInVivo = false; // are we in IN VIVO mode
+    m_isInVivo = true; // are we in IN VIVO mode
 }
 
 void CyclicModel::addTrainingObservation(const EigenAffineTransform3d &T_BB_CT_curTipPos,
@@ -133,7 +133,7 @@ void CyclicModel::addTrainingObservation(const EigenAffineTransform3d &T_BB_CT_c
             emit sendToPlotBird4(0, sampleTime, tempBird4);
             break;
         case RESP_MODEL_PLOT_CT:
-            emit sendToPlotBird4(0, sampleTime, tempCT(0));
+            emit sendToPlotBird4(0, sampleTime, tempCT.segment(0,3).norm());
             break;
         default:
             emit sendToPlotBird4(0, sampleTime, tempBird4);
@@ -185,7 +185,7 @@ void CyclicModel::addObservation(const EigenAffineTransform3d &T_Bird4, const do
             emit sendToPlotBird4(0, sampleTime, tempBird4);
             break;
         case RESP_MODEL_PLOT_CT:
-            emit sendToPlotBird4(0, sampleTime, tempBird4 - 270.0);
+            emit sendToPlotBird4(0, sampleTime, tempBird4 - 130.);
             break;
         default:
             emit sendToPlotBird4(0, sampleTime, tempBird4);
@@ -212,8 +212,10 @@ void CyclicModel::addObservation(const EigenAffineTransform3d &T_Bird4, const do
             emit sendToPlotBird4(2, m_timeData_new[N_FILTERED+EDGE_EFFECT-1], m_breathSignalFromModel.tail(1)[0]);
             break;
         case RESP_MODEL_PLOT_CT:
-            emit sendToPlotBird4(1, m_timeData_new.back(), m_BBfixed_CTtraj_future_des(0));
-            emit sendToPlotBird4(2, m_timeData_new.back(), m_BBfixed_CT_des(0));
+            //emit sendToPlotBird4(1, m_timeData_new.back(), m_BBfixed_CTtraj_future_des(1));
+            //emit sendToPlotBird4(2, m_timeData_new.back(), m_BBfixed_CT_des(1));
+            emit sendToPlotBird4(1, m_timeData_new.back(), m_BBfixed_CTtraj_future_des.segment(0, 3).norm());
+            emit sendToPlotBird4(2, m_timeData_new.back(), m_BBfixed_CT_des.segment(0, 3).norm());
             break;
         default:
             emit sendToPlotBird4(1, m_timeData_new[N_FILTERED+EDGE_EFFECT-1], m_Bird4_filtered_new.tail(1)[0]);

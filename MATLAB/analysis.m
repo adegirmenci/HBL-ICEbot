@@ -1,6 +1,6 @@
 close all; clear all; clc
 
-folder = 'D:\Dropbox\Harvard\ICEbot share\Current working directory\2017-06-13 Sample data\20170613_151802814\20170613_151802814';
+folder = 'C:\Users\Alperen\Documents\QT Projects\ICEbot_QT_v1\LoggedData\20170616_103508752\20170616_103508752';
 
 [CycleNum,Time,Type,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16] = ...
   importControllerFile([folder,'_Controller.txt']);
@@ -67,3 +67,12 @@ axis equal
 
 figure
 plot3(squeeze(T_BT(1,4,:)),squeeze(T_BT(2,4,:)),squeeze(T_BT(3,4,:)))
+
+%%
+
+figure
+plot(time(1:4:end), squeeze(T_BT(3,4,:)))
+hold on
+plot(time(1:4:end), squeeze(T_Chest(3,4,:))+90)
+legend('x','y','z')
+axis equal
