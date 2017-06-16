@@ -30,6 +30,10 @@ ControllerThread::ControllerThread(QObject *parent) :
     m_input_delPsi = 0.0;
     m_dXYZPsi << 0.0, 0.0, 0.0, 0.0;
 
+    // FOR IN VIVO EXP 5!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    setUSangle(75.00);
+    m_modeFlags.inVivoMode = IN_VIVO_ON;
+
     m_mutex = new QMutex(QMutex::NonRecursive);
 
     m_isReady = true;
@@ -570,7 +574,7 @@ void ControllerThread::setUSangle(double usAngle)
     m_BT_CT(1,1) = m_BT_CT(0,0);
     m_BT_CT(0,1) = -sin(usAngle);
     m_BT_CT(1,0) = -m_BT_CT(0,1);
-    m_BT_CT(2,3) = 21.7;
+    m_BT_CT(2,3) = 25.0; // 21.7;
 
 //    m_BT_CT << cos(usAngle), -sin(usAngle), 0,    0,
 //               sin(usAngle),  cos(usAngle), 0,    0,

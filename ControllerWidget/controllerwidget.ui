@@ -1281,7 +1281,7 @@
         <string>Off</string>
        </property>
        <property name="checked">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -1289,6 +1289,9 @@
       <widget class="QRadioButton" name="InVivoOnRadioButton">
        <property name="text">
         <string>On</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -1337,6 +1340,9 @@
     </property>
     <property name="maximum">
      <double>180.000000000000000</double>
+    </property>
+    <property name="value">
+     <double>75.000000000000000</double>
     </property>
    </widget>
    <widget class="QPushButton" name="setUSangleButton">

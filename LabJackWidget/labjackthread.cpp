@@ -289,11 +289,6 @@ void LabJackThread::ReadStream()
         ErrorHandler(m_lngErrorcode, __LINE__, 0);
 
 //        emit logData(QTime::currentTime(), m_adblData[0]);
-        if( (m_i % 1000) < 40)
-            newData[0] = 3;
-        else
-            newData[0] = 0;
-        m_i++;
 
         emit logData(QDateTime::currentMSecsSinceEpoch(), newData);
     }
