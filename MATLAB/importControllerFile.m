@@ -1,4 +1,4 @@
-function [CycleNum,Time,Type,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16] = importControllerFile(filename, startRow, endRow)
+function [CycleNum,Time,Type,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16] = importControllerFile(filename)
 %IMPORTFILE Import numeric data from a text file as column vectors.
 %   [CYCLENUM,TIME,TYPE,X1,X2,X3,X4,X5,X6,X7,X8,X9,X10,X11,X12,X13,X14,X15,X16]
 %   = IMPORTFILE(FILENAME) Reads data from text file FILENAME for the
@@ -17,10 +17,7 @@ function [CycleNum,Time,Type,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,
 
 %% Initialize variables.
 delimiter = '\t';
-if nargin<=2
-    startRow = 2;
-    endRow = inf;
-end
+startRow = 2;
 
 %% Format string for each line of text:
 %   column1: double (%f)
@@ -50,8 +47,9 @@ fileID = fopen(filename,'r');
 
 %% Count number of lines
 if (isunix) %# Linux, mac
-    [~, result] = system( ['wc -l ', filename] );
-    numlines = str2num(result);
+    [~, result] = system( ['wc -l ', '"', filename, '"']);
+    result = strsplit(result,' ');
+    numlines = str2num(result{2});
 
 elseif (ispc) %# Windows
     numlines = str2num( perl('countlines.pl', filename) );

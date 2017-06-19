@@ -31,8 +31,9 @@ fileID = fopen(filename,'r');
 
 %% Count number of lines
 if (isunix) %# Linux, mac
-    [~, result] = system( ['wc -l ', filename] );
-    numlines = str2num(result);
+    [~, result] = system( ['wc -l ', '"', filename, '"']);
+    result = strsplit(result,' ');
+    numlines = str2num(result{2});
 
 elseif (ispc) %# Windows
     numlines = str2num( perl('countlines.pl', filename) );

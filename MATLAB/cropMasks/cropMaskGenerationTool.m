@@ -22,7 +22,7 @@ function varargout = cropMaskGenerationTool(varargin)
 
 % Edit the above text to modify the response to help cropMaskGenerationTool
 
-% Last Modified by GUIDE v2.5 20-Jun-2016 23:04:36
+% Last Modified by GUIDE v2.5 18-Jun-2017 20:29:20
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -349,9 +349,10 @@ cropSettings.cropROI = handles.cropROI;
 cropSettings.mask = handles.finalMask;
 cropSettings.imHeight = handles.imHeight;
 cropSettings.imWidth = handles.imWidth;
+cropSettings.imagingDepth = handles.sourceDepth;
 
 % get filename for saving
-handles.outFileName = [handles.sourceType,'.mat'];
+handles.outFileName = [handles.sourceType,handles.sourceDepth,'.mat'];
 % save mask
 save(handles.outFileName,'cropSettings');
 
@@ -367,13 +368,42 @@ function outFileNamePopup_Callback(hObject, eventdata, handles)
 contents = cellstr(get(hObject,'String'));
 handles.sourceType = contents{get(hObject,'Value')};
 
-set(handles.saveMaskButton,'Enable','on');
+set(handles.USdepthPopupMenu,'Enable','on');
 
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function outFileNamePopup_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to outFileNamePopup (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in USdepthPopupMenu.
+function USdepthPopupMenu_Callback(hObject, eventdata, handles)
+% hObject    handle to USdepthPopupMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns USdepthPopupMenu contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from USdepthPopupMenu
+contents = cellstr(get(hObject,'String'));
+handles.sourceDepth = contents{get(hObject,'Value')};
+
+set(handles.saveMaskButton,'Enable','on');
+
+guidata(hObject, handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function USdepthPopupMenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to USdepthPopupMenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 

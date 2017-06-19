@@ -98,4 +98,12 @@ in3 = reshape(in,size(Xd,1),size(Xd,2),size(Xd,3));
 volume = avgIntensityCube;
 volume(~in3) = 0;
 
+if(ismac) % not engouh GPU RAM
+    fprintf('THIS IS A MAC: NOT ENOUGH GPU RAM, or NO CUDA: USE SLOW INTERP\n');
+    CdZeroed = griddata(xyz(:,1),xyz(:,2),xyz(:,3),c,Xd(:),Yd(:),Zd(:));
+    CdZeroed = reshape(CdZeroed,size(Xd,1),size(Xd,2),size(Xd,3));
+    
+    volume = CdZeroed;
+end
+
 end

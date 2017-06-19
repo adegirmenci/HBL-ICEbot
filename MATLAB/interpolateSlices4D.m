@@ -84,7 +84,11 @@ observations = [xyz,c; xyzPadPlus,c; xyzPadMinus,c];
 waitbar(0.75, hWait, 'Discretized points.');
 
 tic
-Cd = inpaintn(volume,100);
+if(ismac)
+    Cd = volume;
+else
+    Cd = inpaintn(volume,100);
+end
 toc
 waitbar(0.95, hWait, 'Interpolation done.');
 

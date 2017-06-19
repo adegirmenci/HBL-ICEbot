@@ -5,7 +5,13 @@ close all; clear all; clc
 
 %% Select Study Directory
 
-root = 'C:\Users\Alperen\Documents\QT Projects\ICEbot_QT_v1\LoggedData\';
+if(ispc)
+    root = 'C:\Users\Alperen\Documents\QT Projects\ICEbot_QT_v1\LoggedData\';
+elseif(ismac)
+    root = '/Volumes/Macintosh HD/Research/BIDMC Exp 5/BIDMC_Exp5/';
+else
+    error('This script does not work on your system.');
+end
 folder = uigetdir(root);
 
 study = folder(length(root)+1:end);
@@ -17,6 +23,14 @@ study = folder(length(root)+1:end);
 
 numRec = length(Time);
 
+% convert to posix time
+hrsOffet = 5;
+if(isdst(datetime('today','TimeZone','America/New_York')))
+    hrsOffet = 4;
+end
+Time = posixtime(datetime(str2num(study(1:4)),str2num(study(5:6)),str2num(study(7:8)))...
+                          + hours(hrsOffet) + milliseconds(Time));
+
 %% Extract DXYZPSI
 
 mask = strcmp(Type,'DXYZPSI');
@@ -26,7 +40,7 @@ relevantTime = (Time(relevantIdx) - Time(1))./1000.0;
 
 numRelevant = length(relevantIdx);
 
-dxyzpsi = [x1(relevantIdx), x2(relevantIdx), x3(relevantIdx), x4(relevantIdx)];
+dxyzpsi = [CycleNum(relevantIdx), relevantTime, x1(relevantIdx), x2(relevantIdx), x3(relevantIdx), x4(relevantIdx)];
 
 %% Extract T_BB_CT
 
@@ -39,75 +53,9 @@ if(~isempty(mask))
     relevantIdx = relevantIdx(relevantIdx>resetbbIdx);
     Time_T_BB_CT = Time(relevantIdx);
     
-    % convert to posix time
-    hrsOffet = 5;
-    if(isdst(datetime('today','TimeZone','America/New_York')))
-        hrsOffet = 4;
-    end
-    Time_T_BB_CT = posixtime(datetime(str2num(study(1:4)),str2num(study(5:6)),str2num(study(7:8)))...
-                             + hours(hrsOffet) + milliseconds(Time_T_BB_CT));
-    
     numRelevant = length(relevantIdx);
     
-    T_BB_CT = zeros(4,4,length(Time_T_BB_CT));
-    T_BB_CT(1,1,:) = x1(relevantIdx);
-    T_BB_CT(2,1,:) = x2(relevantIdx);
-    T_BB_CT(3,1,:) = x3(relevantIdx);
-    T_BB_CT(4,1,:) = x4(relevantIdx);
-    T_BB_CT(1,2,:) = x5(relevantIdx);
-    T_BB_CT(2,2,:) = x6(relevantIdx);
-    T_BB_CT(3,2,:) = x7(relevantIdx);
-    T_BB_CT(4,2,:) = x8(relevantIdx);
-    T_BB_CT(1,3,:) = x9(relevantIdx);
-    T_BB_CT(2,3,:) = x10(relevantIdx);
-    T_BB_CT(3,3,:) = x11(relevantIdx);
-    T_BB_CT(4,3,:) = x12(relevantIdx);
-    T_BB_CT(1,4,:) = x13(relevantIdx);
-    T_BB_CT(2,4,:) = x14(relevantIdx);
-    T_BB_CT(3,4,:) = x15(relevantIdx);
-    T_BB_CT(4,4,:) = x16(relevantIdx);
-else
-    disp('No T_BB_CT in file. Must be older format.');
-end
-
-%% Find SWEEP
-
-mask = strcmp(Type,'SWEEPCONVD');
-maks2 = strcmp(Type,'SWEEPNEXT');
-if(~isempty(mask))
-    sweepIdx = find(strcmp(Type,'SWEEP'));
-    sweepIdx = sweepIdx(end);
-    Time_SWEEP_Start = Time(sweepIdx);
-    
-    relevantIdx = find(mask);
-    relevantIdx = relevantIdx(relevantIdx>sweepIdx);
-    Time_SWEEP_conv = Time(relevantIdx);
-    
-    relevantIdx2 = find(mask2);
-    relevantIdx2 = relevantIdx2(relevantIdx2>sweepIdx);
-    Time_SWEEP = Time(relevantIdx);
-    
-    % convert to posix time
-    hrsOffet = 5;
-    if(isdst(datetime('today','TimeZone','America/New_York')))
-        hrsOffet = 4;
-    end
-    Time_SWEEP_Start = posixtime(datetime(str2num(study(1:4)),str2num(study(5:6)),str2num(study(7:8)))...
-                             + hours(hrsOffet) + milliseconds(Time_SWEEP_Start));
-    Time_SWEEP = posixtime(datetime(str2num(study(1:4)),str2num(study(5:6)),str2num(study(7:8)))...
-                             + hours(hrsOffet) + milliseconds(Time_SWEEP));
-                         
-    sweepSettings.nSweeps = x1(sweepIdx);
-    sweepSettings.stepSize = x2(sweepIdx);
-    sweepSettings.errorThresh = x3(sweepIdx);
-    sweepSettings.imagingDuration = x4(sweepIdx);
-    
-    nSweeps = sweepSettings.nSweeps;
-    
-    % Find sweep boundaries
-    for i = 1:nSweeps
-        sweepStartIdx = 
-    end
+    T_BB_CT_cycleNum = CycleNum(relevantIdx);
     
     T_BB_CT = zeros(4,4,length(Time_T_BB_CT));
     T_BB_CT(1,1,:) = x1(relevantIdx);
@@ -133,75 +81,200 @@ end
 %% Import Images
 
 [imageFileNames,imageTimestamps] = importImageTimestamps([folder,filesep,study,'_FrmGrab.txt']);
+imageTimestamps = imageTimestamps/1000.0;
+               
+%% Extract SWEEP
 
-allImages = struct('FileName',imageFileNames,... % file name of image
-                   'TimeStamp',num2cell(imageTimestamps),... % time stamp of image
+mask = strcmp(Type,'SWEEPCONVD');
+mask2 = strcmp(Type,'SWEEPNEXT');
+if(~isempty(mask))
+    sweepIdx = find(strcmp(Type,'SWEEP'));
+    fprintf('%d Sweeps found in study.\n', length(sweepIdx));
+    
+    % TODO: combine sweeps
+    
+    sweepIdx = sweepIdx(end);
+    Time_SWEEP_Start = Time(sweepIdx);
+    
+    % get sweep parameters
+    sweepSettings.nSweeps = x1(sweepIdx);
+    sweepSettings.stepSize = x2(sweepIdx);
+    sweepSettings.errorThresh = x3(sweepIdx);
+    sweepSettings.imagingDuration = x4(sweepIdx);
+    
+    relevantIdx = find(mask);
+    relevantIdx = relevantIdx(relevantIdx>sweepIdx);
+    Time_SWEEP_conv = Time(relevantIdx);
+    SWEEP_convdControlCycle = CycleNum(relevantIdx);
+    
+    relevantIdx2 = find(mask2);
+    relevantIdx2 = relevantIdx2(relevantIdx2>sweepIdx);
+    Time_SWEEP_next = Time(relevantIdx2);
+    SWEEP_psiCmd = rad2deg(x1(relevantIdx2));
+    SWEEP_psiCmd = [SWEEP_psiCmd(1) - sweepSettings.stepSize; SWEEP_psiCmd];
+    
+    nSweeps = sweepSettings.nSweeps;
+    
+    % these better match
+    if(nSweeps ~= length(relevantIdx))
+        fprintf('nSweeps(%d) not equal to length(relevantIdx)=%d\n', nSweeps, length(relevantIdx));
+    end
+    
+    sweep(nSweeps) = struct('ImgFileNames',[],... % file name of image
+                   'ImgTimeStamps',[],... % time stamp of image
                    'poseEM',[],... % interpolated pose
                    'EMidx',[],... % index of closest EM reading
-                   'sweepIdx',[],... % sweep that the image belongs to
+                   'errorXYZ',[],...
                    'errorPsi',[],... % angular error from desired pose
                    'ECGcycleIdx',[],... % ECG cycle that the image belongs to
-                   'percentECG',[]); % location in the ECG cycle, value b/w 0.0 and 1.0
+                   'percentECG',[],... % location in the ECG cycle, value b/w 0.0 and 1.0
+                   'startIdx',[],...
+                   'startTime',[],...
+                   'endTime',[],...
+                   'controlCycle',[],...
+                   'targetPsi',[],...
+                   'errorPsiAtConvergence',[]);
+
+    
+    % Find sweep boundaries
+    for i = 1:nSweeps
+        % get start time
+        sweepStartIdx = relevantIdx(i);
+        sweepStartTime = Time(sweepStartIdx);
+        
+        % find first image in sweep
+        imgT = imageTimestamps;
+        imgT(imgT < sweepStartTime) = inf;
+        [sweepStart_imageTime, sweepStart_imageIdx] = min(imgT);
+        
+        % get end time
+        sweepEndTime = sweepStartTime + sweepSettings.imagingDuration/1000.;
+        
+        % find last image in sweep
+        imgT = imageTimestamps;
+        imgT(imgT > sweepEndTime) = 0;
+        [sweepEnd_imageTime, sweepEnd_imageIdx] = max(imgT);
+        
+        % get a list of image filenames and timestamps
+        imgTimesInSweep = imageTimestamps(sweepStart_imageIdx:sweepEnd_imageIdx);
+        imgNamesInSweep = imageFileNames(sweepStart_imageIdx:sweepEnd_imageIdx);
+        
+        msk_ = dxyzpsi(:,1) == SWEEP_convdControlCycle(i);
+        errorPsiAtConvergence = dxyzpsi(msk_, 6);
+        
+        sweep(i).ImgFileNames = imgNamesInSweep;
+        sweep(i).ImgTimeStamps = imgTimesInSweep;
+        sweep(i).startIdx = sweepStartIdx;
+        sweep(i).startTime = sweepStartTime;
+        sweep(i).endTime = sweepEndTime;
+        sweep(i).controlCycle = SWEEP_convdControlCycle(i);
+        sweep(i).targetPsi = SWEEP_psiCmd(i);
+        sweep(i).errorPsiAtConvergence = errorPsiAtConvergence;
+    end
+
+else
+    disp('No SWEEPCONVD in file. Must be older format.');
+end
 
 %% Align image and EM timestamps
 
-for i = 1:length(imageTimestamps)
-    [~,idx] = min(abs(Time_T_BB_CT*1000.0 - imageTimestamps(i)));
-    closestEM = T_BB_CT(:,:,idx);
-    allImages(i).poseEM = closestEM;
+for i = 1:nSweeps
+    nImgs = length(sweep(i).ImgTimeStamps);
+    sweep(i).EMidx = zeros(nImgs,1);
+    sweep(i).poseEM = zeros(4,4,nImgs);
+    sweep(i).errorPsi = zeros(nImgs,1);
+    sweep(i).errorXYZ = zeros(nImgs,3);
+    for j = 1:nImgs
+        % interpolate EM
+        difft_ = Time_T_BB_CT - sweep(i).ImgTimeStamps(j);
+        [~,minidx] = min(abs(difft_));
+        if(difft_ > 0)
+            t2idx = minidx - 1; % take previous point
+            if(t2idx < 1)
+                t2idx = 1;
+            end
+        else
+            t2idx = minidx + 1; % take next point
+            if(t2idx > length(Time_T_BB_CT))
+                t2idx = length(Time_T_BB_CT);
+            end
+        end
+        
+        % interpolate EM accordingly
+        pctgEM = abs(Time_T_BB_CT(minidx) - sweep(i).ImgTimeStamps(j))/abs(Time_T_BB_CT(minidx)-Time_T_BB_CT(t2idx));
+        
+        em1 = T_BB_CT(:,:,minidx);
+        em2 = T_BB_CT(:,:,t2idx);
+        emInt = trinterp(em1,em2,pctgEM);
+        
+        sweep(i).EMidx(j) = minidx;
+        sweep(i).poseEM(:,:,j) = emInt;
+        
+        % get errorPsi
+        currControlCycle = T_BB_CT_cycleNum(minidx);
+        msk_ = dxyzpsi(:,1) == currControlCycle;
+        sweep(i).errorPsi(j) = dxyzpsi(msk_,6);
+        sweep(i).errorXYZ(j,:) = dxyzpsi(msk_,3:5);
+        
+        % TODO : Instead of using the world xyz, use the delta xyz to push
+        % the images into place (because dxyz has the breathing info, but world doesn't)
+    end
 end
-
-figure
-plot(Time_T_BB_CT, zeros(length(Time_T_BB_CT),1))
-hold on;
-plot(imageTimestamps/1000.,zeros(length(imageTimestamps),1),'o')
-figure
 
 %% Load ECG
 
-[handles.ECG_time, handles.ECGvoltage] = ...
-    importECG([handles.ECGpathName,handles.ECGfileName]);
-
-if(~isempty(handles.ECG_time))
-    set(handles.ECGgatingButton, 'Enable','on');
-    axes(handles.axes1);
-    plot(handles.ECG_time, handles.ECGvoltage);
-else
-    set(handles.ECGgatingButton, 'Enable','off');
-end
-
-msg = sprintf('Loaded %d ECG readings.\n', length(handles.ECG_time));
-set(handles.numECGtextbox, 'String', msg);
-
+[ECG_time, ECGvoltage] = importECG([folder,filesep,study,'_ECG.txt']);
+ECG_time = ECG_time/1000.0;
 %% ECG Gating
 
 minPeakDist = 60/100/2;
 minPeakHei = 0.2;
 
-[handles.ECGpeakLocs, handles.ECGpeakTime, avgHR, stdHR] = ...
-    ECGgating(handles.ECGvoltage, handles.ECG_time, handles.axes1, minPeakDist, minPeakHei);
+[ECGpeakLocs, ECGpeakTime, avgHR, stdHR, phase] = ...
+    ECGgating(ECGvoltage, ECG_time, minPeakDist, minPeakHei);
 
-msg = sprintf('Average heartrate: %.2f +- %.2f BPM\n', avgHR, stdHR);
+fprintf('Average heartrate: %.2f +- %.2f BPM\n', avgHR, stdHR);
 
 %% Align ECG with images
 
-[allImgs, reorderedImgs, accurateImgs, nSweeps] = EM_ECG_matching(handles);
-
-handles.allImages = allImgs;
-handles.reorderedImgs = reorderedImgs;
-handles.accurateImgs = accurateImgs;
-handles.nSweeps = nSweeps;
+% find out where in the heart cycle the image is taken from by looking
+% at its alignment with the ECG signal
+for i = 1:nSweeps
+    nImgs = length(sweep(i).ImgTimeStamps);
+    sweep(i).ECGcycleIdx = zeros(nImgs,1);
+    sweep(i).percentECG = zeros(nImgs,1);
+    for j = 1:nImgs
+        diffImgECGtimes = sweep(i).ImgTimeStamps(j) - ECGpeakTime;
+        diffImgECGtimes(diffImgECGtimes < 0) = Inf;
+        [val_,ecgidx] = min(diffImgECGtimes); % gives us the first index
+        if(isinf(val_))
+            sweep(i).ECGcycleIdx(j) = NaN;
+            continue;
+        else
+            ecgt_ = ECGpeakTime(ecgidx);
+            difft_ = ecgt_ - sweep(i).ImgTimeStamps(j);
+            ecgidx2 = ecgidx + 1;
+            if(ecgidx2 > length(ECGpeakTime))
+                sweep(i).ECGcycleIdx(j) = NaN;
+                continue;
+            end
+            pctgECG = abs(difft_)/abs(ECGpeakTime(ecgidx) - ECGpeakTime(ecgidx2));
+            sweep(i).ECGcycleIdx(j) = ecgidx;
+            sweep(i).percentECG(j) = pctgECG;
+        end
+    end
+end
 
 %% Load crop mask
 
-cropMask = 'Acuson_Epiphan.mat';
+cropMask = 'Sequoia_StarTech_Size 1 (largest)80mm';
 % cropMask = 'Sequoia_StarTech_Size 1 (largest).mat';
-load(['.',filesep,'cropMasks',filesep,cropMask]);
+load(['.',filesep,'cropMasks',filesep,cropMask,'.mat']);
 % gives us a variable named cropSettings
 cropSettings.mask_uint8 = uint8(cropSettings.mask);
 
 
-%% Interpolate images
+%% Interpolate images - best ECG
 
 n4Dframes = 15;
 
@@ -211,8 +284,7 @@ binMins = temp(1:end-1);
 binMaxs = temp(2:end);
 % find the best aligned ECG spot
 for i = 1:nSweeps
-    inSweepIdx = (sweepIdx == i); % in this sweep
-    ecgs = percentECG(inSweepIdx);
+    ecgs = sweep(i).percentECG(:);
     for j = 1:n4Dframes
         isItTrue = (ecgs < binMaxs(j)) & (ecgs > binMins(j));
         binCounts(i,j) = sum(isItTrue);
@@ -226,21 +298,19 @@ fprintf('%d out of %d sweeps align well at bin number %d\n', maxBinCount,nSweeps
 goodSweepIdx = binCounts > 0;
 nSlicesToStitch4D = sum(goodSweepIdx,1);
 
-
 % find the most common time by making a vector of ECG pctg 
 % then do a most likelihood estimate
 
 listOfECGs = cell(n4Dframes,1);
 phat = zeros(n4Dframes,2);
 for i = 1:n4Dframes
-    nSlicesToStich = nSlicesToStitch4D(i);
+    nSlicesToStitch = nSlicesToStitch4D(i);
     
     sub_goodSweepIdx = find(goodSweepIdx(:,i));
     
-    for j = 1:nSlicesToStich
+    for j = 1:nSlicesToStitch
         currSweepIdx = sub_goodSweepIdx(j);
-        inSweepIdx = sweepIdx == currSweepIdx; % in this sweep
-        ecgs = percentECG(inSweepIdx);
+        ecgs = sweep(currSweepIdx).percentECG';
         
         idxs = (ecgs < binMaxs(i)) & (ecgs >= binMins(i));
         listOfECGs{i} = [listOfECGs{i}, ecgs(idxs)];
@@ -249,7 +319,7 @@ for i = 1:n4Dframes
     fprintf(['Frame %d: Mean ECG phase is: %.3f ', char(177) ' %.3f\n'], i, phat(i,1), phat(i,2));
 end
 
-% stitch
+%% Stitch
 interpCube = [];
 dt = datestr(datetime('now'),'_yymmdd_HHMMss');
 for k = 1:n4Dframes
@@ -258,23 +328,18 @@ for k = 1:n4Dframes
     
     for i = 1:nSlicesToStitch
         currSweepIdx = sub_goodSweepIdx(i);
-        inSweepIdx = sweepIdx == currSweepIdx; % in this sweep
-        ecgs = percentECG(inSweepIdx);
+        ecgs = sweep(currSweepIdx).percentECG';
         
-        isItTrue = (ecgs < binMaxs(k)) & (ecgs > binMins(k));
-        ecgvals = ecgs(isItTrue);
-        diff_ = abs(ecgvals - phat(k,1));
+        diff_ = abs(ecgs - phat(k,1));
         [~,imIdx] = min(diff_);
         
-        theseImgs = allImages(inSweepIdx);
-        theseImgs = theseImgs(isItTrue);
-        fileName = theseImgs(imIdx).FileName;
+        fileName = sweep(currSweepIdx).ImgFileNames{imIdx};
         
-        reportECG = theseImgs(imIdx).percentECG;
+        reportECG = sweep(currSweepIdx).percentECG(imIdx);
         fprintf('ECG: %.2f\n', reportECG);
         
         % Load image to memory
-        fullName = [handles.studyDirPath,filesep,fileName];
+        fullName = [root,study,filesep,'images',filesep,fileName];
         %fprintf('%s\n',fullName);
         stitch.imageOriginal{i} = imread(fullName);
         
@@ -303,38 +368,39 @@ for k = 1:n4Dframes
         
         stitch.imageCropped{i} = stitch.imageCropped{i}.*cropSettings.mask_uint8; %apply mask
         
-        stitch.originalEM{i} = theseImgs(imIdx).poseEM;
+        stitch.originalEM{i} = sweep(currSweepIdx).poseEM(:,:,imIdx);
         
         imshow(stitch.imageCropped{i});
         drawnow
     end
 
-stitch.imHeightOrig = size(cropSettings.mask,1);
-stitch.imWidthOrig = size(cropSettings.mask,2);
-
-%%%%% need respiration compensation / tissue based tracking
-
-% initialize container 
-stitch.imageLocXYZval = cell(nSlicesToStitch,1);
-stitch.nFrames = nSlicesToStitch;
-
-% interpolate
-[CdZeroed,interpCube] = interpolateSlices4D(stitch, cropMask, 'true', interpCube);
-
-outfilePre = ['volume_',handles.studyName,dt,'_',num2str(k)];
-
-% save as .RAW
-volumeFileName = [outfilePre,'.raw'];
-saveStitched2RawFile(CdZeroed, volumeFileName)
-
-% save as .mat
-save([outfilePre,'.mat'],'CdZeroed')
-
-% save volume size to text file
-[xn,yn,zn] = size(CdZeroed);
-
-fileID = fopen([outfilePre,'.txt'],'w');
-fprintf(fileID,'%d\t%d\t%d\n',xn,yn,zn);
-fclose(fileID);
+    stitch.imHeightOrig = size(cropSettings.mask,1);
+    stitch.imWidthOrig = size(cropSettings.mask,2);
+    
+    %%%%% need respiration compensation / tissue based tracking
+    
+    % initialize container
+    stitch.imageLocXYZval = cell(nSlicesToStitch,1);
+    stitch.nFrames = nSlicesToStitch;
+    
+    % interpolate
+    [CdZeroed,interpCube] = interpolateSlices4D(stitch, cropMask, 'true', interpCube);
+    %[CdZeroed] = interpolateSlicesGPU(stitch, cropMask, 'true');
+    
+    outfilePre = ['./volumes/volume_',study,dt,'_',num2str(k)];
+    
+    % save as .RAW
+    volumeFileName = [outfilePre,'.raw'];
+    saveStitched2RawFile(CdZeroed, volumeFileName)
+    
+    % save as .mat
+    save([outfilePre,'.mat'],'CdZeroed')
+    
+    % save volume size to text file
+    [xn,yn,zn] = size(CdZeroed);
+    
+    fileID = fopen([outfilePre,'.txt'],'w');
+    fprintf(fileID,'%d\t%d\t%d\n',xn,yn,zn);
+    fclose(fileID);
 
 end
