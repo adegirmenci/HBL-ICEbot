@@ -6,7 +6,8 @@ close all; clear all; clc
 %% Select Study Directory
 
 if(ispc)
-    root = 'C:\Users\Alperen\Documents\QT Projects\ICEbot_QT_v1\LoggedData\';
+%     root = 'C:\Users\Alperen\Documents\QT Projects\ICEbot_QT_v1\LoggedData\';
+    root = 'D:\BIDMC_Exp5\';
 elseif(ismac)
     root = '/Volumes/Macintosh HD/Research/BIDMC Exp 5/BIDMC_Exp5/';
 else
