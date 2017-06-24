@@ -3,6 +3,8 @@ close all; clear all; clc
 % Written by Alperen Degirmenci
 % 6/14/2017 - Harvard Biorobotics Lab
 
+cropMask = 'Sequoia_StarTech_Size 1 (largest)90mm';
+
 %% Select Study Directory
 
 if(ispc)
@@ -136,7 +138,6 @@ if(~isempty(mask))
                    'targetPsi',[],...
                    'errorPsiAtConvergence',[]);
 
-    
     % Find sweep boundaries
     for i = 1:nSweeps
         % get start time
@@ -268,7 +269,7 @@ end
 
 %% Load crop mask
 
-cropMask = 'Sequoia_StarTech_Size 1 (largest)80mm';
+% cropMask = 'Sequoia_StarTech_Size 1 (largest)80mm';
 % cropMask = 'Sequoia_StarTech_Size 1 (largest).mat';
 load(['.',filesep,'cropMasks',filesep,cropMask,'.mat']);
 % gives us a variable named cropSettings
@@ -385,7 +386,7 @@ for k = 1:n4Dframes
     stitch.nFrames = nSlicesToStitch;
     
     % interpolate
-    [CdZeroed,interpCube] = interpolateSlices4D(stitch, cropMask, 'true', interpCube);
+    [CdZeroed,interpCube] = interpolateSlices4D(stitch, cropMask, 0, interpCube);
     %[CdZeroed] = interpolateSlicesGPU(stitch, cropMask, 'true');
     
     outfilePre = ['./volumes/volume_',study,dt,'_',num2str(k)];

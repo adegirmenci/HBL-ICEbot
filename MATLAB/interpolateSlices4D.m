@@ -77,10 +77,15 @@ if(doPadding)
         xyzPadMinus((j-1)*NpixelsNo0+1:j*NpixelsNo0,:) = stitch.imageLocXYZval{j}(:,1:3) - repmat(yDir*offsetDist,size(stitch.imageLocXYZval{j},1),1);
     end
     waitbar(0.55, hWait, 'Padding done.');
+    
+    observations = [xyz,c; xyzPadPlus,c; xyzPadMinus,c];
+else
+    observations = [xyz,c];
 end
 
-observations = [xyz,c; xyzPadPlus,c; xyzPadMinus,c];
-[volume,interpCube] = interpolateAvg4D(observations,0.75,interpCube);
+%[volume,interpCube] = interpolateAvg4D(observations,0.75,interpCube);
+[volume, interpCube, in3] = interpolateAvg4D_v2(observations,0.75,interpCube,0);
+%volume = interpolateAvg_v3(observations,0.75,0);
 waitbar(0.75, hWait, 'Discretized points.');
 
 tic
@@ -94,6 +99,8 @@ waitbar(0.95, hWait, 'Interpolation done.');
 
 CdZeroed = Cd;
 CdZeroed(isnan(CdZeroed)) = 0;
+
+CdZeroed(~in3) = 0;
 
 close(hWait)
 
