@@ -31,8 +31,8 @@ ControllerThread::ControllerThread(QObject *parent) :
     m_dXYZPsi << 0.0, 0.0, 0.0, 0.0;
 
     // FOR IN VIVO EXP 6!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    setUSangle(49.00); // 75 deg for Exp 5, used 108 for ablation tracking at one point
-    m_modeFlags.inVivoMode = IN_VIVO_ON;
+    setUSangle(0.0); // 75 deg for Exp 5, used 108 for ablation tracking at one point
+    m_modeFlags.inVivoMode = IN_VIVO_OFF;
 
     m_mutex = new QMutex(QMutex::NonRecursive);
 
@@ -574,7 +574,7 @@ void ControllerThread::setUSangle(double usAngle)
     m_BT_CT(1,1) = m_BT_CT(0,0);
     m_BT_CT(0,1) = -sin(usAngle);
     m_BT_CT(1,0) = -m_BT_CT(0,1);
-    m_BT_CT(2,3) = 25.0; // 21.7;
+    m_BT_CT(2,3) = 30.0; // 21.7;
 
 //    m_BT_CT << cos(usAngle), -sin(usAngle), 0,    0,
 //               sin(usAngle),  cos(usAngle), 0,    0,

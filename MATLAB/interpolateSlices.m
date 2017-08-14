@@ -80,7 +80,7 @@ if(doPadding)
 end
 
 observations = [xyz,c; xyzPadPlus,c; xyzPadMinus,c];
-volume = interpolateAvg_v3(observations, 0.9, 1);
+volume = interpolateAvg_v3(observations, 1.0, 1);
 waitbar(0.75, hWait, 'Discretized points.');
 
 tic

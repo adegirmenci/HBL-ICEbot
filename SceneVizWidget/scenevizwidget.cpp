@@ -8,7 +8,7 @@ SceneVizWidget::SceneVizWidget(QWidget *parent) :
     ui->setupUi(this);
 
     m_view = new ExtendedQt3DWindow(); //view = new Qt3DExtras::Qt3DWindow();
-    m_view->defaultFramegraph()->setClearColor(QColor(QRgb(0x4d4d4f)));
+    m_view->defaultFrameGraph()->setClearColor(QColor(QRgb(0x4d4d4f)));
     m_container = QWidget::createWindowContainer(m_view);
     m_container->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 

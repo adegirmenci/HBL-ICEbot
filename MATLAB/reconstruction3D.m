@@ -5,7 +5,8 @@ close all; clear all; clc
 
 %% Select Study Directory
 
-root = 'C:\Users\Alperen\Documents\QT Projects\ICEbot_QT_v1\LoggedData\';
+% root = 'C:\Users\Alperen\Documents\QT Projects\ICEbot_QT_v1\LoggedData\';
+root = 'D:\Research\20170727Kidney\';
 folder = uigetdir(root);
 
 study = folder(length(root)+1:end);
@@ -104,10 +105,11 @@ cropSettings.mask_uint8 = uint8(cropSettings.mask);
 %% Interpolate images
 
 nSlicesToStitch = length(imageTimestamps);
+indices = 1:3:nSlicesToStitch;
 
 % stitch
-for i = 1:nSlicesToStitch
-    imIdx = i;
+for i = 1:numel(indices)
+    imIdx = indices(i);
     
     fileName = allImages(imIdx).FileName;
 
@@ -150,14 +152,15 @@ stitch.imHeightOrig = size(cropSettings.mask,1);
 stitch.imWidthOrig = size(cropSettings.mask,2);
 
 %% initialize container 
-stitch.imageLocXYZval = cell(nSlicesToStitch,1);
-stitch.nFrames = nSlicesToStitch;
+stitch.nFrames = numel(stitch.imageOriginal); %nSlicesToStitch;
+stitch.imageLocXYZval = cell(stitch.nFrames,1);
+
 
 %% interpolate
 [CdZeroed] = interpolateSlices(stitch, 'Acuson_Epiphan', true');
 
 dt = datestr(datetime('now'),'_yymmdd_HHMMss');
-outfilePre = ['.',filesep,'volumes',filesep,'volume_',study(2:end),dt];
+outfilePre = ['.',filesep,'volumes',filesep,'volume_',study,dt];
 
 %% save as .RAW
 volumeFileName = [outfilePre,'_1.raw'];

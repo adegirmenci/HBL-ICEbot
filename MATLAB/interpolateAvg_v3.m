@@ -26,7 +26,8 @@ x_disc = linspace(xyzmin(1),xyzmax(1),nBinsXYZ(1));
 y_disc = linspace(xyzmin(2),xyzmax(2),nBinsXYZ(2));
 z_disc = linspace(xyzmin(3),xyzmax(3),nBinsXYZ(3));
 
-[Xd,Yd,Zd] = meshgrid(x_disc,y_disc,z_disc);
+%[Xd,Yd,Zd] = meshgrid(x_disc,y_disc,z_disc);
+[Xd,Yd,Zd] = ndgrid(x_disc,y_disc,z_disc);
 
 nPoints = size(c,1); % number of observations
 interpSize = size(Xd); % interpolated volume dimensions

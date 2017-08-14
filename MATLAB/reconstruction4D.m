@@ -34,12 +34,15 @@ end
 Time = posixtime(datetime(str2num(study(1:4)),str2num(study(5:6)),str2num(study(7:8)))...
                           + hours(hrsOffet) + milliseconds(Time));
 
+Time = Time - Time(1);
+
 %% Extract DXYZPSI
 
 mask = strcmp(Type,'DXYZPSI');
 
 relevantIdx = find(mask);
-relevantTime = (Time(relevantIdx) - Time(1))./1000.0;
+%relevantTime = (Time(relevantIdx) - Time(1))./1000.0;
+relevantTime = Time(relevantIdx)./1000.0;
 
 numRelevant = length(relevantIdx);
 
@@ -81,6 +84,10 @@ else
     disp('No T_BB_CT in file. Must be older format.');
 end
 
+% compare T_BB_CT and DXYZPSI
+nrm = sqrt(sum(squeeze(T_BB_CT(1:3,4,:)).^2,1));
+plot(dxyzpsi(:,2), dxyzpsi(:,6)-mean(dxyzpsi(:,6))); hold on; plot(Time_T_BB_CT, nrm-mean(nrm))
+
 %% Import Images
 
 [imageFileNames,imageTimestamps] = importImageTimestamps([folder,filesep,study,'_FrmGrab.txt']);
@@ -96,7 +103,7 @@ if(~isempty(mask))
     
     % TODO: combine sweeps
     
-    sweepIdx = sweepIdx(end);
+    sweepIdx = sweepIdx(1);
     Time_SWEEP_Start = Time(sweepIdx);
     
     % get sweep parameters
