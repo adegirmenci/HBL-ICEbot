@@ -203,6 +203,7 @@ void FrmGrabThread::grabFrame()
     }
 
     //if(m_showLiveFeed)
+
     emit imageAcquired(frame);
 }
 

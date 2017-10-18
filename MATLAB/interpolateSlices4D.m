@@ -84,7 +84,7 @@ else
 end
 
 %[volume,interpCube] = interpolateAvg4D(observations,0.75,interpCube);
-[volume, interpCube, in3] = interpolateAvg4D_v2(observations,0.75,interpCube,0);
+[volume, interpCube, in3] = interpolateAvg4D_v2(observations,0.75,interpCube,1);
 %volume = interpolateAvg_v3(observations,0.75,0);
 waitbar(0.75, hWait, 'Discretized points.');
 
@@ -92,7 +92,7 @@ tic
 if(ismac)
     Cd = volume;
 else
-    Cd = inpaintn(volume,100);
+    Cd = inpaintn(volume,200);
 end
 toc
 waitbar(0.95, hWait, 'Interpolation done.');

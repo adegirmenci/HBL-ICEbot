@@ -16,7 +16,6 @@
 #include "rt_nonfinite.h"
 #include "rtwtypes.h"
 #include "ECGgating_types.h"
-#include "rt_nonfinite.h"
 #include "ECGgating.h"
 #include "ECGgating_terminate.h"
 #include "ECGgating_initialize.h"

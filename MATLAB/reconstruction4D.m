@@ -9,7 +9,7 @@ cropMask = 'Sequoia_StarTech_Size 1 (largest)90mm';
 
 if(ispc)
 %     root = 'C:\Users\Alperen\Documents\QT Projects\ICEbot_QT_v1\LoggedData\';
-    root = 'D:\BIDMC_Exp5\';
+    root = 'D:\BIDMC_Exp6\';
 elseif(ismac)
     root = '/Volumes/Macintosh HD/Research/BIDMC Exp 5/BIDMC_Exp5/';
 else
@@ -34,7 +34,7 @@ end
 Time = posixtime(datetime(str2num(study(1:4)),str2num(study(5:6)),str2num(study(7:8)))...
                           + hours(hrsOffet) + milliseconds(Time));
 
-Time = Time - Time(1);
+%Time = Time - Time(1);
 
 %% Extract DXYZPSI
 
@@ -42,7 +42,7 @@ mask = strcmp(Type,'DXYZPSI');
 
 relevantIdx = find(mask);
 %relevantTime = (Time(relevantIdx) - Time(1))./1000.0;
-relevantTime = Time(relevantIdx)./1000.0;
+relevantTime = Time(relevantIdx);
 
 numRelevant = length(relevantIdx);
 
@@ -84,10 +84,6 @@ else
     disp('No T_BB_CT in file. Must be older format.');
 end
 
-% compare T_BB_CT and DXYZPSI
-nrm = sqrt(sum(squeeze(T_BB_CT(1:3,4,:)).^2,1));
-plot(dxyzpsi(:,2), dxyzpsi(:,6)-mean(dxyzpsi(:,6))); hold on; plot(Time_T_BB_CT, nrm-mean(nrm))
-
 %% Import Images
 
 [imageFileNames,imageTimestamps] = importImageTimestamps([folder,filesep,study,'_FrmGrab.txt']);
@@ -103,7 +99,7 @@ if(~isempty(mask))
     
     % TODO: combine sweeps
     
-    sweepIdx = sweepIdx(1);
+    sweepIdx = sweepIdx(2);
     Time_SWEEP_Start = Time(sweepIdx);
     
     % get sweep parameters
@@ -124,6 +120,10 @@ if(~isempty(mask))
     SWEEP_psiCmd = [SWEEP_psiCmd(1) - sweepSettings.stepSize; SWEEP_psiCmd];
     
     nSweeps = sweepSettings.nSweeps;
+    
+    % !!!!!!!!!!!!
+    % nSweeps = nSweeps - 5;
+    % !!!!!!!!!!!!
     
     % these better match
     if(nSweeps ~= length(relevantIdx))
@@ -184,6 +184,19 @@ if(~isempty(mask))
 else
     disp('No SWEEPCONVD in file. Must be older format.');
 end
+
+tS = [sweep(:).startTime];
+tS = tS -Time_T_BB_CT(1);
+
+% compare T_BB_CT and DXYZPSI
+nrm = sqrt(sum(squeeze(T_BB_CT(1:3,4,:)).^2,1));
+plot(dxyzpsi(:,2)-Time_T_BB_CT(1), dxyzpsi(:,6)-mean(dxyzpsi(:,6)))
+hold on
+plot(Time_T_BB_CT - Time_T_BB_CT(1), nrm-mean(nrm))
+
+plot(tS,2, '*')
+
+return
 
 %% Align image and EM timestamps
 

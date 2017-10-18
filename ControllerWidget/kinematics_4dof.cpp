@@ -621,7 +621,7 @@ bool Kinematics_4DOF::fZeroAlpha(const double c, double &alpha)
 
         if(std::abs(a1 - a0) <= (1.0e-7 * std::abs(a1)) )
         {
-            printf("Found solution in %d steps.\n", i+1);
+            //printf("Found solution in %d steps.\n", i+1);
             foundSoln = true;
             break;
         }
