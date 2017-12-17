@@ -30,6 +30,7 @@ public:
 
     void operator = (const Kinematics_4DOF &Other); // assignment operator definition
 
+    // Configuration space to joint space
     void configToJointSpace(const double gamma,
                             const double theta,
                             const double alpha,
@@ -41,6 +42,12 @@ public:
 
     Eigen::Vector4d configToJointSpace(const Eigen::Vector4d &inputs);
 
+    // new mapping based on learning
+    Eigen::Vector4d configToLearnedJointSpace(const Eigen::Vector4d &currConfig,
+                                              const Eigen::Matrix<double, 4, -1> &configHistory,
+                                              const Eigen::Vector4d &deltaConfig);
+
+    // Forward Kinematics
     Eigen::Transform<double, 3, Eigen::Affine> forwardKinematics(double gamma,
                                                                  double theta,
                                                                  double alpha,
@@ -48,6 +55,7 @@ public:
 
     Eigen::Transform<double, 3, Eigen::Affine> forwardKinematics(const Eigen::Vector4d &config);
 
+    // Inverse Kinematics
     Eigen::Vector4d inverseKinematics3D(const double xt,
                                         const double yt,
                                         const double zt,

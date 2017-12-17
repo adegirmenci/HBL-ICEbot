@@ -432,9 +432,13 @@ bool EPOS2Thread::disconnectEPOS()
 {
     bool status = true;
 
-    QMutexLocker locker(m_mutex);
+    homeAllAxes();
+
+    QThread::sleep(2);
 
     stopServoing();
+
+    QMutexLocker locker(m_mutex);
 
     if(m_KeyHandle)
     {

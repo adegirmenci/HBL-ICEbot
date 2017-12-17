@@ -37,6 +37,20 @@
 #include "gainswidget.h"
 #include "sweep.h"
 
+// MATLAB SVM Include Files
+//#define SVM_ON
+#ifdef SVM_ON
+#include <cmath>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include "SVMregression_types.h"
+#include "SVMregression.h"
+#include "SVMregression_initialize.h"
+#include "SVMregression_terminate.h"
+static SVMregressionStackData SVMregressionStackDataGlobal;
+#endif
+
 struct ModeFlags
 {
     int coordFrame;

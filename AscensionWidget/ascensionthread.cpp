@@ -23,7 +23,7 @@ AscensionThread::AscensionThread(QObject *parent) :
 
 AscensionThread::~AscensionThread()
 {
-    stopAcquisition();
+    disconnectEM();
     m_mutex->lock();
     m_abort = true;
     qDebug() << "Ending AscensionThread - ID: " << reinterpret_cast<int>(QThread::currentThreadId()) << ".";
@@ -364,21 +364,24 @@ bool AscensionThread::disconnectEM() // disconnect from EM
     QMutexLocker locker(m_mutex);
     // Turn off the transmitter before exiting
     // We turn off the transmitter by "selecting" a transmitter with an id of "-1"
-    m_id = -1;
-    m_errorCode = SetSystemParameter(SELECT_TRANSMITTER, &m_id, sizeof(m_id));
-    if(m_errorCode != BIRD_ERROR_SUCCESS)
+    if(m_id != -1)
     {
-        errorHandler_(m_errorCode);
-        emit statusChanged(EM_DISCONNECT_FAILED);
-        return status = false;
+        m_id = -1;
+        m_errorCode = SetSystemParameter(SELECT_TRANSMITTER, &m_id, sizeof(m_id));
+        if(m_errorCode != BIRD_ERROR_SUCCESS)
+        {
+            errorHandler_(m_errorCode);
+            emit statusChanged(EM_DISCONNECT_FAILED);
+            return status = false;
+        }
+
+        //  Free memory allocations before exiting
+        delete[] m_pSensor;
+        delete[] m_pXmtr;
+
+        emit logEvent(SRC_EM, LOG_INFO, QTime::currentTime(), EM_DISCONNECTED);
+        emit statusChanged(EM_DISCONNECTED);
     }
-
-    //  Free memory allocations before exiting
-    delete[] m_pSensor;
-    delete[] m_pXmtr;
-
-    emit logEvent(SRC_EM, LOG_INFO, QTime::currentTime(), EM_DISCONNECTED);
-    emit statusChanged(EM_DISCONNECTED);
     return status;
 }
 

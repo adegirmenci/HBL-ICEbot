@@ -663,6 +663,14 @@ void Kinematics_4DOF::configToJointSpace(const double gamma,
     outputs(1) = 2.0 * ( m_Rc * alpha * cos(theta)) / m_dknob;
     outputs(2) = 2.0 * (-m_Rc * alpha * sin(theta)) / m_dknob;
     outputs(3) = gamma;
+
+
+    // compensate for pitch/yaw coupling and losses
+    double tempPitch, tempYaw;
+    tempPitch = outputs(1)*7.7476 + outputs(2)*1.1867 + 0.2702;
+    tempYaw = outputs(1)*-0.1692 + outputs(2)*5.6253 - 0.0447;
+    outputs(1) = tempPitch/9.2045;
+    outputs(2) = tempYaw/5.4114;
 }
 
 void Kinematics_4DOF::configToJointSpace(const Eigen::Vector4d &inputs, Eigen::Vector4d &outputs)
@@ -675,4 +683,13 @@ Eigen::Vector4d Kinematics_4DOF::configToJointSpace(const Eigen::Vector4d &input
     Eigen::Vector4d outputs;
     configToJointSpace(inputs, outputs);
     return outputs;
+}
+
+Eigen::Vector4d Kinematics_4DOF::configToLearnedJointSpace(const Eigen::Vector4d &currConfig,
+                                                           const Eigen::Matrix<double, 4, -1> &configHistory,
+                                                           const Eigen::Vector4d &deltaConfig)
+{
+    // feed into ML model to get target joint angles
+    Eigen::Vector4d joints;// = getJointPrediction(currConfig, configHistory, deltaConfig);
+    return joints;
 }

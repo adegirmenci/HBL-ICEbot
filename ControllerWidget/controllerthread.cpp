@@ -34,6 +34,11 @@ ControllerThread::ControllerThread(QObject *parent) :
     setUSangle(0.0); // 75 deg for Exp 5, used 108 for ablation tracking at one point
     m_modeFlags.inVivoMode = IN_VIVO_OFF;
 
+    // MATLAB
+#ifdef SVM_ON
+    SVMregression_initialize();
+#endif
+
     m_mutex = new QMutex(QMutex::NonRecursive);
 
     m_isReady = true;
@@ -64,6 +69,11 @@ ControllerThread::~ControllerThread()
     m_mutex->unlock();
 
     delete m_mutex;
+
+    // MATLAB
+#ifdef SVM_ON
+    SVMregression_terminate();
+#endif
 
     emit finished();
 }
@@ -717,6 +727,17 @@ void ControllerThread::controlCycle()
         jointsCurrAndTarget = m_cathKin.control_icra2016(m_BB_CT_curTipPos, m_dXYZPsi, m_currGamma);
         //jointsCurrAndTarget = m_cathKin.control_icra2016(m_BBmobile_CT, m_dXYZPsi, m_currGamma);
 
+        Eigen::Vector4d configCurr = m_cathKin.inverseKinematics(m_BB_CT_curTipPos, m_currGamma);
+        Eigen::Vector4d currTask = m_cathKin.configToTaskSpace(configCurr);
+
+        // Use SVM
+#ifdef SVM_ON
+        std::vector<double> inputs = {configCurr(0),configCurr(1),configCurr(2),configCurr(3),
+                                      m_dXYZPsi(0),m_dXYZPsi(1),m_dXYZPsi(2),m_dXYZPsi(3)};
+        std::vector<double> predictions(4, 0);
+        SVMregression(&SVMregressionStackDataGlobal, &inputs[0], &predictions[0]);
+#endif
+
         // get relative motor counts
         Eigen::Vector4d relQCs;  // knob_tgt - knob_curr
         relQCs(0) = (jointsCurrAndTarget(0,1) - jointsCurrAndTarget(0,0)) * m_gains.kTrans * 0.001 * EPOS_TRANS_RAD2QC;
@@ -730,8 +751,7 @@ void ControllerThread::controlCycle()
 //        m_cathKin.dampedLeastSquaresStep(J, m_dXYZPsi);
 
 //        // *****
-        Eigen::Vector4d configCurr = m_cathKin.inverseKinematics(m_BB_CT_curTipPos, m_currGamma);
-        Eigen::Vector4d currTask = m_cathKin.configToTaskSpace(configCurr);
+
 //        Eigen::Vector4d targetTask(m_input_AbsXYZ(0), m_input_AbsXYZ(1), m_input_AbsXYZ(2), m_input_delPsi);
 //        Eigen::Vector4d targetConfig = m_cathKin.JacobianStep(currTask, targetTask, configCurr);
 //        Eigen::Vector4d currJoint = m_cathKin.configToJointSpace(configCurr);

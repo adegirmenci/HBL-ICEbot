@@ -6,6 +6,7 @@ dir_to_ignore/
 LoggedData
 MATLAB/volumes
 MATLAB/ECGpeakDetection/codegen
-MATLAB/ECGpeakDetection/ECGgating.prj
-MATLAB/ECGpeakDetection/ECGgating_mex.mexw32
+MATLAB/ECGpeakDetection/codegen64
+MATLAB/ECGpeakDetection/ECGgating.prj*
+MATLAB/ECGpeakDetection/ECGgating_mex.*
 
