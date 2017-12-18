@@ -270,6 +270,15 @@ static const int FRMGRAB_FPS = 60;
 
 #define PERIOD_FILTER_SIZE 150
 
+static const double PITCH_WP = 7.3896;
+static const double PITCH_WY = 1.2693;
+static const double PITCH_BIAS = 0.2529;
+static const double PITCH_SUM = 8.9118;
+static const double YAW_WY = 5.9987;
+static const double YAW_WP = 0.3187;
+static const double YAW_BIAS = -0.1743;
+static const double YAW_SUM = 6.1431;
+
 enum CONTROLLER_ERROR_CODES
 {
     CONTROLLER_SUCCESS = 0,     //

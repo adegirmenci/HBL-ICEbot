@@ -667,10 +667,10 @@ void Kinematics_4DOF::configToJointSpace(const double gamma,
 
     // compensate for pitch/yaw coupling and losses
     double tempPitch, tempYaw;
-    tempPitch = outputs(1)*7.7476 + outputs(2)*1.1867 + 0.2702;
-    tempYaw = outputs(1)*-0.1692 + outputs(2)*5.6253 - 0.0447;
-    outputs(1) = tempPitch/9.2045;
-    outputs(2) = tempYaw/5.4114;
+    tempPitch = outputs(1)*PITCH_WP + outputs(2)*PITCH_WY + PITCH_BIAS;
+    tempYaw = outputs(1)*YAW_WP + outputs(2)*YAW_WY + YAW_BIAS;
+    outputs(1) = tempPitch/PITCH_SUM;
+    outputs(2) = tempYaw/YAW_SUM;
 }
 
 void Kinematics_4DOF::configToJointSpace(const Eigen::Vector4d &inputs, Eigen::Vector4d &outputs)

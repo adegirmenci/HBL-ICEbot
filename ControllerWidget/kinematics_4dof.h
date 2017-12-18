@@ -16,6 +16,8 @@
 #include <Eigen/StdVector>
 #include <Eigen/Geometry>
 
+#include "../icebot_definitions.h"
+
 /*!
  *  \brief     Four degree of freedom catheter kinematics class.
  *  \author    Alperen Degirmenci
