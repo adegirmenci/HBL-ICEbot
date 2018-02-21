@@ -3,13 +3,14 @@ close all; clear all; clc
 % Written by Alperen Degirmenci
 % 6/14/2017 - Harvard Biorobotics Lab
 
-cropMask = 'Sequoia_StarTech_Size 1 (largest)90mm';
+cropMask = 'Sequoia_StarTech_Size 1 (largest)80mm';
+% cropMask = 'Sequoia_StarTech_Size 1 (largest)80mm partial';
 
 %% Select Study Directory
 
 if(ispc)
 %     root = 'C:\Users\Alperen\Documents\QT Projects\ICEbot_QT_v1\LoggedData\';
-    root = 'D:\BIDMC_Exp6\';
+    root = 'D:\BIDMC_Exp5\';
 elseif(ismac)
     root = '/Volumes/Macintosh HD/Research/BIDMC Exp 5/BIDMC_Exp5/';
 else
@@ -27,11 +28,12 @@ study = folder(length(root)+1:end);
 numRec = length(Time);
 
 % convert to posix time
+YearMonthDay = [str2num(study(1:4)),str2num(study(5:6)),str2num(study(7:8))];
 hrsOffet = 5;
-if(isdst(datetime('today','TimeZone','America/New_York')))
+if(isdst(datetime(YearMonthDay,'TimeZone','America/New_York')))
     hrsOffet = 4;
 end
-Time = posixtime(datetime(str2num(study(1:4)),str2num(study(5:6)),str2num(study(7:8)))...
+Time = posixtime(datetime(YearMonthDay)...
                           + hours(hrsOffet) + milliseconds(Time));
 
 %Time = Time - Time(1);
@@ -97,106 +99,126 @@ if(~isempty(mask))
     sweepIdx = find(strcmp(Type,'SWEEP'));
     fprintf('%d Sweeps found in study.\n', length(sweepIdx));
     
-    % TODO: combine sweeps
+    % Combine sweeps
+    combineTheseSweepIdxs = sweepIdx(1:end);
+    allSweeps = cell(numel(combineTheseSweepIdxs),1);
+    nSweepsTotal = 0;
     
-    sweepIdx = sweepIdx(2);
-    Time_SWEEP_Start = Time(sweepIdx);
+    for i = 1:numel(combineTheseSweepIdxs)
+        sweepIdx = combineTheseSweepIdxs(i);
+        Time_SWEEP_Start = Time(sweepIdx);
     
-    % get sweep parameters
-    sweepSettings.nSweeps = x1(sweepIdx);
-    sweepSettings.stepSize = x2(sweepIdx);
-    sweepSettings.errorThresh = x3(sweepIdx);
-    sweepSettings.imagingDuration = x4(sweepIdx);
-    
-    relevantIdx = find(mask);
-    relevantIdx = relevantIdx(relevantIdx>sweepIdx);
-    Time_SWEEP_conv = Time(relevantIdx);
-    SWEEP_convdControlCycle = CycleNum(relevantIdx);
-    
-    relevantIdx2 = find(mask2);
-    relevantIdx2 = relevantIdx2(relevantIdx2>sweepIdx);
-    Time_SWEEP_next = Time(relevantIdx2);
-    SWEEP_psiCmd = rad2deg(x1(relevantIdx2));
-    SWEEP_psiCmd = [SWEEP_psiCmd(1) - sweepSettings.stepSize; SWEEP_psiCmd];
-    
-    nSweeps = sweepSettings.nSweeps;
-    
-    % !!!!!!!!!!!!
-    % nSweeps = nSweeps - 5;
-    % !!!!!!!!!!!!
-    
-    % these better match
-    if(nSweeps ~= length(relevantIdx))
-        fprintf('nSweeps(%d) not equal to length(relevantIdx)=%d\n', nSweeps, length(relevantIdx));
-    end
-    
-    sweep(nSweeps) = struct('ImgFileNames',[],... % file name of image
-                   'ImgTimeStamps',[],... % time stamp of image
-                   'poseEM',[],... % interpolated pose
-                   'EMidx',[],... % index of closest EM reading
-                   'errorXYZ',[],...
-                   'errorPsi',[],... % angular error from desired pose
-                   'ECGcycleIdx',[],... % ECG cycle that the image belongs to
-                   'percentECG',[],... % location in the ECG cycle, value b/w 0.0 and 1.0
-                   'startIdx',[],...
-                   'startTime',[],...
-                   'endTime',[],...
-                   'controlCycle',[],...
-                   'targetPsi',[],...
-                   'errorPsiAtConvergence',[]);
+        % get sweep parameters
+        sweepSettings.nSweeps = x1(sweepIdx);
+        sweepSettings.stepSize = x2(sweepIdx);
+        sweepSettings.errorThresh = x3(sweepIdx);
+        sweepSettings.imagingDuration = x4(sweepIdx);
+        
+        relevantIdx = find(mask);
+        relevantIdx = relevantIdx(relevantIdx>sweepIdx);
+        if(i < numel(combineTheseSweepIdxs))
+            relevantIdx = relevantIdx(relevantIdx<combineTheseSweepIdxs(i+1));
+        end
+        Time_SWEEP_conv = Time(relevantIdx);
+        SWEEP_convdControlCycle = CycleNum(relevantIdx);
+        
+        relevantIdx2 = find(mask2);
+        relevantIdx2 = relevantIdx2(relevantIdx2>sweepIdx);
+        Time_SWEEP_next = Time(relevantIdx2);
+        SWEEP_psiCmd = rad2deg(x1(relevantIdx2));
+        SWEEP_psiCmd = [SWEEP_psiCmd(1) - sweepSettings.stepSize; SWEEP_psiCmd];
+        
+        nSweeps = sweepSettings.nSweeps;
+        
+        % !!!!!!!!!!!!
+        % nSweeps = nSweeps - 5;
+        % !!!!!!!!!!!!
+        
+        % these better match
+        if(nSweeps ~= length(relevantIdx))
+            fprintf('nSweeps(%d) not equal to length(relevantIdx)=%d\n', nSweeps, length(relevantIdx));
+        else
+            fprintf('nSweeps(%d) is equal to length(relevantIdx)=%d\n', nSweeps, length(relevantIdx));
+        end
 
-    % Find sweep boundaries
-    for i = 1:nSweeps
-        % get start time
-        sweepStartIdx = relevantIdx(i);
-        sweepStartTime = Time(sweepStartIdx);
+        sweep(nSweeps) = struct('ImgFileNames',[],... % file name of image
+            'ImgTimeStamps',[],... % time stamp of image
+            'poseEM',[],... % interpolated pose
+            'EMidx',[],... % index of closest EM reading
+            'errorXYZ',[],...
+            'errorPsi',[],... % angular error from desired pose
+            'ECGcycleIdx',[],... % ECG cycle that the image belongs to
+            'percentECG',[],... % location in the ECG cycle, value b/w 0.0 and 1.0
+            'startIdx',[],...
+            'startTime',[],...
+            'endTime',[],...
+            'controlCycle',[],...
+            'targetPsi',[],...
+            'errorPsiAtConvergence',[]);
         
-        % find first image in sweep
-        imgT = imageTimestamps;
-        imgT(imgT < sweepStartTime) = inf;
-        [sweepStart_imageTime, sweepStart_imageIdx] = min(imgT);
-        
-        % get end time
-        sweepEndTime = sweepStartTime + sweepSettings.imagingDuration/1000.;
-        
-        % find last image in sweep
-        imgT = imageTimestamps;
-        imgT(imgT > sweepEndTime) = 0;
-        [sweepEnd_imageTime, sweepEnd_imageIdx] = max(imgT);
-        
-        % get a list of image filenames and timestamps
-        imgTimesInSweep = imageTimestamps(sweepStart_imageIdx:sweepEnd_imageIdx);
-        imgNamesInSweep = imageFileNames(sweepStart_imageIdx:sweepEnd_imageIdx);
-        
-        msk_ = dxyzpsi(:,1) == SWEEP_convdControlCycle(i);
-        errorPsiAtConvergence = dxyzpsi(msk_, 6);
-        
-        sweep(i).ImgFileNames = imgNamesInSweep;
-        sweep(i).ImgTimeStamps = imgTimesInSweep;
-        sweep(i).startIdx = sweepStartIdx;
-        sweep(i).startTime = sweepStartTime;
-        sweep(i).endTime = sweepEndTime;
-        sweep(i).controlCycle = SWEEP_convdControlCycle(i);
-        sweep(i).targetPsi = SWEEP_psiCmd(i);
-        sweep(i).errorPsiAtConvergence = errorPsiAtConvergence;
+        % Find sweep boundaries
+        for j = 1:nSweeps
+            % get start time
+            sweepStartIdx = relevantIdx(j);
+            sweepStartTime = Time(sweepStartIdx);
+            
+            % find first image in sweep
+            imgT = imageTimestamps;
+            imgT(imgT < sweepStartTime) = inf;
+            [sweepStart_imageTime, sweepStart_imageIdx] = min(imgT);
+            
+            % get end time
+            sweepEndTime = sweepStartTime + sweepSettings.imagingDuration/1000.;
+            
+            % find last image in sweep
+            imgT = imageTimestamps;
+            imgT(imgT > sweepEndTime) = 0;
+            [sweepEnd_imageTime, sweepEnd_imageIdx] = max(imgT);
+            
+            % get a list of image filenames and timestamps
+            imgTimesInSweep = imageTimestamps(sweepStart_imageIdx:sweepEnd_imageIdx);
+            imgNamesInSweep = imageFileNames(sweepStart_imageIdx:sweepEnd_imageIdx);
+            
+            msk_ = dxyzpsi(:,1) == SWEEP_convdControlCycle(j);
+            errorPsiAtConvergence = dxyzpsi(msk_, 6);
+            
+            sweep(j).ImgFileNames = imgNamesInSweep;
+            sweep(j).ImgTimeStamps = imgTimesInSweep;
+            sweep(j).startIdx = sweepStartIdx;
+            sweep(j).startTime = sweepStartTime;
+            sweep(j).endTime = sweepEndTime;
+            sweep(j).controlCycle = SWEEP_convdControlCycle(j);
+            sweep(j).targetPsi = SWEEP_psiCmd(j);
+            sweep(j).errorPsiAtConvergence = errorPsiAtConvergence;
+        end
+        allSweeps{i} = sweep;
+        nSweepsTotal = nSweepsTotal + nSweeps;
+        clear sweep
     end
 
 else
     disp('No SWEEPCONVD in file. Must be older format.');
 end
 
+sweep = [];
+for i = 1:numel(combineTheseSweepIdxs)
+    sweep = [sweep, allSweeps{i}];
+end
+nSweeps = numel(sweep);
+assert(nSweepsTotal == nSweeps);
+
+%% compare T_BB_CT and DXYZPSI
 tS = [sweep(:).startTime];
 tS = tS -Time_T_BB_CT(1);
 
-% compare T_BB_CT and DXYZPSI
 nrm = sqrt(sum(squeeze(T_BB_CT(1:3,4,:)).^2,1));
 plot(dxyzpsi(:,2)-Time_T_BB_CT(1), dxyzpsi(:,6)-mean(dxyzpsi(:,6)))
 hold on
 plot(Time_T_BB_CT - Time_T_BB_CT(1), nrm-mean(nrm))
 
 plot(tS,2, '*')
+legend('DXYZPSI','TBBCT','SWEEP')
 
-return
 
 %% Align image and EM timestamps
 
@@ -406,7 +428,7 @@ for k = 1:n4Dframes
     stitch.nFrames = nSlicesToStitch;
     
     % interpolate
-    [CdZeroed,interpCube] = interpolateSlices4D(stitch, cropMask, 0, interpCube);
+    [CdZeroed,interpCube,in3,stitch] = interpolateSlices4D(stitch, cropMask, 0, interpCube);
     %[CdZeroed] = interpolateSlicesGPU(stitch, cropMask, 'true');
     
     outfilePre = ['./volumes/volume_',study,dt,'_',num2str(k)];
@@ -414,6 +436,9 @@ for k = 1:n4Dframes
     % save as .RAW
     volumeFileName = [outfilePre,'.raw'];
     saveStitched2RawFile(CdZeroed, volumeFileName)
+    
+    % save inhull mask as .mat
+    save([outfilePre,'_inhull.mat'],'in3')
     
     % save as .mat
     save([outfilePre,'.mat'],'CdZeroed')
@@ -425,4 +450,6 @@ for k = 1:n4Dframes
     fprintf(fileID,'%d\t%d\t%d\n',xn,yn,zn);
     fclose(fileID);
 
+    
+    %stitches(k) = stitch;
 end

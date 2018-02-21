@@ -78,6 +78,8 @@ ICEbot_GUI::ICEbot_GUI(QWidget *parent) :
             ui->frameClientWidget->m_worker, SLOT(receive_T_CT(std::vector<double>,double)));
     connect(ui->controlWidget->m_worker, SIGNAL(toggleFrameClientContinuousStreaming(bool)),
             ui->frameClientWidget->m_worker, SLOT(toggleContinuousSteaming(bool)));
+    connect(ui->labjackWidget->m_hrWidget, SIGNAL(reportPhase(qint64,double)),
+            ui->frameClientWidget->m_worker, SLOT(receivePhase(qint64,double)));
 
     // Controller to EPOS
     connect(ui->controlWidget->m_worker, SIGNAL(setEPOSservoTargetPos(std::vector<long>,bool)),

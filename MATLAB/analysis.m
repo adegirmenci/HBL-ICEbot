@@ -1,6 +1,6 @@
 close all; clear all; clc
 
-folder = 'C:\Users\Alperen\Documents\QT Projects\ICEbot_QT_v1\LoggedData\20170616_103508752\20170616_103508752';
+%folder = 'C:\Users\Alperen\Documents\QT Projects\ICEbot_QT_v1\LoggedData\20170616_103508752\20170616_103508752';
 folder = 'D:\BIDMC_Exp5\20170616_124815718\20170616_124815718';
 
 [CycleNum,Time,Type,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16] = ...
@@ -59,10 +59,10 @@ T_Inst = Tforms(:,:,3:4:end);
 T_Chest = Tforms(:,:,4:4:end);
 
 figure
-plot(time(1:4:end), squeeze(T_BT(1,4,:)))
+plot(time(1:4:end), squeeze(T_BT(1,4,:)-T_BT(1,4,1)))
 hold on
-plot(time(1:4:end), squeeze(T_BT(2,4,:)))
-plot(time(1:4:end), squeeze(T_BT(3,4,:)))
+plot(time(1:4:end), squeeze(T_BT(2,4,:)-T_BT(2,4,1)))
+plot(time(1:4:end), squeeze(T_BT(3,4,:)-T_BT(3,4,1)))
 legend('x','y','z')
 axis equal
 
@@ -71,9 +71,14 @@ plot3(squeeze(T_BT(1,4,:)),squeeze(T_BT(2,4,:)),squeeze(T_BT(3,4,:)))
 
 %%
 
+tipZ = squeeze(T_BT(3,4,:)-T_BT(3,4,1));
+resp = squeeze(T_Chest(3,4,:)-T_Chest(3,4,1));
+
 figure
-plot(time(1:4:end), squeeze(T_BT(3,4,:)))
+plot(time(1:4:end), tipZ)
 hold on
-plot(time(1:4:end), squeeze(T_Chest(3,4,:))+90)
-legend('x','y','z')
-axis equal
+plot(time(1:4:end), resp)
+plot(time(1:4:end), tipZ-resp)
+xlabel('Time (s)')
+ylabel('Distance (mm)')
+legend('Tip z','Chest','Diff')

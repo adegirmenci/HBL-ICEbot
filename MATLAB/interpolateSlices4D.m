@@ -1,4 +1,4 @@
-function [CdZeroed,interpCube] = interpolateSlices4D(stitch, cropMask, doPadding, interpCube)
+function [CdZeroed,interpCube,in3, stitch] = interpolateSlices4D(stitch, cropMask, doPadding, interpCube)
 % INTERPOLATESLICES4D: A part of ICEbot_imgProcGUI_v1
 %      Written by Alperen Degirmenci
 %      Harvard Biorobotics Lab
@@ -92,7 +92,7 @@ tic
 if(ismac)
     Cd = volume;
 else
-    Cd = inpaintn(volume,200);
+    Cd = volume;%inpaintn(volume,200);
 end
 toc
 waitbar(0.95, hWait, 'Interpolation done.');

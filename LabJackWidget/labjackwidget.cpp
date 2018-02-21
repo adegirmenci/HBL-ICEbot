@@ -55,6 +55,7 @@ LabJackWidget::LabJackWidget(QWidget *parent) :
     connect(m_worker, SIGNAL(logData(qint64,std::vector<double>)), ui->HRwidget, SLOT(receiveECG(qint64,std::vector<double>)));
 
     // qDebug() << "LabJack Widget Thread ID: " << reinterpret_cast<int>(QThread::currentThreadId()) << ".";
+    m_hrWidget = ui->HRwidget;
 }
 
 LabJackWidget::~LabJackWidget()

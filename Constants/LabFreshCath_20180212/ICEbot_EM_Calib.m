@@ -10,8 +10,8 @@ T_BB_BT=[1 0 0 0; 0 1 0 0; 0 0 1 0.05; 0 0 0 1];
 % The torsion of the catheter was relaxed
 %%%%% Copy the rotation 3x3 of the TIP sensor here
 T_Box_STm=[-0.9976  -0.0216  +0.0667  0;
-            0.0687  -0.1168  +0.9907  0;
-           +0.0474  +0.9961   +0.0725  0;
+           +0.0687  -0.1168  +0.9907  0;
+           -0.0135   0.9928  +0.1179  0;
     0 0 0 1];% 2015-06-12 benchtop, no bucket
 
 % ideal ST coordinate axis
@@ -28,7 +28,7 @@ T_STm_STi=inv(T_Box_STm)*T_Box_STi;
 % T_BT_STi=[0 1 0 0; 0 0 1 0.00265; 1 0 0 0.010; 0 0 0 1];
 T_BT_STi=[0  0  1   0.000;
           0 -1  0   0.0023; 
-          1  0  0   0.0128; 0 0 0 1];
+          1  0  0   0.0093; 0 0 0 1];
 % T_BT_ST=[0 0 1 0; 0 -1 0 0.00265; 1 0 0 0.010; 0 0 0 1];
 
 T_STm_BT = T_STm_STi*inv(T_BT_STi);
@@ -38,9 +38,9 @@ T_STm_BT = T_STm_STi*inv(T_BT_STi);
 % The catheter was pointed straight ahead with both sensors mounted on.
 % The torsion of the catheter was relaxed
 %%%%% Copy the rotation 3x3 of the BASE sensor here
-T_Box_SBm=[-0.9855   -0.0992   -0.1375  0;
-           -0.0587   0.9603   -0.2722  0;
-           0.1591   -0.2603   -0.9524  0;
+T_Box_SBm=[-0.9999  -0.0159   -0.0027  0;
+           -0.0143  +0.9492   -0.3141  0;
+           +0.0074  -0.3140   -0.9493  0;
            0 0 0 1];% 2015-06-12 benchtop, no bucket
 
 % ideal SB coordinate axis
@@ -53,7 +53,7 @@ T_SBm_SBi=inv(T_Box_SBm)*T_Box_SBi;
 
 T_BB_SBi=[0  1  0   0.000
           0  0  1   0.0023;
-          1  0  0  -0.010; 0 0 0 1];
+          1  0  0  -0.005; 0 0 0 1];
 
 T_BB_SBm=T_BB_SBi*inv(T_SBm_SBi);
 % T_BB_SBm=T_BB_SBi/T_SBm_SBi;

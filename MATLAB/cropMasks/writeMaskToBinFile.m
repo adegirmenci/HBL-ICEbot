@@ -1,10 +1,13 @@
 close all; clear all; clc
 
+maskName = 'Sequoia_StarTech_Size 1 (largest)80mm partial';
+
 % load mask
-load('Acuson_Epiphan.mat');
+load([maskName,'.mat']);
+
 
 % open file
-fileID = fopen('Acuson_Epiphan.bin','w');
+fileID = fopen([maskName,'.bin'],'w');
 
 %write width (int)
 fwrite(fileID, int32(cropSettings.imWidth), 'int32');

@@ -5,6 +5,7 @@
 #include <QThread>
 
 #include "labjackthread.h"
+#include "HeartRateWidget/heartratewidget.h"
 
 namespace Ui {
 class LabJackWidget;
@@ -19,6 +20,8 @@ public:
     ~LabJackWidget();
 
     LabJackThread *m_worker;
+
+    HeartRateWidget *m_hrWidget;
 
 signals:
     void connectLabJack(); // open connection

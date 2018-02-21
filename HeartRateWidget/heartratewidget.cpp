@@ -53,5 +53,5 @@ void HeartRateWidget::receiveECG(qint64 timeStamp, std::vector<double> data)
         ui->phaseLineEdit->setText(QString::number(m_phaseHR,'f',3));
     }
 
-    emit reportPhase(m_phaseHR);
+    emit reportPhase(timeStamp, m_phaseHR);
 }

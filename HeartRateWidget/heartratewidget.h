@@ -35,7 +35,7 @@ public:
     ~HeartRateWidget();
 
 signals:
-    void reportPhase(double phase);
+    void reportPhase(qint64 timeStamp, double phase);
 
 public slots:
     void receiveECG(qint64 timeStamp,
